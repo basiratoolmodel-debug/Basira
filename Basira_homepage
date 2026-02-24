@@ -1,0 +1,725 @@
+<!-- <!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira | بصيرة</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="./index.html" aria-label="Basira Home">
+          <span class="brand__mark">B</span>
+          <span class="brand__text">Basira</span>
+        </a>
+
+        <nav class="nav">
+          <a class="nav__link" href="#features" data-i18n="nav.features">المزايا</a>
+          <a class="nav__link" href="#how" data-i18n="nav.how">كيف تعمل</a>
+          <a class="nav__link" href="#trust" data-i18n="nav.trust">الأمان والامتثال</a>
+        </nav>
+
+        <div class="actions">
+          <button class="lang" id="langBtn" type="button" aria-label="Toggle language">
+            <span class="lang__dot"></span>
+            <span id="langLabel">AR</span>
+          </button>
+
+          <a class="btn btn--ghost" href="./login.html" data-i18n="cta.login">تسجيل الدخول</a>
+          <a class="btn btn--primary" href="./register.html" data-i18n="cta.register">إنشاء حساب</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero__grid">
+          <div class="hero__content">
+            <p class="badge" data-i18n="hero.badge">تحليلات ذكية ثنائية اللغة</p>
+            <h1 class="hero__title" data-i18n="hero.title">
+              بصيرة: أداة تنقيب بيانات وتحليلات مدعومة بالذكاء الاصطناعي
+            </h1>
+            <p class="hero__subtitle" data-i18n="hero.subtitle">
+              اجمع بياناتك، نظفها، وحللها تلقائيًا. ثم احصل على لوحات تفاعلية وتقرير رؤى يشرح الأنماط ويقترح الأسباب الجذرية للمشكلات، مع دعم عربي وإنجليزي ونشر محلي يحافظ على سيادة البيانات.
+            </p>
+
+            <div class="hero__cta">
+              <a class="btn btn--primary btn--lg" href="./register.html" data-i18n="hero.primary">
+                ابدأ الآن
+              </a>
+              <a class="btn btn--soft btn--lg" href="#how" data-i18n="hero.secondary">
+                شاهد كيف تعمل
+              </a>
+            </div>
+
+            <div class="hero__stats">
+              <div class="stat">
+                <div class="stat__num" data-i18n="stats.one.num">4</div>
+                <div class="stat__label" data-i18n="stats.one.label">مراحل من البيانات إلى الرؤى</div>
+              </div>
+              <div class="stat">
+                <div class="stat__num" data-i18n="stats.two.num">AR/EN</div>
+                <div class="stat__label" data-i18n="stats.two.label">تحليل ولوحات ثنائية اللغة</div>
+              </div>
+              <div class="stat">
+                <div class="stat__num" data-i18n="stats.three.num">On-Prem</div>
+                <div class="stat__label" data-i18n="stats.three.label">نشر محلي للخصوصية</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero__panel" aria-hidden="true">
+            <div class="panel">
+              <div class="panel__row">
+                <div class="chip" data-i18n="chips.ingest">رفع ملفات داخلية</div>
+                <div class="chip" data-i18n="chips.scrape">جمع ويب أخلاقي</div>
+              </div>
+              <div class="panel__card">
+                <div class="card__title" data-i18n="panel.title">مسار التحليل</div>
+                <ol class="timeline">
+                  <li class="timeline__item" data-i18n="timeline.one">جمع البيانات</li>
+                  <li class="timeline__item" data-i18n="timeline.two">تنظيف ومعالجة مسبقة</li>
+                  <li class="timeline__item" data-i18n="timeline.three">تصنيف وتجميع وتحليل سبب جذري</li>
+                  <li class="timeline__item" data-i18n="timeline.four">لوحات وتقارير قابلة للتفسير</li>
+                </ol>
+              </div>
+
+              <div class="panel__note" data-i18n="panel.note">
+                كل خطوة قابلة للتتبع عبر سجلات تدقيق، مع تصميم يراعي الحوكمة والامتثال.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <div class="container">
+          <div class="section__head">
+            <h2 class="section__title" data-i18n="features.title">ماذا تقدم بصيرة؟</h2>
+            <p class="section__subtitle" data-i18n="features.subtitle">
+              إمكانات مركزة لتقليل الجهد اليدوي ورفع جودة القرار عبر تحليلات قابلة للتفسير.
+            </p>
+          </div>
+
+          <div class="grid">
+            <article class="feature">
+              <h3 class="feature__title" data-i18n="features.f1.t">أتمتة دورة البيانات</h3>
+              <p class="feature__text" data-i18n="features.f1.p">
+                تجهيز البيانات والتنظيف والتحقق من الجودة تلقائيًا لتقليل الأخطاء وتسريع النتائج.
+              </p>
+            </article>
+
+            <article class="feature">
+              <h3 class="feature__title" data-i18n="features.f2.t">نماذج ثنائية اللغة</h3>
+              <p class="feature__text" data-i18n="features.f2.p">
+                دعم عربي وإنجليزي في النصوص والتحليلات والعرض داخل اللوحات والتقارير.
+              </p>
+            </article>
+
+            <article class="feature">
+              <h3 class="feature__title" data-i18n="features.f3.t">تصنيف وتجميع وRCA</h3>
+              <p class="feature__text" data-i18n="features.f3.p">
+                اختيار مسار التحليل بناءً على خصائص البيانات، مع استنتاج أسباب جذرية وتفسيرها.
+              </p>
+            </article>
+
+            <article class="feature">
+              <h3 class="feature__title" data-i18n="features.f4.t">لوحات وتقارير تفاعلية</h3>
+              <p class="feature__text" data-i18n="features.f4.p">
+                عرض رؤى قابلة للتنفيذ عبر Dashboard ثنائي اللغة وتقرير ملخص للنتائج.
+              </p>
+            </article>
+
+            <article class="feature">
+              <h3 class="feature__title" data-i18n="features.f5.t">نشر محلي آمن</h3>
+              <p class="feature__text" data-i18n="features.f5.p">
+                تصميم يدعم النشر داخل بيئة المؤسسة (On-Premises) لتحقيق سيادة البيانات.
+              </p>
+            </article>
+
+            <article class="feature">
+              <h3 class="feature__title" data-i18n="features.f6.t">حوكمة وقابلية تدقيق</h3>
+              <p class="feature__text" data-i18n="features.f6.p">
+                سجلات تشغيل قابلة للمراجعة وتوجهات تصميم تراعي الخصوصية والشفافية.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" class="section section--alt">
+        <div class="container">
+          <div class="section__head">
+            <h2 class="section__title" data-i18n="how.title">كيف تعمل المنصة؟</h2>
+            <p class="section__subtitle" data-i18n="how.subtitle">
+              تدفق واضح من إدخال البيانات إلى توليد الرؤى.
+            </p>
+          </div>
+
+          <div class="steps">
+            <div class="step">
+              <div class="step__k">01</div>
+              <div>
+                <h3 class="step__t" data-i18n="how.s1.t">جمع البيانات</h3>
+                <p class="step__p" data-i18n="how.s1.p">رفع ملفات داخلية، مع خيار جمع ويب من مصادر عامة وفق ضوابط أخلاقية.</p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step__k">02</div>
+              <div>
+                <h3 class="step__t" data-i18n="how.s2.t">المعالجة المسبقة</h3>
+                <p class="step__p" data-i18n="how.s2.p">تنظيف، معالجة القيم المفقودة، إزالة التكرار، وتطبيع النصوص العربية والإنجليزية.</p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step__k">03</div>
+              <div>
+                <h3 class="step__t" data-i18n="how.s3.t">النمذجة والتحليل</h3>
+                <p class="step__p" data-i18n="how.s3.p">تصنيف، تجميع، وتحليل سبب جذري قابل للتفسير مع مسارات تحليل مرنة.</p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step__k">04</div>
+              <div>
+                <h3 class="step__t" data-i18n="how.s4.t">عرض النتائج</h3>
+                <p class="step__p" data-i18n="how.s4.p">لوحات تفاعلية ثنائية اللغة وتقرير رؤى يلخص الاتجاهات والمخرجات.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="trust" class="section">
+        <div class="container">
+          <div class="trust">
+            <div>
+              <h2 class="section__title" data-i18n="trust.title">الأمان والامتثال</h2>
+              <p class="section__subtitle" data-i18n="trust.subtitle">
+                المنصة مصممة للنشر المحلي مع مراعاة مبادئ الحوكمة والخصوصية وسجلات التدقيق.
+              </p>
+
+              <ul class="check">
+                <li data-i18n="trust.li1">نشر داخل بيئة المؤسسة لتقليل الاعتماد على السحابة العامة.</li>
+                <li data-i18n="trust.li2">قابلية تتبع العمليات عبر سجلات تدقيق.</li>
+                <li data-i18n="trust.li3">عرض تفسيري للنتائج لدعم الشفافية والثقة.</li>
+              </ul>
+
+              <div class="trust__cta">
+                <a class="btn btn--primary" href="./login.html" data-i18n="trust.cta1">تسجيل الدخول</a>
+                <a class="btn btn--ghost" href="./register.html" data-i18n="trust.cta2">إنشاء حساب</a>
+              </div>
+            </div>
+
+            <div class="trust__card">
+              <div class="trust__cardTitle" data-i18n="trust.cardTitle">مبدأ تصميم</div>
+              <p class="trust__cardText" data-i18n="trust.cardText">
+                الهدف من الواجهة أن تكون بسيطة لغير التقنيين، ودقيقة للتقنيين، مع توضيح ما الذي يحدث للبيانات في كل مرحلة.
+              </p>
+              <div class="mini">
+                <div class="mini__item" data-i18n="trust.m1">ثنائية لغة</div>
+                <div class="mini__item" data-i18n="trust.m2">قابلة للتفسير</div>
+                <div class="mini__item" data-i18n="trust.m3">On-Prem</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div class="container footer__inner">
+          <p class="muted">© <span id="year"></span> Basira</p>
+          <div class="footer__links">
+            <a class="muted" href="./login.html" data-i18n="footer.login">تسجيل الدخول</a>
+            <a class="muted" href="./register.html" data-i18n="footer.register">إنشاء حساب</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html> -->
+
+<!-- <!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira | بصيرة</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="./index.html" aria-label="Basira Home">
+          <span class="brand__mark" aria-hidden="true">B</span>
+          <span class="brand__text">Basira</span>
+        </a>
+
+        <nav class="nav" aria-label="Primary">
+          <a class="nav__link" href="#start" data-i18n="nav.start">ابدأ</a>
+          <a class="nav__link" href="#journey" data-i18n="nav.steps">المراحل</a>
+          <a class="nav__link" href="#features" data-i18n="nav.features">المميزات</a>
+          <a class="nav__link nav__link--doc" href="./documentation.html" data-i18n="nav.docs">Documentation</a>
+          <a class="nav__link" href="#contact" data-i18n="nav.contact">تواصل</a>
+        </nav>
+
+        <div class="actions">
+          <button class="pill" id="langBtn" type="button" aria-label="Toggle language">
+            <span class="pill__icon" aria-hidden="true">🌐</span>
+            <span id="langLabel">AR</span>
+          </button>
+
+          <a class="btn btn--ghost" href="./login.html" data-i18n="cta.login">تسجيل الدخول</a>
+          <a class="btn btn--primary" href="./register.html" data-i18n="cta.register">ابدأ الآن</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      
+      <section class="hero" id="top">
+        <div class="container hero__center">
+          <div class="hero__content reveal">
+            <p class="badge badge--center" data-i18n="hero.badge">من البيانات إلى قرار مؤسسي واضح</p>
+
+            <h1 class="hero__title hero__title--center" data-i18n="hero.title">
+              بصيرة منصة ويب سعودية لتحليل البيانات وتشغيل الأتمتة محليًا داخل بيئة المستخدم
+            </h1>
+
+            <p class="hero__subtitle hero__subtitle--center" data-i18n="hero.subtitle">
+              تم تطوير بصيرة لتخدم البيانات العربية والسياق السعودي. تعمل التحليلات والأتمتة على نسخة المستخدم نفسها، وتبقى البيانات مخزنة محليًا On-Premises لدعم الخصوصية وحوكمة البيانات.
+            </p>
+
+            <div class="hero__cta hero__cta--center">
+              <a class="btn btn--primary btn--lg" href="./register.html" data-i18n="hero.primary">ابدأ الآن</a>
+              <a class="btn btn--soft btn--lg" href="#journey" data-i18n="hero.secondary">استعراض المراحل</a>
+            </div>
+
+            <div class="hero__proof hero__proof--center">
+              <div class="proofItem">
+                <div class="proofIcon" aria-hidden="true">🛡️</div>
+                <div>
+                  <div class="proofT" data-i18n="proof.1.t">On-Premises</div>
+                  <div class="proofP" data-i18n="proof.1.p">تبقى البيانات داخل جهاز المستخدم أو شبكة المؤسسة.</div>
+                </div>
+              </div>
+
+              <div class="proofItem">
+                <div class="proofIcon" aria-hidden="true">⚙️</div>
+                <div>
+                  <div class="proofT" data-i18n="proof.2.t">أتمتة على نسخة المستخدم</div>
+                  <div class="proofP" data-i18n="proof.2.p">كل أتمتة تعمل محليًا دون نقل البيانات لخدمات خارجية.</div>
+                </div>
+              </div>
+
+              <div class="proofItem">
+                <div class="proofIcon" aria-hidden="true">🇸🇦</div>
+                <div>
+                  <div class="proofT" data-i18n="proof.3.t">جاهزية عربية وسعودية</div>
+                  <div class="proofP" data-i18n="proof.3.p">RTL ودعم النصوص العربية وأنماط بيانات شائعة محليًا.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+      
+          <div class="hero__visual reveal" aria-hidden="true">
+            <div class="heroPanel heroPanel--centered">
+              <div class="heroPanel__top">
+                <div class="mockDots"><span></span><span></span><span></span></div>
+                <div class="heroPanel__label" data-i18n="hero.panel.label">مكان صورة للواجهة</div>
+              </div>
+              <div class="heroPanel__body">
+                <div class="imgSlot">
+                  <div class="imgSlot__icon">🖼️</div>
+                  <div class="imgSlot__text" data-i18n="hero.panel.placeholder">
+                    ضع هنا لقطة شاشة للوحة المؤشرات أو التقرير
+                  </div>
+                </div>
+
+                <div class="miniRow">
+                  <div class="miniChip">On-Prem</div>
+                  <div class="miniChip">Arabic</div>
+                  <div class="miniChip">Dashboards</div>
+                  <div class="miniChip">Reports</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dividerLine reveal" aria-hidden="true"></div>
+        </div>
+      </section>
+
+  
+      <section id="start" class="section section--alt">
+        <div class="container">
+          <div class="section__head section__head--center reveal">
+            <h2 class="section__title" data-i18n="start.title">مسارات البدء</h2>
+            <p class="section__subtitle" data-i18n="start.subtitle">
+              اختر المسار المناسب لبياناتك، ثم انتقل تلقائيًا إلى مراحل التنظيف والتحليل وإخراج النتائج.
+            </p>
+          </div>
+
+          <div class="optionGrid reveal">
+            <article class="optionCard">
+              <div class="optionCard__head">
+                <div class="optionIcon" aria-hidden="true">📤</div>
+                <div class="optionMeta">
+                  <div class="optionTitle" data-i18n="start.c1.t">تحميل البيانات</div>
+                  <div class="optionDesc" data-i18n="start.c1.p">
+                    تحميل ملفات CSV أو Excel ثم تنفيذ فحص الجودة وتجهيز خطة التحسين تلقائيًا.
+                  </div>
+                </div>
+              </div>
+              <div class="optionFooter">
+                <span class="tag">CSV</span>
+                <span class="tag">XLSX</span>
+                <span class="tag">RTL</span>
+              </div>
+            </article>
+
+            <article class="optionCard">
+              <div class="optionCard__head">
+                <div class="optionIcon" aria-hidden="true">🧩</div>
+                <div class="optionMeta">
+                  <div class="optionTitle" data-i18n="start.c2.t">قوالب جاهزة</div>
+                  <div class="optionDesc" data-i18n="start.c2.p">
+                    بدء سريع عبر قوالب لوحات مؤشرات وتقارير قياسية ثم ربطها ببياناتك.
+                  </div>
+                </div>
+              </div>
+              <div class="optionFooter">
+                <span class="tag">Dashboards</span>
+                <span class="tag">Reports</span>
+                <span class="tag">KPIs</span>
+              </div>
+            </article>
+
+            <article class="optionCard">
+              <div class="optionCard__head">
+                <div class="optionIcon" aria-hidden="true">⚙️</div>
+                <div class="optionMeta">
+                  <div class="optionTitle" data-i18n="start.c3.t">إعداد مخصص</div>
+                  <div class="optionDesc" data-i18n="start.c3.p">
+                    بناء Pipeline مخصصة تشمل التحقق والتنظيف والتحليل وإخراج التقارير وفق سياساتك.
+                  </div>
+                </div>
+              </div>
+              <div class="optionFooter">
+                <span class="tag">On-Prem</span>
+                <span class="tag">Automation</span>
+                <span class="tag">Governance</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+     
+      <section id="journey" class="section section--soft">
+        <div class="container">
+          <div class="section__head section__head--center reveal">
+            <h2 class="section__title" data-i18n="journey.title">رحلة بصيرة خطوة بخطوة</h2>
+            <p class="section__subtitle" data-i18n="journey.subtitle">
+              تنقل بين المراحل يوضح لك ما يحدث داخليًا، وما الذي ستحصل عليه في كل مرحلة، بأسلوب مؤسسي واضح.
+            </p>
+          </div>
+
+          <div class="journeyWrap reveal">
+            <div class="journeyGlow" aria-hidden="true"></div>
+            <div class="journeyOverlay" aria-hidden="true"></div>
+
+            <div class="journey" aria-label="Basira Journey Slider">
+              <div class="journeyTop journeyTop--center">
+                <div class="journeyLabel" id="journeyLabel">Basira Journey | بصيرة</div>
+
+                <div class="journeyControls">
+                  <button class="iconBtn" id="journeyPrev" type="button" aria-label="Previous stage">↑</button>
+                  <button class="iconBtn" id="journeyNext" type="button" aria-label="Next stage">↓</button>
+                </div>
+              </div>
+
+              <div class="journeyRail" id="journeyRail"></div>
+
+              <div class="journeyBottom journeyBottom--center">
+                <div class="dots" id="journeyDots" aria-label="Stages navigation"></div>
+                <div class="journeyHint" data-i18n="journey.hint">استخدم الأسهم أو النقاط للتنقل بين المراحل</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="journeyCTA reveal">
+            <div class="journeyCTA__text">
+              <div class="journeyCTATitle" data-i18n="journey.cta.t">تشغيل محلي مع مخرجات قابلة للاعتماد</div>
+              <div class="journeyCTAP" data-i18n="journey.cta.p">
+                بصيرة تنتج لوحة مؤشرات وتقريرًا رسميًا جاهزًا للاستخدام داخل المؤسسة، مع توثيق مختصر لما تم تنفيذه في كل مرحلة.
+              </div>
+            </div>
+
+            <div class="journeyCTAButtons">
+              <a class="btn btn--ghost" href="./documentation.html" data-i18n="journey.cta.b1">Documentation</a>
+              <a class="btn btn--primary" href="./register.html" data-i18n="journey.cta.b2">ابدأ الآن</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+     
+      <section id="features" class="section section--alt2">
+        <div class="container">
+          <div class="section__head section__head--center reveal">
+            <h2 class="section__title" data-i18n="features.title">مميزات بصيرة</h2>
+            <p class="section__subtitle" data-i18n="features.subtitle">
+              تصميم يركز على التشغيل، حماية البيانات، وإخراج النتائج بصورة واضحة وقابلة للمراجعة.
+            </p>
+          </div>
+
+          <div class="featuresGrid reveal">
+            <article class="fCard">
+              <div class="fIcon" aria-hidden="true">⚙️</div>
+              <h3 class="fTitle" data-i18n="features.f1.t">أتمتة على نسخة المستخدم</h3>
+              <p class="fText" data-i18n="features.f1.p">
+                تشغيل كل Automation محليًا على نسخة المستخدم نفسها، لتقليل الاعتماد على خدمات خارجية.
+              </p>
+            </article>
+
+            <article class="fCard">
+              <div class="fIcon" aria-hidden="true">🛡️</div>
+              <h3 class="fTitle" data-i18n="features.f2.t">تخزين محلي On-Premises</h3>
+              <p class="fText" data-i18n="features.f2.p">
+                تبقى البيانات والنتائج داخل جهاز المستخدم أو شبكة المؤسسة، دعمًا للخصوصية والامتثال والحوكمة.
+              </p>
+            </article>
+
+            <article class="fCard">
+              <div class="fIcon" aria-hidden="true">🇸🇦</div>
+              <h3 class="fTitle" data-i18n="features.f3.t">جاهزية عربية وسعودية</h3>
+              <p class="fText" data-i18n="features.f3.p">
+                دعم RTL والنصوص العربية وأنماط بيانات شائعة داخل البيئة المحلية.
+              </p>
+            </article>
+
+            <article class="fCard">
+              <div class="fIcon" aria-hidden="true">🧹</div>
+              <h3 class="fTitle" data-i18n="features.f4.t">تجهيز بيانات تلقائي</h3>
+              <p class="fText" data-i18n="features.f4.p">
+                معالجة القيم الناقصة، توحيد الصيغ، وإزالة التكرار وفق سياسة واضحة قابلة للمراجعة.
+              </p>
+            </article>
+
+            <article class="fCard">
+              <div class="fIcon" aria-hidden="true">📊</div>
+              <h3 class="fTitle" data-i18n="features.f5.t">لوحات مؤشرات معيارية</h3>
+              <p class="fText" data-i18n="features.f5.p">
+                إنشاء Dashboard تلقائي يبرز المؤشرات ذات الأولوية لصاحب القرار.
+              </p>
+            </article>
+
+            <article class="fCard">
+              <div class="fIcon" aria-hidden="true">🧾</div>
+              <h3 class="fTitle" data-i18n="features.f6.t">تقرير رسمي</h3>
+              <p class="fText" data-i18n="features.f6.p">
+                تقرير جاهز للمشاركة يتضمن ملخصًا تنفيذيًا ونتائج وتوصيات وخطة متابعة.
+              </p>
+            </article>
+          </div>
+
+          <div class="docsTeaser reveal">
+            <div>
+              <div class="docsTeaserT" data-i18n="docs.teaser.t">Documentation</div>
+              <div class="docsTeaserP" data-i18n="docs.teaser.p">
+                صفحة وثائق منظمة بأسلوب متصفح وثائق، لإضافة الشرح التفصيلي لاحقًا.
+              </div>
+            </div>
+            <a class="btn btn--primary" href="./documentation.html" data-i18n="docs.teaser.b">الانتقال إلى الوثائق</a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer" id="contact">
+        <div class="container footer__inner">
+          <div class="footer__left">
+            <div class="footer__brand">Basira</div>
+            <div class="footer__muted">© بصيرة السعودية 2026</div>
+          </div>
+
+          <div class="footer__right">
+            <a class="footer__link" href="mailto:contact@basira.sa">contact@basira.sa</a>
+            <a class="footer__link" href="#" aria-label="Basira on Twitter">Twitter</a>
+            <a class="footer__link" href="#" aria-label="Basira on LinkedIn">LinkedIn</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html> -->
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira | بصيرة</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="journey.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+</header> -->
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="index.html" aria-label="Basira Home">
+      <span class="brand__mark" aria-hidden="true">B</span>
+      <span class="brand__text">Basira</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <a class="nav__link" href="index.html#start">ابدأ</a>
+      <a class="nav__link" href="index.html#journey">المراحل</a>
+      <a class="nav__link" href="index.html#features">المميزات</a>
+      <a class="nav__link nav__link--doc" href="documentation.html">Documentation</a>
+      <a class="nav__link" href="index.html#contact">تواصل</a>
+    </nav>
+
+    <div class="actions">
+      <button class="pill" id="langBtn" type="button" aria-label="Toggle language">
+        <span class="pill__icon" aria-hidden="true">🌐</span>
+        <span id="langLabel">AR</span>
+      </button>
+
+      <a class="btn btn--ghost" href="login.html">تسجيل الدخول</a>
+      <a class="btn btn--primary" href="register.html">ابدأ الآن</a>
+    </div>
+  </div>
+</header>
+
+  <body>
+    <div id="app-header"></div>
+
+    <main>
+      <section class="section">
+        <div class="container reveal" style="text-align:center;max-width:980px">
+          <div style="display:inline-flex;padding:8px 12px;border-radius:999px;border:1px solid rgba(11,18,32,.12);background:#fff;font-weight:900;color:rgba(11,18,32,.85)">
+            من البيانات إلى قرار مؤسسي واضح
+          </div>
+
+          <h1 style="margin:14px 0 12px;font-size:2.2rem;line-height:1.22;font-weight:900">
+            بصيرة منصة ويب سعودية لتحليل البيانات وتشغيل الأتمتة محليًا داخل بيئة المستخدم
+          </h1>
+
+          <p style="margin:0 auto 18px;color:rgba(11,18,32,.72);line-height:1.9;font-weight:700;max-width:920px">
+            تم تطوير بصيرة لتخدم البيانات العربية والسياق السعودي. تعمل التحليلات والأتمتة على نسخة المستخدم نفسها، وتبقى البيانات مخزنة محليًا On-Premises لدعم الخصوصية وحوكمة البيانات.
+          </p>
+
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            <a class="btn btn--primary btn--lg" href="./register.html">ابدأ الآن</a>
+            <a class="btn btn--soft btn--lg" href="#journey">استعراض المراحل</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="start" class="section">
+        <div class="container">
+          <div class="section__head section__head--center reveal">
+            <h2 class="section__title">مسارات البدء</h2>
+            <p class="section__subtitle">اختر المسار المناسب لبياناتك، ثم انتقل تلقائيًا إلى مراحل التنظيف والتحليل وإخراج النتائج.</p>
+          </div>
+
+          <div class="reveal" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <article style="border-radius:22px;border:1px solid rgba(11,18,32,.12);background:#fff;box-shadow:0 18px 50px rgba(2,6,23,.08);padding:16px">
+              <div style="font-weight:900;margin-bottom:8px">تحميل البيانات</div>
+              <div style="color:rgba(11,18,32,.72);font-weight:700;line-height:1.85">تحميل ملفات CSV أو Excel ثم تنفيذ فحص الجودة وتجهيز خطة التحسين تلقائيًا.</div>
+            </article>
+
+            <article style="border-radius:22px;border:1px solid rgba(11,18,32,.12);background:#fff;box-shadow:0 18px 50px rgba(2,6,23,.08);padding:16px">
+              <div style="font-weight:900;margin-bottom:8px">قوالب جاهزة</div>
+              <div style="color:rgba(11,18,32,.72);font-weight:700;line-height:1.85">بدء سريع عبر قوالب لوحات مؤشرات وتقارير قياسية ثم ربطها ببياناتك.</div>
+            </article>
+
+            <article style="border-radius:22px;border:1px solid rgba(11,18,32,.12);background:#fff;box-shadow:0 18px 50px rgba(2,6,23,.08);padding:16px">
+              <div style="font-weight:900;margin-bottom:8px">إعداد مخصص</div>
+              <div style="color:rgba(11,18,32,.72);font-weight:700;line-height:1.85">بناء Pipeline مخصصة تشمل التحقق والتنظيف والتحليل وإخراج التقارير وفق سياساتك.</div>
+            </article>
+          </div>
+
+          <style>
+            @media (max-width: 980px){
+              #start .container > div:last-of-type{ grid-template-columns:1fr !important; }
+            }
+          </style>
+        </div>
+      </section>
+
+      <!-- Journey section with its own styling -->
+      <section id="journey" class="journeySection">
+        <div class="journeyShell">
+          <div class="section__head section__head--center reveal">
+            <h2 class="section__title">رحلة بصيرة خطوة بخطوة</h2>
+            <p class="section__subtitle">هذا الجزء بتصميم مستقل لضمان وضوح القراءة وإبراز الانتقال بين المراحل بشكل احترافي.</p>
+          </div>
+
+          <div id="journeyRoot" class="reveal"></div>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <div class="container">
+          <div class="section__head section__head--center reveal">
+            <h2 class="section__title">مميزات بصيرة</h2>
+            <p class="section__subtitle">تشغيل محلي، حماية بيانات، ومخرجات واضحة قابلة للمراجعة والاعتماد.</p>
+          </div>
+
+          <div class="reveal" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <article style="border-radius:22px;border:1px solid rgba(11,18,32,.12);background:#fff;box-shadow:0 18px 50px rgba(2,6,23,.08);padding:16px">
+              <div style="font-weight:900;margin-bottom:8px">أتمتة على نسخة المستخدم</div>
+              <div style="color:rgba(11,18,32,.72);font-weight:700;line-height:1.85">تشغيل كل Automation محليًا على نسخة المستخدم نفسها دون نقل البيانات لخدمات خارجية.</div>
+            </article>
+            <article style="border-radius:22px;border:1px solid rgba(11,18,32,.12);background:#fff;box-shadow:0 18px 50px rgba(2,6,23,.08);padding:16px">
+              <div style="font-weight:900;margin-bottom:8px">تخزين محلي On-Premises</div>
+              <div style="color:rgba(11,18,32,.72);font-weight:700;line-height:1.85">تبقى البيانات والنتائج داخل جهاز المستخدم أو شبكة المؤسسة لدعم الخصوصية والحوكمة.</div>
+            </article>
+            <article style="border-radius:22px;border:1px solid rgba(11,18,32,.12);background:#fff;box-shadow:0 18px 50px rgba(2,6,23,.08);padding:16px">
+              <div style="font-weight:900;margin-bottom:8px">جاهزية عربية وسعودية</div>
+              <div style="color:rgba(11,18,32,.72);font-weight:700;line-height:1.85">دعم RTL والنصوص العربية وأنماط بيانات شائعة ضمن البيئة المحلية.</div>
+            </article>
+          </div>
+
+          <style>
+            @media (max-width: 980px){
+              #features .container > div:last-of-type{ grid-template-columns:1fr !important; }
+            }
+          </style>
+        </div>
+      </section>
+    </main>
+
+    <div id="app-footer"></div>
+
+    <script src="include.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
