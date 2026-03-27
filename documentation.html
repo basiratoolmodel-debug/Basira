@@ -1,0 +1,1214 @@
+<!-- <!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira Documentation | وثائق بصيرة</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="./index.html" aria-label="Basira Home">
+          <span class="brand__mark" aria-hidden="true">B</span>
+          <span class="brand__text">Basira</span>
+        </a>
+
+        <nav class="nav" aria-label="Primary">
+          <a class="nav__link" href="./index.html#what">ما هي بصيرة</a>
+          <a class="nav__link" href="./index.html#features">المميزات</a>
+          <a class="nav__link" href="./index.html#how">طريقة الاستعمال</a>
+          <a class="nav__link nav__link--doc" href="./documentation.html">Documentation</a>
+        </nav>
+
+        <div class="actions">
+          <button class="pill" id="langBtn" type="button" aria-label="Toggle language">
+            <span class="pill__icon" aria-hidden="true">🌐</span>
+            <span id="langLabel">AR</span>
+          </button>
+
+          <a class="btn btn--ghost" href="./login.html">تسجيل الدخول</a>
+          <a class="btn btn--primary" href="./register.html">إنشاء حساب</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="docsMain">
+      <div class="container docsShell">
+        <aside class="docsSidebar" aria-label="Documentation sidebar">
+          <div class="docsSidebar__top">
+            <div class="docsTitle">Basira Documentation</div>
+            <div class="docsSub">مرجع الاستخدام والتفاصيل الدقيقة</div>
+
+            <div class="docsSearch">
+              <input id="docsSearch" class="docsSearch__input" type="search" placeholder="ابحث في الوثائق" />
+              <div class="docsSearch__hint">مثال: On-Premises، Automation، التقارير</div>
+            </div>
+          </div>
+
+          <div class="docsNav" id="docsNav">
+            
+          </div>
+        </aside>
+
+        <section class="docsContent" aria-label="Documentation content">
+          <div class="docsBreadcrumb" id="docsBreadcrumb">Documentation</div>
+
+          <article class="docsArticle" id="docsArticle">
+        
+          </article>
+
+          <div class="docsPager">
+            <button class="btn btn--ghost" id="prevDoc" type="button">السابق</button>
+            <button class="btn btn--primary" id="nextDoc" type="button">التالي</button>
+          </div>
+
+          <footer class="docsFooter">
+            <div class="docsFooter__row">
+              <span class="docsFooter__muted">هل تحتاجين توسيع الوثائق لاحقًا؟</span>
+              <a class="docsFooter__link" href="mailto:contact@basira.sa">contact@basira.sa</a>
+            </div>
+          </footer>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <div class="container footer__inner">
+          <div class="footer__left">
+            <div class="footer__brand">Basira</div>
+            <div class="footer__muted">© بصيرة السعودية 2026</div>
+          </div>
+
+          <div class="footer__right">
+            <a class="footer__link" href="mailto:contact@basira.sa">contact@basira.sa</a>
+            <a class="footer__link" href="#" aria-label="Basira on Twitter">Twitter</a>
+            <a class="footer__link" href="#" aria-label="Basira on LinkedIn">LinkedIn</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script src="./docs.js"></script>
+  </body>
+</html> -->
+
+
+
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira Documentation | وثائق بصيرة</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root{
+        --bg0:#ffffff;
+        --bg1:#ffffff;
+        --bg2:#ffffff;
+        --surface:#ffffff;
+        --sub:#F6F8FC;
+
+        --text:rgba(11,18,32,.92);
+        --muted:rgba(11,18,32,.70);
+        --muted2:rgba(11,18,32,.62);
+
+        --stroke:rgba(11,18,32,.12);
+        --stroke2:rgba(11,18,32,.08);
+        --strokeW:rgba(0, 0, 0, 0.14);
+
+        --shadow: 0 18px 50px rgba(2,6,23,.10);
+        --shadow2: 0 28px 90px rgba(2,6,23,.18);
+
+        --r12:12px;
+        --r16:16px;
+        --r18:18px;
+        --r22:22px;
+        --r28:28px;
+
+        --blue:#2563EB;
+        --blue2:#1D4ED8;
+        --green:#16A34A;
+        --amber:#F59E0B;
+
+        --focus: 0 0 0 4px rgba(37,99,235,.18);
+        --max: 1200px;
+      }
+
+      *{ box-sizing:border-box; }
+      html,body{ height:100%; }
+      body{
+        margin:0;
+        font-family: "IBM Plex Sans Arabic","IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1400px 650px at 15% 0%, rgba(37,99,235,.18), transparent 60%),
+          radial-gradient(1100px 600px at 85% 10%, rgba(22,163,74,.14), transparent 62%),
+          linear-gradient(180deg, var(--bg0) 0%, var(--bg2) 260px, var(--sub) 260px, var(--sub) 100%);
+      }
+
+      a{ color:inherit; }
+      button,input{ font-family:inherit; }
+      .container{
+        width: min(var(--max), calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      /* Topbar */
+      .topbar{
+        position: sticky;
+        top:0;
+        z-index:1000;
+        background: rgba(255, 255, 255, 0.62);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgba(3, 3, 3, 0.1);
+      }
+      .topbar__inner{
+        height: 64px;
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .brand{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        text-decoration:none;
+        color:#121212;
+        font-weight:1000;
+        letter-spacing:.2px;
+        white-space: nowrap;
+      }
+      .brand__mark{
+        width:36px;height:36px;
+        border-radius: 12px;
+        display:grid;
+        place-items:center;
+        background: rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255,255,255,.18);
+        box-shadow: 0 12px 30px rgba(2,6,23,.35);
+        font-weight:1000;
+      }
+      .brand__text{ font-size:1.02rem; }
+
+      .nav{
+        display:flex;
+        gap: 8px;
+        align-items:center;
+        flex-wrap: wrap;
+        justify-content:center;
+      }
+      .nav__link{
+        color: rgba(255,255,255,.84);
+        text-decoration:none;
+        font-weight: 900;
+        padding: 9px 10px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        transition: .15s ease;
+        white-space: nowrap;
+      }
+      .nav__link:hover{
+        background: rgba(255,255,255,.08);
+        border-color: rgba(255,255,255,.12);
+        color:#fff;
+      }
+      .nav__link--doc{
+        background: rgba(255,255,255,.08);
+        border-color: rgba(255,255,255,.12);
+      }
+
+      .actions{
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        white-space: nowrap;
+      }
+      .pill{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.16);
+        background: rgba(255,255,255,.10);
+        color:#000000;
+        font-weight: 1000;
+        cursor:pointer;
+      }
+      .btn{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        text-decoration:none;
+        font-weight: 1000;
+        cursor:pointer;
+        transition: .15s ease;
+      }
+      .btn:focus{ outline:none; box-shadow: var(--focus); }
+      .btn--ghost{
+        color:#000000;
+        background: rgba(255,255,255,.08);
+        border-color: rgba(255,255,255,.14);
+      }
+      .btn--ghost:hover{ background: rgba(2, 2, 2, 0.12); }
+      .btn--primary{
+        color:#061a3a;
+        background: linear-gradient(135deg, rgba(37,99,235,1) 0%, rgba(147,197,253,1) 100%);
+        border-color: rgba(255,255,255,.14);
+        box-shadow: 0 16px 40px rgba(37,99,235,.22);
+      }
+      .btn--primary:hover{ transform: translateY(-1px); filter: brightness(1.01); }
+
+      /* Docs Layout */
+      .docsMain{ padding: 16px 0 0; }
+      .docsShell{
+        display:grid;
+        grid-template-columns: 360px 1fr;
+        gap: 12px;
+        align-items: start;
+        padding-bottom: 22px;
+      }
+
+      .docsSidebar{
+        position: sticky;
+        top: 84px;
+        border-radius: var(--r28);
+        border: 1px solid rgba(255,255,255,.16);
+        background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+        box-shadow: var(--shadow2);
+        overflow: hidden;
+        max-height: calc(100vh - 110px);
+        display:flex;
+        flex-direction: column;
+      }
+      .docsSidebar__top{
+        padding: 14px;
+        border-bottom: 1px solid rgba(255,255,255,.12);
+      }
+      .docsTitle{
+        color: rgba(0, 0, 0, 0.94);
+        font-weight: 1100;
+        letter-spacing:.2px;
+      }
+      .docsSub{
+        margin-top: 6px;
+        color: rgba(0, 0, 0, 0.72);
+        font-weight: 850;
+        line-height: 1.8;
+        font-size: .95rem;
+      }
+
+      .docsSearch{ margin-top: 12px; }
+      .docsSearch__input{
+        width:100%;
+        padding: 12px 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,.16);
+        background: rgba(255,255,255,.08);
+        color: rgba(0, 0, 0, 0.92);
+        outline: none;
+        font-weight: 850;
+      }
+      .docsSearch__input::placeholder{ color: rgba(8, 8, 8, 0.55); }
+      .docsSearch__input:focus{
+        border-color: rgba(8, 8, 8, 0.28);
+        background: rgba(94, 85, 85, 0.1);
+        box-shadow: 0 0 0 4px rgba(255,255,255,.08);
+      }
+      .docsSearch__hint{
+        margin-top: 8px;
+        color: rgba(6, 6, 6, 0.62);
+        font-weight: 850;
+        font-size: .92rem;
+        line-height: 1.7;
+      }
+
+      .docsNav{
+        padding: 10px;
+        overflow:auto;
+      }
+      .docsNav::-webkit-scrollbar{ width:10px; }
+      .docsNav::-webkit-scrollbar-thumb{
+        background: rgba(255,255,255,.14);
+        border-radius: 999px;
+      }
+
+      .navGroup{
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,.14);
+        background: rgba(255,255,255,.06);
+        overflow:hidden;
+        margin-bottom: 10px;
+      }
+      .navGroup__btn{
+        width:100%;
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 11px 12px;
+        border:0;
+        background: transparent;
+        cursor:pointer;
+        color: rgba(0, 0, 0, 0.92);
+        font-weight: 1100;
+      }
+      .navGroup__btn:hover{ background: rgba(255,255,255,.06); }
+      .navGroup__icon{ opacity:.8; }
+
+      .navItems{
+        padding: 6px;
+        display:grid;
+        gap: 6px;
+      }
+      .navItem{
+        text-decoration:none;
+        display:flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 10px 10px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        color: rgba(0, 0, 0, 0.82);
+        font-weight: 1000;
+        transition: .15s ease;
+      }
+      .navItem:hover{
+        background: rgba(255,255,255,.08);
+        border-color: rgba(255,255,255,.12);
+        color:#0b0b0b;
+      }
+      .navItem.isActive{
+        background: rgba(37,99,235,.20);
+        border-color: rgba(37,99,235,.24);
+        color:#000000;
+      }
+      .navItem__meta{
+        color: rgba(6, 6, 6, 0.62);
+        font-weight: 900;
+        font-size: .9rem;
+      }
+
+      /* Content */
+      .docsContent{
+        border-radius: var(--r28);
+        border: 1px solid var(--stroke);
+        background: #fff;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .docsTop{
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(11,18,32,.10);
+        background:
+          radial-gradient(1100px 420px at 15% 0%, rgba(37,99,235,.10), transparent 60%),
+          radial-gradient(900px 420px at 90% 25%, rgba(22,163,74,.08), transparent 60%),
+          #fff;
+      }
+      .docsBreadcrumb{
+        color: rgba(11,18,32,.70);
+        font-weight: 900;
+        font-size: .92rem;
+        display:flex;
+        align-items:center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .crumbSep{ opacity:.55; }
+      .docsHeading{
+        margin: 10px 0 0;
+        font-size: clamp(1.25rem, 1.8vw, 1.7rem);
+        font-weight: 1100;
+        letter-spacing:.1px;
+        line-height: 1.25;
+      }
+      .docsMeta{
+        margin-top: 10px;
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .badges{
+        display:flex;
+        align-items:center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(11,18,32,.12);
+        background: rgba(11,18,32,.02);
+        color: rgba(11,18,32,.84);
+        font-weight: 1100;
+        font-size: .90rem;
+      }
+      .badge.info{ background: rgba(37,99,235,.08); border-color: rgba(37,99,235,.18); }
+      .badge.ok{ background: rgba(22,163,74,.08); border-color: rgba(22,163,74,.18); }
+      .badge.warn{ background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.20); }
+
+      .miniLink{
+        border: 1px solid rgba(11,18,32,.12);
+        background: #fff;
+        padding: 9px 10px;
+        border-radius: 14px;
+        font-weight: 1100;
+        cursor:pointer;
+        text-decoration:none;
+      }
+      .miniLink:hover{ background: rgba(11,18,32,.02); }
+      .miniLink:focus{ outline:none; box-shadow: var(--focus); }
+
+      .docsArticle{
+        padding: 18px 16px 10px;
+      }
+      .docsArticle p{
+        margin: 0 0 12px;
+        line-height: 2.0;
+        color: rgba(11,18,32,.78);
+        font-weight: 850;
+      }
+      .docsArticle h2{
+        margin: 18px 0 10px;
+        font-size: 1.18rem;
+        font-weight: 1100;
+        color: rgba(11,18,32,.94);
+        letter-spacing:.1px;
+      }
+      .docsArticle h3{
+        margin: 14px 0 8px;
+        font-size: 1.05rem;
+        font-weight: 1100;
+        color: rgba(11,18,32,.92);
+      }
+      .docsArticle ul{
+        margin: 0 18px 14px 0;
+        padding: 0 18px 0 0;
+        line-height: 1.95;
+        color: rgba(11,18,32,.78);
+        font-weight: 850;
+      }
+      .docsArticle li{ margin: 6px 0; }
+
+      .callout{
+        border-radius: 18px;
+        border: 1px solid rgba(11,18,32,.12);
+        background: rgba(11,18,32,.02);
+        padding: 12px 12px;
+        margin: 14px 0;
+      }
+      .callout strong{ font-weight: 1100; }
+      .callout.info{ background: rgba(37,99,235,.06); border-color: rgba(37,99,235,.16); }
+      .callout.ok{ background: rgba(22,163,74,.06); border-color: rgba(22,163,74,.16); }
+      .callout.warn{ background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.18); }
+
+      pre{
+        margin: 12px 0 16px;
+        padding: 12px 12px;
+        border-radius: 18px;
+        border: 1px solid rgba(11,18,32,.12);
+        background: #0b1220;
+        color: rgba(255,255,255,.92);
+        overflow:auto;
+        box-shadow: 0 18px 50px rgba(2,6,23,.14);
+        direction: ltr;
+        text-align: left;
+      }
+      code{
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: .95rem;
+      }
+
+      .docsPager{
+        padding: 12px 16px 16px;
+        border-top: 1px solid rgba(11,18,32,.10);
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        background: #fff;
+      }
+      .docsFooter{
+        padding: 14px 16px 18px;
+        border-top: 1px solid rgba(11,18,32,.10);
+        background: #fff;
+      }
+      .docsFooter__row{
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .docsFooter__muted{
+        color: rgba(11,18,32,.70);
+        font-weight: 900;
+      }
+      .docsFooter__link{
+        color: rgba(37,99,235,.95);
+        font-weight: 1100;
+        text-decoration:none;
+      }
+      .docsFooter__link:hover{ text-decoration: underline; }
+
+      /* Site footer */
+      .footer{
+        padding: 24px 0 34px;
+        color: rgba(11,18,32,.70);
+        font-weight: 850;
+      }
+      .footer__inner{
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        border-top: 1px solid rgba(11,18,32,.10);
+        padding-top: 16px;
+      }
+      .footer__brand{
+        font-weight: 1100;
+        color: rgba(255, 255, 255, 0.88);
+      }
+      .footer__muted{ margin-top: 6px; }
+      .footer__right{
+        display:flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .footer__link{
+        text-decoration:none;
+        padding: 9px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(11,18,32,.08);
+        background: rgba(11,18,32,.02);
+        font-weight: 1000;
+        color: rgba(11,18,32,.74);
+      }
+      .footer__link:hover{ background: rgba(11,18,32,.04); }
+
+      @media (max-width: 980px){
+        .docsShell{ grid-template-columns: 1fr; }
+        .docsSidebar{ position: static; max-height: none; }
+        .nav{ display:none; }
+      }
+      @media (max-width: 520px){
+        .actions a.btn--ghost{ display:none; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="./index.html" aria-label="Basira Home">
+          <span class="brand__mark" aria-hidden="true">B</span>
+          <span class="brand__text">Basira</span>
+        </a>
+
+        <nav class="nav" aria-label="Primary">
+          <a class="nav__link" href="./index.html#what">ما هي بصيرة</a>
+          <a class="nav__link" href="./index.html#features">المميزات</a>
+          <a class="nav__link" href="./index.html#how">طريقة الاستعمال</a>
+          <a class="nav__link nav__link--doc" href="./documentation.html">Documentation</a>
+        </nav>
+
+        <div class="actions">
+          <button class="pill" id="langBtn" type="button" aria-label="Toggle language">
+            <span aria-hidden="true">🌐</span>
+            <span id="langLabel">AR</span>
+          </button>
+
+          <a class="btn btn--ghost" href="./login.html">تسجيل الدخول</a>
+          <a class="btn btn--primary" href="./register.html">إنشاء حساب</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="docsMain">
+      <div class="container docsShell">
+        <aside class="docsSidebar" aria-label="Documentation sidebar">
+          <div class="docsSidebar__top">
+            <div class="docsTitle">Basira Documentation</div>
+            <div class="docsSub">شرح بصيرة: من إدخال البيانات حتى التقرير التنفيذي</div>
+
+            <div class="docsSearch">
+              <input id="docsSearch" class="docsSearch__input" type="search" placeholder="ابحث في الوثائق" autocomplete="off" />
+              <div class="docsSearch__hint">مثال: On-Premises، جودة البيانات، التنظيف، الأتمتة</div>
+            </div>
+          </div>
+
+          <div class="docsNav" id="docsNav"></div>
+        </aside>
+
+        <section class="docsContent" aria-label="Documentation content">
+          <div class="docsTop">
+            <div class="docsBreadcrumb" id="docsBreadcrumb">
+              <span>Documentation</span>
+              <span class="crumbSep" aria-hidden="true">›</span>
+              <span id="crumbGroup">البداية</span>
+              <span class="crumbSep" aria-hidden="true">›</span>
+              <span id="crumbPage">نظرة عامة</span>
+            </div>
+
+            <h1 class="docsHeading" id="docTitle">نظرة عامة على بصيرة</h1>
+
+            <div class="docsMeta">
+              <div class="badges">
+                <span class="badge info" id="docTag">أساسيات</span>
+                <span class="badge" id="docReading">زمن القراءة: 5 دقائق</span>
+                <span class="badge ok" id="docUpdated">آخر تحديث: 2026-02-17</span>
+              </div>
+              <a class="miniLink" href="#" id="copyLink">نسخ رابط القسم</a>
+            </div>
+          </div>
+
+          <article class="docsArticle" id="docsArticle"></article>
+
+          <div class="docsPager">
+            <button class="btn btn--ghost" id="prevDoc" type="button">السابق</button>
+            <button class="btn btn--primary" id="nextDoc" type="button">التالي</button>
+          </div>
+
+          <footer class="docsFooter">
+            <div class="docsFooter__row">
+              <span class="docsFooter__muted">هل تحتاجين توسيع الوثائق لاحقًا؟</span>
+              <a class="docsFooter__link" href="mailto:contact@basira.sa">contact@basira.sa</a>
+            </div>
+          </footer>
+        </section>
+      </div>
+
+      <footer class="footer">
+        <div class="container footer__inner">
+          <div class="footer__left">
+            <div class="footer__brand">Basira</div>
+            <div class="footer__muted">© بصيرة السعودية 2026</div>
+          </div>
+
+          <div class="footer__right">
+            <a class="footer__link" href="mailto:contact@basira.sa">contact@basira.sa</a>
+            <a class="footer__link" href="#" aria-label="Basira on Twitter">Twitter</a>
+            <a class="footer__link" href="#" aria-label="Basira on LinkedIn">LinkedIn</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      const DOCS = [
+        {
+          groupId: "getting-started",
+          groupTitle: "البداية",
+          items: [
+            {
+              id: "overview",
+              title: "نظرة عامة على بصيرة",
+              tag: "أساسيات",
+              reading: "5 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>بصيرة منصة ويب سعودية لتحليل البيانات وتشغيل الأتمتة محليًا داخل بيئة المستخدم. هدفها تحويل البيانات الخام إلى <strong>قرار تنفيذي واضح</strong> عبر رحلة منظمة تشمل فحص الجودة، التنظيف، التحليل، ثم إخراج تقرير ولوحة مؤشرات.</p>
+
+                <div class="callout info"><strong>الفكرة الأساسية:</strong> بدل إرسال البيانات إلى خدمات خارجية، تعمل بصيرة داخل بيئة المستخدم أو شبكة المؤسسة (On-Premises) لدعم الخصوصية وحوكمة البيانات.</div>
+
+                <h2>ماذا تقدم بصيرة؟</h2>
+                <ul>
+                  <li><strong>فحص جودة البيانات</strong>: اكتشاف القيم المفقودة، التكرار، وعدم الاتساق.</li>
+                  <li><strong>تنظيف وتحسين</strong>: تطبيق سياسات إصلاح واضحة مع قياس الأثر قبل وبعد.</li>
+                  <li><strong>تحليل وInsights</strong>: استخراج مؤشرات وتفسيرات مرتبطة بسياق العمل.</li>
+                  <li><strong>مخرجات جاهزة</strong>: تقرير تنفيذي ولوحات KPI قابلة للمراجعة والمشاركة.</li>
+                </ul>
+
+                <h2>متى تستخدمين بصيرة؟</h2>
+                <ul>
+                  <li>عند وجود تضارب بالأرقام بين فرق العمل بسبب اختلاف طرق التنظيف والتحضير.</li>
+                  <li>عند الحاجة لتقارير دورية سريعة مع جودة يمكن الاعتماد عليها.</li>
+                  <li>عند وجود متطلبات خصوصية وقيود مشاركة البيانات خارج بيئة المؤسسة.</li>
+                </ul>
+
+                <h2>النتيجة التي تتوقعينها</h2>
+                <p>بدل ساعات من التنظيف اليدوي وتكرار الأخطاء، تحصلين على مسار ثابت: جودة واضحة، إصلاحات موثقة، تحليل مفهوم، ثم تقرير مختصر للإدارة.</p>
+              `
+            },
+            {
+              id: "quickstart",
+              title: "بدء سريع خلال 10 دقائق",
+              tag: "أساسيات",
+              reading: "6 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>هذا الدليل يوضح طريقة البدء السريع على ملف CSV أو Excel.</p>
+
+                <h2>الخطوة 1: تجهيز ملف البيانات</h2>
+                <ul>
+                  <li>تأكدي من وجود عناوين الأعمدة في الصف الأول.</li>
+                  <li>راجعي ترميز النصوص العربية (يفضل UTF-8 للـ CSV).</li>
+                  <li>حددي الأعمدة الأساسية مثل المعرفات والتواريخ.</li>
+                </ul>
+
+                <h2>الخطوة 2: رفع البيانات</h2>
+                <p>ارفي الملف ثم حددي نوع المصدر. بعدها ستظهر صفحة فحص الجودة تلقائيًا.</p>
+
+                <h2>الخطوة 3: فحص الجودة</h2>
+                <p>ستحصلين على مؤشرات مثل: نسبة القيم المفقودة، عدد التكرارات، وأعمدة تحتاج توحيد نوع أو صيغة.</p>
+
+                <h2>الخطوة 4: تطبيق التحسينات</h2>
+                <div class="callout ok"><strong>أفضل ممارسة:</strong> ابدئي بتطبيق إصلاح واحد في كل مرة، ثم راقبي الفرق في المؤشرات قبل تطبيق إصلاحات إضافية.</div>
+
+                <h2>الخطوة 5: إخراج التقرير</h2>
+                <p>صدري تقريرًا تنفيذيًا يوضح المشاكل التي تم اكتشافها، الإصلاحات المطبقة، والأثر قبل وبعد.</p>
+              `
+            }
+          ]
+        },
+        {
+          groupId: "data-quality",
+          groupTitle: "جودة البيانات",
+          items: [
+            {
+              id: "dq-overview",
+              title: "مفهوم جودة البيانات في بصيرة",
+              tag: "أساسيات",
+              reading: "7 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>جودة البيانات ليست رقمًا واحدًا. بصيرة تقيس الجودة عبر عدة محاور لتحديد ما الذي يؤثر على القرار.</p>
+
+                <h2>المحاور الأساسية</h2>
+                <ul>
+                  <li><strong>الاكتـمال</strong>: نسبة القيم المفقودة لكل عمود.</li>
+                  <li><strong>التفـرد</strong>: التكرار في السجلات أو المفاتيح.</li>
+                  <li><strong>الاتساق</strong>: توحيد الأنواع والصيغ مثل التواريخ والأرقام.</li>
+                  <li><strong>الصحة</strong>: تحقق قواعد منطقية مثل نطاقات القيم.</li>
+                </ul>
+
+                <h2>كيف تقرئين النتائج؟</h2>
+                <p>ركزي على الأعمدة المؤثرة على المؤشرات الرئيسية (KPI). لا تعالجي كل شيء مرة واحدة، ابدئي بما يغير القرار.</p>
+
+                <div class="callout info"><strong>معلومة:</strong> بصيرة ترتب المشاكل حسب التأثير، لتحديد أولوية الإصلاح.</div>
+              `
+            },
+            {
+              id: "missing-values",
+              title: "القيم المفقودة: اكتشاف ومعالجة",
+              tag: "أساسيات",
+              reading: "8 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>القيم المفقودة تؤثر على دقة التحليل. بصيرة تعرض نسبة الفقد لكل عمود وتقترح خيارات إصلاح قابلة للتطبيق.</p>
+
+                <h2>خيارات المعالجة</h2>
+                <ul>
+                  <li><strong>الحذف المشروط</strong>: إذا كانت النسبة منخفضة أو العمود غير مؤثر.</li>
+                  <li><strong>التعويض</strong>: بالمتوسط أو الوسيط للأرقام، وبالأكثر تكرارًا للنصوص.</li>
+                  <li><strong>التعويض حسب فئة</strong>: مثل تعويض حسب المدينة أو القسم.</li>
+                </ul>
+
+                <h2>مثال سياسة تعويض</h2>
+                <pre><code>// مثال توضيحي (Pseudo)
+if (numeric) fillMissingWithMedian()
+else fillMissingWithMode()</code></pre>
+
+                <div class="callout warn"><strong>تحذير:</strong> التعويض غير المدروس قد يسبب انحيازًا. اختاري السياسة بناءً على طبيعة البيانات والاستخدام.</div>
+              `
+            },
+            {
+              id: "duplicates",
+              title: "التكرار: تحديد المفتاح وإزالة التكرار",
+              tag: "متقدم",
+              reading: "9 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>التكرار قد يكون تامًا أو شبه تكرار. بصيرة تساعدك على تحديد مفتاح التكرار ثم اختيار استراتيجية التعامل.</p>
+
+                <h2>اختيار مفتاح التكرار</h2>
+                <ul>
+                  <li>معرف فريد: رقم العملية، رقم العميل، رقم الفاتورة.</li>
+                  <li>مفتاح مركب: (الاسم + الهاتف + التاريخ) عند غياب معرف فريد.</li>
+                </ul>
+
+                <h2>استراتيجيات التعامل</h2>
+                <ul>
+                  <li><strong>الاحتفاظ بالأحدث</strong>: بناءً على تاريخ التحديث.</li>
+                  <li><strong>الاحتفاظ بالأكثر اكتمالًا</strong>: السجل الذي لديه حقول مكتملة أكثر.</li>
+                  <li><strong>دمج</strong>: عند توفر قواعد واضحة لدمج الحقول.</li>
+                </ul>
+
+                <div class="callout info"><strong>معلومة:</strong> أفضل قرار للتكرار يعتمد على سياق العمل وليس على التقنية فقط.</div>
+              `
+            }
+          ]
+        },
+        {
+          groupId: "analysis",
+          groupTitle: "التحليل والتقارير",
+          items: [
+            {
+              id: "insights",
+              title: "تحويل البيانات إلى Insights",
+              tag: "أساسيات",
+              reading: "7 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>بعد تحسين الجودة، تأتي مرحلة التحليل. بصيرة تساعدك على استخراج مؤشرات قابلة للشرح وليس مجرد أرقام.</p>
+
+                <h2>ما الذي يعني Insights في بصيرة؟</h2>
+                <ul>
+                  <li>رصد اتجاهات زمنية: ارتفاع، انخفاض، موسمية.</li>
+                  <li>مقارنة فترات: شهر مقابل شهر، ربع مقابل ربع.</li>
+                  <li>تقسيم حسب فئات: مدينة، قسم، منتج، قناة.</li>
+                </ul>
+
+                <h2>كيف تُكتب النتيجة للإدارة؟</h2>
+                <p>قولي: ماذا حدث؟ لماذا محتمل؟ وما الإجراء المقترح؟ مثال: “انخفضت نسبة الالتزام 8% بسبب زيادة القيم المفقودة في حقل X بعد تغيير مصدر البيانات”.</p>
+
+                <div class="callout ok"><strong>أفضل ممارسة:</strong> اربطي كل مؤشر بسياقه التشغيلي لضمان قرار عملي.</div>
+              `
+            },
+            {
+              id: "reports",
+              title: "التقرير التنفيذي ولوحات KPI",
+              tag: "أساسيات",
+              reading: "6 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>مخرجات بصيرة مصممة للاستخدام المباشر: تقرير تنفيذي ولوحات مؤشرات KPI. الهدف تقليل وقت العرض وزيادة وضوح القرار.</p>
+
+                <h2>مكونات التقرير التنفيذي</h2>
+                <ul>
+                  <li>ملخص جودة البيانات قبل وبعد.</li>
+                  <li>أبرز المشاكل والإصلاحات المطبقة.</li>
+                  <li>Insights مرتبطة بالمؤشرات الرئيسية.</li>
+                  <li>توصيات قابلة للتنفيذ وخطوات تالية.</li>
+                </ul>
+
+                <h2>لوحات KPI</h2>
+                <ul>
+                  <li>مؤشرات أساسية مع مقارنة فترات.</li>
+                  <li>مرشحات حسب الأقسام أو المناطق.</li>
+                  <li>قابلية التصدير والمشاركة داخل الجهة.</li>
+                </ul>
+              `
+            }
+          ]
+        },
+        {
+          groupId: "automation",
+          groupTitle: "الأتمتة والتشغيل المحلي",
+          items: [
+            {
+              id: "onprem",
+              title: "لماذا On-Premises في بصيرة؟",
+              tag: "أساسيات",
+              reading: "6 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>بصيرة مصممة لتعمل داخل بيئة المستخدم. هذا الخيار يقلل المخاطر ويزيد الالتزام بالسياسات، خصوصًا مع البيانات الحساسة.</p>
+
+                <h2>الفوائد العملية</h2>
+                <ul>
+                  <li>بقاء البيانات داخل شبكة المؤسسة أو جهاز المستخدم.</li>
+                  <li>تقليل الاعتماد على خدمات خارجية عند وجود قيود.</li>
+                  <li>سهولة تطبيق سياسات الحوكمة والصلاحيات.</li>
+                </ul>
+
+                <div class="callout info"><strong>معلومة:</strong> حتى مع التشغيل المحلي، يمكن تنظيم المشاركة عبر تقارير ولوحات داخلية.</div>
+              `
+            },
+            {
+              id: "automation-overview",
+              title: "الأتمتة: كيف تقلل العمل المتكرر",
+              tag: "متقدم",
+              reading: "8 دقائق",
+              updated: "2026-02-17",
+              body: `
+                <p>الأتمتة في بصيرة تهدف لجعل العمليات المتكررة ثابتة ومؤتمتة: تجهيز البيانات، تطبيق سياسات التنظيف، ثم إخراج التقرير دوريًا.</p>
+
+                <h2>أمثلة مهام قابلة للأتمتة</h2>
+                <ul>
+                  <li>تشغيل فحص الجودة عند تحديث ملف جديد.</li>
+                  <li>تطبيق نفس سياسات التحسين بشكل متكرر.</li>
+                  <li>توليد تقرير أسبوعي أو شهري للإدارة.</li>
+                </ul>
+
+                <h2>نموذج سير عمل بسيط</h2>
+                <pre><code>// Pseudo workflow
+Import Data
+Run Quality Checks
+Apply Cleaning Policies
+Generate KPI Dashboard + Executive Report</code></pre>
+
+                <div class="callout warn"><strong>تنبيه:</strong> قبل الأتمتة، ثبتي السياسات على عينة بيانات حتى تتفادي أثر غير متوقع.</div>
+              `
+            }
+          ]
+        }
+      ];
+
+      const state = {
+        query: "",
+        current: { groupId: "getting-started", id: "overview" },
+        flat: []
+      };
+
+      const $ = (id) => document.getElementById(id);
+
+      function flattenDocs(){
+        const out = [];
+        for(const g of DOCS){
+          for(const it of g.items){
+            out.push({ groupId: g.groupId, groupTitle: g.groupTitle, ...it });
+          }
+        }
+        return out;
+      }
+
+      function getTagKey(tag){
+        return (tag || "").toLowerCase().includes("متقدم") ? "warn" : "info";
+      }
+
+      function makeHash(groupId, id){
+        return `#${encodeURIComponent(groupId)}/${encodeURIComponent(id)}`;
+      }
+
+      function parseHash(){
+        const h = (location.hash || "").replace(/^#/, "");
+        if(!h) return null;
+        const parts = h.split("/");
+        if(parts.length !== 2) return null;
+        return { groupId: decodeURIComponent(parts[0]), id: decodeURIComponent(parts[1]) };
+      }
+
+      function findItem(groupId, id){
+        return state.flat.find(x => x.groupId === groupId && x.id === id) || null;
+      }
+
+      function matchesSearch(it){
+        const q = state.query.trim().toLowerCase();
+        if(!q) return true;
+        const text = (it.title + " " + it.groupTitle + " " + (it.body || "")).toLowerCase();
+        return text.includes(q);
+      }
+
+      function escapeHTML(str){
+        return String(str)
+          .replaceAll("&","&amp;")
+          .replaceAll("<","&lt;")
+          .replaceAll(">","&gt;")
+          .replaceAll('"',"&quot;")
+          .replaceAll("'","&#039;");
+      }
+
+      function buildNav(){
+        const nav = $("docsNav");
+        nav.innerHTML = "";
+
+        for(const g of DOCS){
+          const groupItems = g.items
+            .map(it => ({...it, groupId: g.groupId, groupTitle: g.groupTitle}))
+            .filter(matchesSearch);
+
+          if(groupItems.length === 0) continue;
+
+          const group = document.createElement("div");
+          group.className = "navGroup";
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "navGroup__btn";
+          btn.innerHTML = `
+            <span>${escapeHTML(g.groupTitle)}</span>
+            <span class="navGroup__icon" aria-hidden="true">▾</span>
+          `;
+
+          const items = document.createElement("div");
+          items.className = "navItems";
+
+          for(const it of groupItems){
+            const a = document.createElement("a");
+            a.href = makeHash(it.groupId, it.id);
+            a.className = "navItem";
+            a.dataset.groupId = it.groupId;
+            a.dataset.id = it.id;
+
+            a.innerHTML = `
+              <span>${escapeHTML(it.title)}</span>
+              <span class="navItem__meta">${escapeHTML(it.tag)} · ${escapeHTML(it.reading)}</span>
+            `;
+
+            a.addEventListener("click", (e)=>{
+              e.preventDefault();
+              navigateTo(it.groupId, it.id, true);
+            });
+
+            items.appendChild(a);
+          }
+
+          btn.addEventListener("click", ()=>{
+            const isHidden = items.style.display === "none";
+            items.style.display = isHidden ? "grid" : "none";
+            btn.querySelector(".navGroup__icon").textContent = isHidden ? "▾" : "▸";
+          });
+
+          group.appendChild(btn);
+          group.appendChild(items);
+          nav.appendChild(group);
+        }
+
+        highlightActive();
+      }
+
+      function highlightActive(){
+        document.querySelectorAll(".navItem").forEach(a=>{
+          const isActive = a.dataset.groupId === state.current.groupId && a.dataset.id === state.current.id;
+          a.classList.toggle("isActive", isActive);
+        });
+      }
+
+      function render(it){
+        $("crumbGroup").textContent = it.groupTitle;
+        $("crumbPage").textContent = it.title;
+
+        $("docTitle").textContent = it.title;
+
+        $("docTag").textContent = it.tag || "أساسيات";
+        $("docTag").className = "badge " + getTagKey(it.tag);
+
+        $("docReading").textContent = "زمن القراءة: " + (it.reading || "5 دقائق");
+        $("docUpdated").textContent = "آخر تحديث: " + (it.updated || "2026-02-17");
+
+        $("docsArticle").innerHTML = it.body || "<p>لا يوجد محتوى.</p>";
+
+        document.title = `${it.title} | Basira Documentation`;
+
+        highlightActive();
+        updatePager();
+      }
+
+      function updatePager(){
+        const idx = state.flat.findIndex(x => x.groupId === state.current.groupId && x.id === state.current.id);
+        const prev = idx > 0 ? state.flat[idx-1] : null;
+        const next = (idx >= 0 && idx < state.flat.length-1) ? state.flat[idx+1] : null;
+
+        const prevBtn = $("prevDoc");
+        const nextBtn = $("nextDoc");
+
+        prevBtn.disabled = !prev;
+        nextBtn.disabled = !next;
+
+        prevBtn.style.opacity = prev ? "1" : ".6";
+        nextBtn.style.opacity = next ? "1" : ".6";
+
+        prevBtn.onclick = ()=>{
+          if(prev) navigateTo(prev.groupId, prev.id, true);
+        };
+        nextBtn.onclick = ()=>{
+          if(next) navigateTo(next.groupId, next.id, true);
+        };
+      }
+
+      function navigateTo(groupId, id, push){
+        const it = findItem(groupId, id);
+        if(!it) return;
+        state.current = { groupId, id };
+        if(push) history.pushState({}, "", makeHash(groupId, id));
+        render(it);
+      }
+
+      async function copyLink(){
+        const url = location.href;
+        try{
+          await navigator.clipboard.writeText(url);
+          $("copyLink").textContent = "تم النسخ";
+          setTimeout(()=>{ $("copyLink").textContent = "نسخ رابط القسم"; }, 1200);
+        }catch{
+          alert("لم يتم النسخ. انسخي الرابط من شريط المتصفح.");
+        }
+      }
+
+      function init(){
+        state.flat = flattenDocs();
+
+        const start = parseHash() || state.current;
+        const it = findItem(start.groupId, start.id) || state.flat[0];
+        state.current = { groupId: it.groupId, id: it.id };
+
+        buildNav();
+        history.replaceState({}, "", makeHash(it.groupId, it.id));
+        render(it);
+
+        $("docsSearch").addEventListener("input", (e)=>{
+          state.query = e.target.value || "";
+          buildNav();
+
+          const currentIt = findItem(state.current.groupId, state.current.id);
+          if(currentIt && !matchesSearch(currentIt)){
+            const first = state.flat.find(matchesSearch);
+            if(first) navigateTo(first.groupId, first.id, true);
+          }
+        });
+
+        window.addEventListener("hashchange", ()=>{
+          const p = parseHash();
+          if(p) navigateTo(p.groupId, p.id, false);
+        });
+
+        $("copyLink").addEventListener("click", (e)=>{
+          e.preventDefault();
+          copyLink();
+        });
+
+        const langBtn = $("langBtn");
+        const langLabel = $("langLabel");
+        langBtn.addEventListener("click", ()=>{
+          const html = document.documentElement;
+          const isAr = (html.getAttribute("lang") || "ar") === "ar";
+          if(isAr){
+            html.setAttribute("lang","en");
+            html.setAttribute("dir","ltr");
+            langLabel.textContent = "EN";
+            alert("هذا تبديل اتجاه فقط. إذا تبين نسخة إنجليزية فعلية للوثائق قولي لي.");
+          }else{
+            html.setAttribute("lang","ar");
+            html.setAttribute("dir","rtl");
+            langLabel.textContent = "AR";
+          }
+        });
+      }
+
+      init();
+    </script>
+  </body>
+</html>
+
