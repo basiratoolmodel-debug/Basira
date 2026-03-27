@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira | إنشاء حساب</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="styles.css" />
+
+    <style>
+      .authShell{
+        max-width:620px;
+        margin:40px auto;
+        border-radius:22px;
+        border:1px solid rgba(11,18,32,.12);
+        background:#fff;
+        box-shadow:0 18px 50px rgba(2,6,23,.08);
+        padding:18px;
+      }
+      .authTitle{
+        margin:0 0 10px;
+        font-size:1.6rem;
+        font-weight:900;
+      }
+      .authSub{
+        margin:0 0 16px;
+        color:rgba(11,18,32,.72);
+        line-height:1.8;
+        font-weight:700;
+      }
+      .field{
+        display:grid;
+        gap:8px;
+        margin-bottom:12px;
+      }
+      .label{
+        font-weight:900;
+      }
+      .input, .select{
+        width:100%;
+        height:46px;
+        border-radius:14px;
+        border:1px solid rgba(11,18,32,.14);
+        padding:0 12px;
+        font-family:inherit;
+        background:#fff;
+      }
+      .authMessage{
+        margin-top:14px;
+        font-weight:800;
+        line-height:1.7;
+      }
+      .authMessage--error{
+        color:#b42318;
+      }
+      .authMessage--success{
+        color:#067647;
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="auth.js" defer></script>
+    <script src="include.js" defer></script>
+  </head>
+
+  <body>
+    <div id="app-header"></div>
+
+    <main class="section">
+      <div class="container">
+        <section class="authShell">
+          <h1 class="authTitle">إنشاء حساب</h1>
+          <p class="authSub">
+            أنشئ حسابًا جديدًا وحدد الخطة المناسبة. في النسخة الحالية يتم حفظ الخطة المختارة، بينما يبقى الدفع تجريبيًا وغير مفعّل فعليًا.
+          </p>
+
+          <form id="registerForm">
+            <div class="field">
+              <label class="label" for="fullName">الاسم الكامل</label>
+              <input class="input" id="fullName" type="text" required placeholder="الاسم الكامل" />
+            </div>
+
+            <div class="field">
+              <label class="label" for="registerEmail">البريد الإلكتروني</label>
+              <input class="input" id="registerEmail" type="email" required placeholder="name@company.com" />
+            </div>
+
+            <div class="field">
+              <label class="label" for="registerPassword">كلمة المرور</label>
+              <input class="input" id="registerPassword" type="password" required placeholder="••••••••" />
+            </div>
+
+            <div class="field">
+              <label class="label" for="selectedPlan">الخطة المختارة</label>
+              <select class="select" id="selectedPlan" required>
+                <option value="starter">Starter</option>
+                <option value="professional">Professional</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </div>
+
+            <button class="btn btn--primary btn--lg" type="submit">إنشاء الحساب</button>
+          </form>
+
+          <div id="registerMessage" class="authMessage"></div>
+        </section>
+      </div>
+    </main>
+
+    <div id="app-footer"></div>
+  </body>
+</html>
