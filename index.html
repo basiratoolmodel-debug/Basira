@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
@@ -711,7 +711,7 @@
   </head>
 
   <body>
-    <!-- HEADER -->
+    
     <header class="header" id="header">
       <div class="container">
         <div class="header__inner">
@@ -736,7 +736,7 @@
       </div>
     </header>
 
-    <!-- HERO -->
+   
     <section class="hero">
       <div class="container">
         <div class="hero__content fade-in-up">
@@ -774,7 +774,7 @@
       </div>
     </section>
 
-    <!-- FEATURES -->
+    
     <section class="section" id="features">
       <div class="container">
         <div class="section__header">
@@ -836,7 +836,7 @@
       </div>
     </section>
 
-    <!-- JOURNEY -->
+    
     <section class="journey" id="journey">
       <div class="container">
         <div class="journey__content">
@@ -892,7 +892,7 @@
       </div>
     </section>
 
-    <!-- CTA -->
+  
     <section class="cta">
       <div class="container">
         <div class="cta__content">
@@ -908,7 +908,7 @@
       </div>
     </section>
 
-    <!-- FOOTER -->
+   
     <footer class="footer" id="contact">
       <div class="container">
         <div class="footer__top">
@@ -979,6 +979,1122 @@
           const target = document.querySelector(this.getAttribute('href'));
           if (target) {
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    </script>
+  </body>
+</html> -->
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Basira | بصيرة - منصة تحليل البيانات السعودية</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #0066ff;
+        --primary-dark: #0052cc;
+        --primary-light: #e6f0ff;
+        --secondary: #00d4aa;
+        --dark: #0a0e27;
+        --gray-900: #1a1d2e;
+        --gray-800: #2d3142;
+        --gray-700: #4f5468;
+        --gray-600: #6b7280;
+        --gray-500: #9ca3af;
+        --gray-400: #d1d5db;
+        --gray-300: #e5e7eb;
+        --gray-200: #f3f4f6;
+        --gray-100: #f9fafb;
+        --white: #ffffff;
+        --gradient-primary: linear-gradient(135deg, #0066ff 0%, #00d4aa 100%);
+        --gradient-hero: linear-gradient(180deg, #f9fafb 0%, #ffffff 100%);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "IBM Plex Sans Arabic", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--gray-900);
+        background: var(--white);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 15px;
+        text-decoration: none;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn--ghost {
+        background: transparent;
+        color: var(--gray-700);
+      }
+
+      .btn--ghost:hover {
+        background: var(--gray-100);
+        color: var(--gray-900);
+      }
+
+      .btn--primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: var(--shadow-md);
+      }
+
+      .btn--primary:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .btn--soft {
+        background: var(--primary-light);
+        color: var(--primary);
+      }
+
+      .btn--soft:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn--large {
+        padding: 16px 32px;
+        font-size: 16px;
+        border-radius: 12px;
+      }
+
+      .btn--white {
+        background: white;
+        color: var(--primary);
+      }
+
+      .btn--white:hover {
+        background: var(--gray-100);
+        transform: translateY(-2px);
+      }
+
+      .btn--outline {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+      }
+
+      .btn--outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .text-gradient {
+        background: var(--gradient-primary);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .section {
+        padding: 100px 0;
+      }
+
+      .section--alt {
+        background: var(--gray-100);
+      }
+
+      .section__head,
+      .section__header {
+        text-align: center;
+        max-width: 760px;
+        margin: 0 auto 60px;
+      }
+
+      .section__title {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 16px;
+        color: var(--dark);
+        letter-spacing: -0.02em;
+      }
+
+      .section__subtitle {
+        font-size: 18px;
+        color: var(--gray-600);
+        line-height: 1.8;
+        font-weight: 500;
+      }
+
+      .fade-in-up {
+        animation: fadeInUp 0.8s ease-out;
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Header */
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--gray-200);
+        z-index: 1000;
+        transition: all 0.3s ease;
+      }
+
+      .header.scrolled {
+        box-shadow: var(--shadow-md);
+      }
+
+      .header__inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 72px;
+        gap: 16px;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 24px;
+        color: var(--dark);
+        flex-shrink: 0;
+      }
+
+      .logo__icon {
+        width: 40px;
+        height: 40px;
+        background: var(--gradient-primary);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 20px;
+      }
+
+      .nav {
+        display: flex;
+        gap: 32px;
+        align-items: center;
+      }
+
+      .nav__link {
+        text-decoration: none;
+        color: var(--gray-700);
+        font-weight: 500;
+        font-size: 15px;
+        transition: color 0.2s;
+        position: relative;
+      }
+
+      .nav__link:hover {
+        color: var(--primary);
+      }
+
+      .nav__link::after {
+        content: "";
+        position: absolute;
+        bottom: -4px;
+        right: 0;
+        width: 0;
+        height: 2px;
+        background: var(--primary);
+        transition: width 0.3s;
+      }
+
+      .nav__link:hover::after {
+        width: 100%;
+      }
+
+      .header__actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-shrink: 0;
+      }
+
+      .lang-toggle {
+        background: var(--gray-100);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--gray-700);
+      }
+
+      .lang-toggle:hover {
+        background: var(--gray-200);
+      }
+
+      /* Hero */
+      .hero {
+        padding: 140px 0 80px;
+        background: var(--gradient-hero);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(0, 102, 255, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(0, 212, 170, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+      }
+
+      .hero__content {
+        max-width: 920px;
+        margin: 0 auto;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        background: var(--white);
+        border: 1px solid var(--gray-200);
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--primary);
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .hero__badge::before {
+        content: "✨";
+        font-size: 16px;
+      }
+
+      .hero__title {
+        font-size: 64px;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 24px;
+        color: var(--dark);
+        letter-spacing: -0.02em;
+      }
+
+      .hero__subtitle {
+        font-size: 20px;
+        line-height: 1.9;
+        color: var(--gray-600);
+        margin-bottom: 40px;
+        font-weight: 500;
+      }
+
+      .hero__actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 60px;
+      }
+
+      .hero__stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 40px;
+        max-width: 800px;
+        margin: 0 auto;
+        padding-top: 60px;
+        border-top: 1px solid var(--gray-200);
+      }
+
+      .stat {
+        text-align: center;
+      }
+
+      .stat__value {
+        font-size: 48px;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 8px;
+      }
+
+      .stat__label {
+        font-size: 14px;
+        color: var(--gray-600);
+        font-weight: 500;
+      }
+
+      /* Cards */
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+      }
+
+      .info-card {
+        background: white;
+        padding: 32px;
+        border-radius: 22px;
+        border: 1px solid var(--gray-200);
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s;
+      }
+
+      .info-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-xl);
+      }
+
+      .info-card__title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--dark);
+      }
+
+      .info-card__text {
+        font-size: 16px;
+        line-height: 1.8;
+        color: var(--gray-600);
+      }
+
+      /* Features */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 32px;
+      }
+
+      .feature-card {
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        border: 1px solid var(--gray-200);
+        transition: all 0.3s;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--primary-light);
+      }
+
+      .feature-card__icon {
+        width: 64px;
+        height: 64px;
+        background: var(--primary-light);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin-bottom: 24px;
+      }
+
+      .feature-card__title {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--dark);
+      }
+
+      .feature-card__text {
+        font-size: 16px;
+        line-height: 1.8;
+        color: var(--gray-600);
+      }
+
+      /* Journey */
+      .journey {
+        background: var(--dark);
+        color: white;
+        padding: 100px 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .journey::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      }
+
+      .journey__content {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .journey__header {
+        text-align: center;
+        margin-bottom: 80px;
+      }
+
+      .journey__title {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 16px;
+      }
+
+      .journey__subtitle {
+        font-size: 18px;
+        color: var(--gray-400);
+        line-height: 1.8;
+      }
+
+      .journey-steps {
+        display: grid;
+        gap: 40px;
+      }
+
+      .journey-step {
+        display: grid;
+        grid-template-columns: 80px 1fr;
+        gap: 32px;
+        align-items: start;
+      }
+
+      .journey-step__number {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--secondary);
+      }
+
+      .journey-step__content {
+        padding-top: 8px;
+      }
+
+      .journey-step__title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .journey-step__text {
+        font-size: 16px;
+        line-height: 1.9;
+        color: var(--gray-400);
+      }
+
+      /* CTA */
+      .cta {
+        background: var(--gradient-primary);
+        padding: 100px 0;
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .cta::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 600px;
+        height: 600px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+      }
+
+      .cta__content {
+        position: relative;
+        z-index: 1;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      .cta__title {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        line-height: 1.2;
+      }
+
+      .cta__text {
+        font-size: 20px;
+        margin-bottom: 40px;
+        opacity: 0.95;
+        line-height: 1.8;
+      }
+
+      .cta__actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      /* Footer */
+      .footer {
+        background: var(--gray-900);
+        color: var(--gray-400);
+        padding: 60px 0 30px;
+      }
+
+      .footer__top {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 60px;
+        margin-bottom: 60px;
+        padding-bottom: 60px;
+        border-bottom: 1px solid var(--gray-800);
+      }
+
+      .footer__brand {
+        font-size: 24px;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 16px;
+      }
+
+      .footer__tagline {
+        font-size: 14px;
+        line-height: 1.8;
+        margin-bottom: 24px;
+      }
+
+      .footer__social {
+        display: flex;
+        gap: 12px;
+      }
+
+      .social-link {
+        width: 40px;
+        height: 40px;
+        background: var(--gray-800);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gray-400);
+        text-decoration: none;
+        transition: all 0.2s;
+      }
+
+      .social-link:hover {
+        background: var(--primary);
+        color: white;
+      }
+
+      .footer__section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .footer__links {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .footer__link {
+        color: var(--gray-400);
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.2s;
+      }
+
+      .footer__link:hover {
+        color: white;
+      }
+
+      .footer__bottom {
+        text-align: center;
+        font-size: 14px;
+      }
+
+      /* Responsive */
+      @media (max-width: 1024px) {
+        .hero__title,
+        .section__title,
+        .journey__title,
+        .cta__title {
+          font-size: 42px;
+        }
+
+        .features-grid,
+        .cards-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .footer__top {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .nav {
+          display: none;
+        }
+
+        .header__inner {
+          height: auto;
+          min-height: 72px;
+          padding: 12px 0;
+        }
+
+        .header__actions {
+          gap: 8px;
+        }
+
+        .header__actions .btn {
+          padding: 10px 14px;
+          font-size: 14px;
+        }
+
+        .hero {
+          padding: 110px 0 60px;
+        }
+
+        .hero__title {
+          font-size: 34px;
+        }
+
+        .hero__subtitle {
+          font-size: 18px;
+        }
+
+        .hero__stats,
+        .features-grid,
+        .cards-grid {
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+
+        .section__title,
+        .journey__title,
+        .cta__title {
+          font-size: 34px;
+        }
+
+        .journey-step {
+          grid-template-columns: 60px 1fr;
+          gap: 20px;
+        }
+
+        .journey-step__number {
+          width: 60px;
+          height: 60px;
+          font-size: 24px;
+        }
+
+        .journey-step__title {
+          font-size: 22px;
+        }
+
+        .footer__top {
+          grid-template-columns: 1fr;
+          gap: 40px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <header class="header" id="header">
+      <div class="container">
+        <div class="header__inner">
+          <a href="index.html" class="logo">
+            <div class="logo__icon">B</div>
+            <span>بصيرة</span>
+          </a>
+
+          <nav class="nav">
+            <a href="#start" class="nav__link">ابدأ</a>
+            <a href="#features" class="nav__link">المميزات</a>
+            <a href="#journey" class="nav__link">المراحل</a>
+            <a href="documentation.html" class="nav__link">Documentation</a>
+            <a href="#contact" class="nav__link">تواصل</a>
+          </nav>
+
+          <div class="header__actions">
+            <button class="lang-toggle" type="button">EN</button>
+            <a href="login.html" class="btn btn--ghost">تسجيل الدخول</a>
+            <a href="register.html" class="btn btn--primary">ابدأ الآن</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero">
+        <div class="container">
+          <div class="hero__content fade-in-up">
+            <div class="hero__badge">من البيانات إلى قرار مؤسسي واضح</div>
+
+            <h1 class="hero__title">
+              منصة تحليل البيانات
+              <br />
+              <span class="text-gradient">المصممة للسوق السعودي</span>
+            </h1>
+
+            <p class="hero__subtitle">
+              بصيرة منصة ويب سعودية لتحليل البيانات وتشغيل الأتمتة محليًا داخل بيئة المستخدم.
+              تم تصميمها لدعم البيانات العربية والسياق السعودي، مع الحفاظ على الخصوصية
+              والسيادة الرقمية للجهات والأفراد.
+            </p>
+
+            <div class="hero__actions">
+              <a href="register.html" class="btn btn--primary btn--large">ابدأ الآن</a>
+              <a href="#journey" class="btn btn--soft btn--large">استعرض المراحل</a>
+            </div>
+
+            <div class="hero__stats">
+              <div class="stat">
+                <div class="stat__value">100%</div>
+                <div class="stat__label">تخزين محلي آمن</div>
+              </div>
+              <div class="stat">
+                <div class="stat__value">AR/EN</div>
+                <div class="stat__label">دعم ثنائي اللغة</div>
+              </div>
+              <div class="stat">
+                <div class="stat__value">4</div>
+                <div class="stat__label">مراحل تحليل ذكية</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- START PATHS -->
+      <section class="section" id="start">
+        <div class="container">
+          <div class="section__head">
+            <h2 class="section__title">مسارات البدء</h2>
+            <p class="section__subtitle">
+              ابدأ من بياناتك الحالية أو من مصدر جديد، ثم دع بصيرة تتولى تنظيم البيانات
+              وتحويلها إلى مخرجات قابلة للفهم والاستخدام.
+            </p>
+          </div>
+
+          <div class="cards-grid">
+            <article class="info-card">
+              <h3 class="info-card__title">تحميل البيانات</h3>
+              <p class="info-card__text">
+                رفع ملفات CSV أو Excel مباشرة ثم تنفيذ فحص الجودة، اكتشاف المشكلات،
+                وتجهيز خطة تحسين تلقائية.
+              </p>
+            </article>
+
+            <article class="info-card">
+              <h3 class="info-card__title">قوالب جاهزة</h3>
+              <p class="info-card__text">
+                بدء سريع عبر قوالب جاهزة للوحات المؤشرات والتقارير ثم ربطها ببياناتك
+                دون إعدادات معقدة.
+              </p>
+            </article>
+
+            <article class="info-card">
+              <h3 class="info-card__title">ويب سكرابينق</h3>
+              <p class="info-card__text">
+                لا تملك بيانات جاهزة؟ يمكنك استخدام Web Scraping لجمع البيانات من مواقع
+                الويب ثم تحليلها داخل بصيرة.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section class="section section--alt" id="features">
+        <div class="container">
+          <div class="section__header">
+            <h2 class="section__title">مميزات تلبي احتياجاتك</h2>
+            <p class="section__subtitle">
+              مجموعة شاملة من الأدوات والإمكانيات المصممة خصيصًا للبيئة السعودية.
+            </p>
+          </div>
+
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-card__icon">⚙️</div>
+              <h3 class="feature-card__title">أتمتة ذكية</h3>
+              <p class="feature-card__text">
+                تشغيل جميع عمليات الأتمتة محليًا على نسخة المستخدم دون الحاجة لنقل البيانات
+                إلى خدمات خارجية.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-card__icon">🛡️</div>
+              <h3 class="feature-card__title">حماية البيانات</h3>
+              <p class="feature-card__text">
+                تخزين محلي On-Premises يضمن بقاء البيانات داخل شبكة المؤسسة أو جهاز المستخدم.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-card__icon">🇸🇦</div>
+              <h3 class="feature-card__title">جاهزية محلية</h3>
+              <p class="feature-card__text">
+                دعم كامل للغة العربية وRTL مع توافق مع طبيعة البيانات السعودية.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-card__icon">🧹</div>
+              <h3 class="feature-card__title">تنظيف تلقائي</h3>
+              <p class="feature-card__text">
+                معالجة القيم الناقصة، إزالة التكرار، وتوحيد التنسيقات تلقائيًا قبل التحليل.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-card__icon">📊</div>
+              <h3 class="feature-card__title">لوحات تفاعلية</h3>
+              <p class="feature-card__text">
+                إنشاء لوحات مؤشرات احترافية تلقائيًا لإظهار أهم النتائج بصريًا.
+              </p>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-card__icon">📝</div>
+              <h3 class="feature-card__title">تقارير شاملة</h3>
+              <p class="feature-card__text">
+                توليد تقارير تنفيذية جاهزة للمراجعة والمشاركة مع توصيات واضحة وقابلة للتطبيق.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- JOURNEY -->
+      <section class="journey" id="journey">
+        <div class="container">
+          <div class="journey__content">
+            <div class="journey__header">
+              <h2 class="journey__title">رحلة بصيرة في أربع مراحل</h2>
+              <p class="journey__subtitle">
+                من رفع البيانات إلى الحصول على رؤى قابلة للتنفيذ في خطوات واضحة ومنظمة.
+              </p>
+            </div>
+
+            <div class="journey-steps">
+              <div class="journey-step">
+                <div class="journey-step__number">01</div>
+                <div class="journey-step__content">
+                  <h3 class="journey-step__title">جمع البيانات</h3>
+                  <p class="journey-step__text">
+                    رفع ملفات CSV أو Excel أو جمع البيانات عبر Web Scraping عند عدم توفر بيانات جاهزة.
+                  </p>
+                </div>
+              </div>
+
+              <div class="journey-step">
+                <div class="journey-step__number">02</div>
+                <div class="journey-step__content">
+                  <h3 class="journey-step__title">التنظيف والمعالجة</h3>
+                  <p class="journey-step__text">
+                    تنظيف القيم المفقودة، إزالة التكرار، وتوحيد التنسيقات ومعالجة النصوص العربية والإنجليزية.
+                  </p>
+                </div>
+              </div>
+
+              <div class="journey-step">
+                <div class="journey-step__number">03</div>
+                <div class="journey-step__content">
+                  <h3 class="journey-step__title">التحليل الذكي</h3>
+                  <p class="journey-step__text">
+                    تحليل البيانات، تصنيفها، واستخراج الأنماط والنتائج المهمة بطريقة مفهومة.
+                  </p>
+                </div>
+              </div>
+
+              <div class="journey-step">
+                <div class="journey-step__number">04</div>
+                <div class="journey-step__content">
+                  <h3 class="journey-step__title">النتائج والتقارير</h3>
+                  <p class="journey-step__text">
+                    إنشاء Dashboard وتقارير جاهزة تدعم اتخاذ القرار وتوضح أهم الرؤى المكتشفة.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta">
+        <div class="container">
+          <div class="cta__content">
+            <h2 class="cta__title">ابدأ رحلتك مع بصيرة اليوم</h2>
+            <p class="cta__text">
+              انضم إلى الجهات التي تحول بياناتها إلى قرارات استراتيجية بصورة آمنة ومحلية.
+            </p>
+            <div class="cta__actions">
+              <a href="register.html" class="btn btn--white btn--large">ابدأ الآن</a>
+              <a href="login.html" class="btn btn--outline btn--large">تسجيل الدخول</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer" id="contact">
+      <div class="container">
+        <div class="footer__top">
+          <div>
+            <div class="footer__brand">بصيرة</div>
+            <p class="footer__tagline">
+              منصة تحليل البيانات المصممة للسوق السعودي مع التزام كامل بالخصوصية والحوكمة.
+            </p>
+            <div class="footer__social">
+              <a href="#" class="social-link">𝕏</a>
+              <a href="#" class="social-link">in</a>
+              <a href="mailto:contact@basira.sa" class="social-link">@</a>
+            </div>
+          </div>
+
+          <div>
+            <div class="footer__section-title">المنتج</div>
+            <div class="footer__links">
+              <a href="#features" class="footer__link">المميزات</a>
+              <a href="documentation.html" class="footer__link">الوثائق</a>
+              <a href="register.html" class="footer__link">ابدأ الآن</a>
+              <a href="login.html" class="footer__link">تسجيل الدخول</a>
+            </div>
+          </div>
+
+          <div>
+            <div class="footer__section-title">الشركة</div>
+            <div class="footer__links">
+              <a href="#" class="footer__link">من نحن</a>
+              <a href="#" class="footer__link">المدونة</a>
+              <a href="#" class="footer__link">الوظائف</a>
+              <a href="#contact" class="footer__link">تواصل معنا</a>
+            </div>
+          </div>
+
+          <div>
+            <div class="footer__section-title">القانونية</div>
+            <div class="footer__links">
+              <a href="#" class="footer__link">الخصوصية</a>
+              <a href="#" class="footer__link">الشروط</a>
+              <a href="#" class="footer__link">الأمان</a>
+              <a href="#" class="footer__link">الامتثال</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer__bottom">
+          <p>© 2026 بصيرة. جميع الحقوق محفوظة</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const header = document.getElementById("header");
+
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 50) {
+          header.classList.add("scrolled");
+        } else {
+          header.classList.remove("scrolled");
+        }
+      });
+
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          const href = this.getAttribute("href");
+          if (!href || href === "#") return;
+
+          const target = document.querySelector(href);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
           }
         });
       });
