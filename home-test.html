@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira | Home Test</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="auth-ui.css" />
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="./index.html">
+          <span class="brand__mark">B</span>
+          <span class="brand__text">Basira</span>
+        </a>
+
+        <a class="btn btn--primary" href="./index.html">العودة للرئيسية</a>
+      </div>
+    </header>
+
+    <main class="home-wrap">
+      <div class="container">
+        <section class="home-box">
+          <span class="home-eyebrow">تم الدخول إلى الصفحة التجريبية</span>
+          <h1 id="welcomeTitle">مرحبًا بك في بصيرة</h1>
+          <p id="welcomeText">
+            هذه صفحة تجريبية للتأكد من نجاح التسجيل أو تسجيل الدخول قبل الانتقال إلى النسخة المحلية.
+          </p>
+
+          <div class="home-grid">
+            <article class="home-card">
+              <h3>اسم المستخدم</h3>
+              <p id="userNameCard">غير متوفر</p>
+            </article>
+
+            <article class="home-card">
+              <h3>الخطة الحالية</h3>
+              <p id="userPlanCard">غير متوفر</p>
+            </article>
+
+            <article class="home-card">
+              <h3>حالة الدخول</h3>
+              <p id="userStatusCard">نشط</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div class="popup-backdrop" id="loginPopup">
+      <div class="popup">
+        <div class="popup__icon">✓</div>
+        <h2 class="popup__title" id="popupTitle">تم بنجاح</h2>
+        <p class="popup__text" id="popupText">تم تسجيل الدخول بنجاح.</p>
+      </div>
+    </div>
+
+    <script>
+      const flashTitle = localStorage.getItem("basira_flash_title");
+      const flashText = localStorage.getItem("basira_flash_text");
+      const userName = localStorage.getItem("basira_user_name") || "مستخدم جديد";
+      const userPlan = localStorage.getItem("basira_selected_plan") || localStorage.getItem("basira_subscription_plan") || "غير محدد";
+
+      document.getElementById("welcomeTitle").textContent = `مرحبًا ${userName}`;
+      document.getElementById("welcomeText").textContent = `تم التحقق من الحالة الحالية ويمكنك الآن متابعة التجربة داخل بصيرة. الخطة الحالية: ${userPlan}.`;
+      document.getElementById("userNameCard").textContent = userName;
+      document.getElementById("userPlanCard").textContent = userPlan;
+
+      if(flashTitle || flashText){
+        document.getElementById("popupTitle").textContent = flashTitle || "تم بنجاح";
+        document.getElementById("popupText").textContent = flashText || "تمت العملية بنجاح.";
+        document.getElementById("loginPopup").classList.add("show");
+
+        setTimeout(() => {
+          document.getElementById("loginPopup").classList.remove("show");
+          localStorage.removeItem("basira_flash_title");
+          localStorage.removeItem("basira_flash_text");
+        }, 2200);
+      }
+    </script>
+  </body>
+</html>
