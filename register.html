@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-lang="ar">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -11,111 +11,269 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-
-    <link rel="stylesheet" href="base.css" />
-    <link rel="stylesheet" href="styles.css" />
-
-    <style>
-      .authShell{
-        max-width:620px;
-        margin:40px auto;
-        border-radius:22px;
-        border:1px solid rgba(11,18,32,.12);
-        background:#fff;
-        box-shadow:0 18px 50px rgba(2,6,23,.08);
-        padding:18px;
-      }
-      .authTitle{
-        margin:0 0 10px;
-        font-size:1.6rem;
-        font-weight:900;
-      }
-      .authSub{
-        margin:0 0 16px;
-        color:rgba(11,18,32,.72);
-        line-height:1.8;
-        font-weight:700;
-      }
-      .field{
-        display:grid;
-        gap:8px;
-        margin-bottom:12px;
-      }
-      .label{
-        font-weight:900;
-      }
-      .input, .select{
-        width:100%;
-        height:46px;
-        border-radius:14px;
-        border:1px solid rgba(11,18,32,.14);
-        padding:0 12px;
-        font-family:inherit;
-        background:#fff;
-      }
-      .authMessage{
-        margin-top:14px;
-        font-weight:800;
-        line-height:1.7;
-      }
-      .authMessage--error{
-        color:#b42318;
-      }
-      .authMessage--success{
-        color:#067647;
-      }
-    </style>
+    <link rel="stylesheet" href="auth-ui.css" />
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script src="auth.js" defer></script>
-    <script src="include.js" defer></script>
   </head>
 
-  <body>
-    <div id="app-header"></div>
+  <body class="auth">
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="./index.html" aria-label="Basira Home">
+          <span class="brand__mark" aria-hidden="true">B</span>
+          <span class="brand__text">Basira</span>
+        </a>
 
-    <main class="section">
-      <div class="container">
-        <section class="authShell">
-          <h1 class="authTitle">إنشاء حساب</h1>
-          <p class="authSub">
-            أنشئ حسابًا جديدًا وحدد الخطة المناسبة. في النسخة الحالية يتم حفظ الخطة المختارة، بينما يبقى الدفع تجريبيًا وغير مفعّل فعليًا.
+        <div class="actions">
+          <button class="lang" id="langBtn" type="button" aria-label="Toggle language">
+            <span class="lang__dot" aria-hidden="true"></span>
+            <span id="langLabel">AR</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth__main">
+      <div class="container auth__grid">
+        <section class="panel" aria-label="Register panel">
+          <h1 class="auth__title">إنشاء حساب</h1>
+          <p class="auth__subtitle">
+            أنشئ حسابًا جديدًا للوصول إلى بصيرة، ثم اختر الخطة المناسبة لطبيعة استخدامك.
           </p>
 
-          <form id="registerForm">
-            <div class="field">
-              <label class="label" for="fullName">الاسم الكامل</label>
-              <input class="input" id="fullName" type="text" required placeholder="الاسم الكامل" />
+          <form class="form" id="registerForm" novalidate>
+            <div class="row2">
+              <label class="field">
+                <span class="field__label">الاسم الكامل</span>
+                <input class="input" id="fullName" type="text" name="name" placeholder="الاسم الكامل" required />
+              </label>
+
+              <label class="field">
+                <span class="field__label">الخطة</span>
+                <select class="input" id="selectedPlan" name="plan" required>
+                  <option value="" selected disabled>اختيار الخطة</option>
+                  <option value="starter">Starter</option>
+                  <option value="professional">Professional</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </label>
             </div>
 
-            <div class="field">
-              <label class="label" for="registerEmail">البريد الإلكتروني</label>
-              <input class="input" id="registerEmail" type="email" required placeholder="name@company.com" />
+            <div class="plan-card" id="planDetails">
+              <h3 class="plan-card__title" id="planTitle">تفاصيل الخطة</h3>
+              <p class="plan-card__text" id="planText"></p>
+              <ul class="plan-card__list" id="planList"></ul>
             </div>
 
-            <div class="field">
-              <label class="label" for="registerPassword">كلمة المرور</label>
-              <input class="input" id="registerPassword" type="password" required placeholder="••••••••" />
+            <label class="field">
+              <span class="field__label">البريد الإلكتروني</span>
+              <input class="input" id="registerEmail" type="email" name="email" placeholder="name@domain.com" required />
+            </label>
+
+            <label class="field">
+              <span class="field__label">كلمة المرور</span>
+              <input
+                class="input"
+                id="registerPassword"
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                minlength="8"
+                required
+              />
+            </label>
+
+            <div class="password-meter">
+              <div class="password-bar">
+                <div class="password-bar__fill" id="passwordBar"></div>
+              </div>
+
+              <div class="password-meta">
+                <span class="password-level" id="passwordLevel">مستوى كلمة المرور: غير محدد</span>
+                <span class="help">يفضل استخدام أحرف كبيرة وصغيرة وأرقام ورمز خاص.</span>
+              </div>
+
+              <div class="password-rules">
+                <div class="rule" id="ruleLength">8 أحرف على الأقل</div>
+                <div class="rule" id="ruleUpper">حرف كبير واحد على الأقل</div>
+                <div class="rule" id="ruleLower">حرف صغير واحد على الأقل</div>
+                <div class="rule" id="ruleNumber">رقم واحد على الأقل</div>
+                <div class="rule" id="ruleSpecial">رمز خاص واحد على الأقل</div>
+              </div>
             </div>
 
-            <div class="field">
-              <label class="label" for="selectedPlan">الخطة المختارة</label>
-              <select class="select" id="selectedPlan" required>
-                <option value="starter">Starter</option>
-                <option value="professional">Professional</option>
-                <option value="enterprise">Enterprise</option>
-              </select>
-            </div>
+            <button class="btn btn--primary btn--lg" type="submit">
+              إنشاء الحساب
+            </button>
 
-            <button class="btn btn--primary btn--lg" type="submit">إنشاء الحساب</button>
+            <p class="muted auth__hint">
+              لديك حساب بالفعل؟
+              <a href="./login.html">تسجيل الدخول</a>
+            </p>
           </form>
 
-          <div id="registerMessage" class="authMessage"></div>
+          <div class="note" id="registerMessage" role="status" aria-live="polite"></div>
         </section>
+
+        <aside class="panel" aria-label="Info panel">
+          <h2 class="sideTitle">ما الذي ستحصل عليه بعد إنشاء الحساب؟</h2>
+          <p class="sideText">
+            بعد نجاح التسجيل يمكنك الوصول إلى مسار العمل داخل بصيرة، وبدء رفع البيانات، فحص الجودة، تطبيق التحسينات، ثم إنتاج التقارير واللوحات التفاعلية.
+          </p>
+
+          <ul class="sideList">
+            <li>واجهة واضحة لإدارة الحساب والخطة.</li>
+            <li>تجربة استخدام منظمة قبل تشغيل بصيرة المحلية.</li>
+            <li>تحقق من الاشتراك قبل الانتقال إلى بيئة العمل.</li>
+          </ul>
+        </aside>
       </div>
     </main>
 
-    <div id="app-footer"></div>
+    <div class="popup-backdrop" id="successPopup">
+      <div class="popup">
+        <div class="popup__icon">✓</div>
+        <h2 class="popup__title">تم إنشاء الحساب بنجاح</h2>
+        <p class="popup__text" id="successPopupText">
+          سيتم تحويلك الآن إلى الصفحة الرئيسية التجريبية.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const planMap = {
+        starter: {
+          title: "Starter",
+          text: "خطة مناسبة للاستخدام الأساسي، وتوفر لك بداية واضحة مع المزايا الأساسية داخل بصيرة.",
+          items: [
+            "تحليل تلقائي للبيانات",
+            "لوحة مؤشرات أساسية",
+            "Web Scraping",
+            "مخرجات أولية قابلة للمراجعة"
+          ]
+        },
+        professional: {
+          title: "Professional",
+          text: "خطة موجهة للمستخدم الذي يحتاج مخرجات أعمق وتقارير أوضح للاستخدام المهني.",
+          items: [
+            "كل مزايا Starter",
+            "تقارير أكثر احترافية",
+            "نماذج تحليل أكثر",
+            "توصيات تفسيرية أوضح"
+          ]
+        },
+        enterprise: {
+          title: "Enterprise",
+          text: "خطة مخصصة للجهات التي تحتاج تشغيلًا مؤسسيًا مرنًا وتجهيزًا أعلى حسب طبيعة البيئة.",
+          items: [
+            "كل مزايا Professional",
+            "إعدادات مخصصة",
+            "جاهزية أعلى للبيئات المؤسسية",
+            "مرونة في التوسع لاحقًا"
+          ]
+        }
+      };
+
+      function updatePlanCard(value){
+        const box = document.getElementById("planDetails");
+        const title = document.getElementById("planTitle");
+        const text = document.getElementById("planText");
+        const list = document.getElementById("planList");
+
+        if(!value || !planMap[value]){
+          box.classList.remove("isVisible");
+          title.textContent = "تفاصيل الخطة";
+          text.textContent = "";
+          list.innerHTML = "";
+          return;
+        }
+
+        const plan = planMap[value];
+        box.classList.add("isVisible");
+        title.textContent = plan.title;
+        text.textContent = plan.text;
+        list.innerHTML = plan.items.map(item => `<li>${item}</li>`).join("");
+      }
+
+      function scorePassword(password){
+        let score = 0;
+
+        const hasLength = password.length >= 8;
+        const hasUpper = /[A-Z]/.test(password);
+        const hasLower = /[a-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecial = /[^A-Za-z0-9]/.test(password);
+
+        if(hasLength) score++;
+        if(hasUpper) score++;
+        if(hasLower) score++;
+        if(hasNumber) score++;
+        if(hasSpecial) score++;
+
+        return { score, hasLength, hasUpper, hasLower, hasNumber, hasSpecial };
+      }
+
+      function paintRule(id, ok){
+        const el = document.getElementById(id);
+        el.classList.toggle("ok", ok);
+      }
+
+      function updatePasswordMeter(value){
+        const info = scorePassword(value);
+        const bar = document.getElementById("passwordBar");
+        const label = document.getElementById("passwordLevel");
+
+        paintRule("ruleLength", info.hasLength);
+        paintRule("ruleUpper", info.hasUpper);
+        paintRule("ruleLower", info.hasLower);
+        paintRule("ruleNumber", info.hasNumber);
+        paintRule("ruleSpecial", info.hasSpecial);
+
+        const percent = (info.score / 5) * 100;
+        bar.style.width = percent + "%";
+
+        if(info.score <= 1){
+          bar.style.background = "var(--red)";
+          label.textContent = "مستوى كلمة المرور: ضعيف";
+          label.style.color = "var(--red)";
+        } else if(info.score <= 3){
+          bar.style.background = "var(--amber)";
+          label.textContent = "مستوى كلمة المرور: متوسط";
+          label.style.color = "var(--amber)";
+        } else {
+          bar.style.background = "var(--green)";
+          label.textContent = "مستوى كلمة المرور: قوي";
+          label.style.color = "var(--green)";
+        }
+      }
+
+      document.getElementById("selectedPlan").addEventListener("change", (e) => {
+        updatePlanCard(e.target.value);
+      });
+
+      document.getElementById("registerPassword").addEventListener("input", (e) => {
+        updatePasswordMeter(e.target.value);
+      });
+
+      const langBtn = document.getElementById("langBtn");
+      const langLabel = document.getElementById("langLabel");
+
+      langBtn.addEventListener("click", ()=>{
+        const html = document.documentElement;
+        const isAr = (html.getAttribute("lang") || "ar") === "ar";
+        if(isAr){
+          html.setAttribute("lang","en");
+          html.setAttribute("dir","ltr");
+          langLabel.textContent = "EN";
+          alert("تم تغيير اتجاه الصفحة فقط. النصوص الإنجليزية يمكن إضافتها لاحقًا.");
+        }else{
+          html.setAttribute("lang","ar");
+          html.setAttribute("dir","rtl");
+          langLabel.textContent = "AR";
+        }
+      });
+    </script>
   </body>
 </html>
