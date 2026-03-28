@@ -1,5 +1,17 @@
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function showNote(id, type, message) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = message;
+  el.className = "note " + (type === "ok" ? "isOk" : "isErr");
+}
+
+function setFlash(title, text) {
+  localStorage.setItem("basira_flash_title", title);
+  localStorage.setItem("basira_flash_text", text);
+}
+
 async function signInUser(email, password) {
   const { data, error } = await supabaseClient.auth.signInWithPassword({
     email,
@@ -22,7 +34,6 @@ async function signUpUser(fullName, email, password, selectedPlanId) {
   });
 
   if (error) throw error;
-
   if (!data.user) {
     throw new Error("تعذر إنشاء الحساب.");
   }
@@ -100,79 +111,119 @@ function isSubscriptionValid(sub) {
   };
 }
 
-async function handleLoginForm(event) {
-  event.preventDefault();
+function validateStrongPassword(password) {
+  const hasLength = password.length >= 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
 
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const msg = document.getElementById("loginMessage");
-
-  msg.textContent = "جارٍ التحقق من الحساب والاشتراك...";
-  msg.className = "authMessage";
-
-  try {
-    await signInUser(email, password);
-    const sub = await getMySubscription();
-    const check = isSubscriptionValid(sub);
-
-    if (!check.ok) {
-      msg.textContent = check.message;
-      msg.className = "authMessage authMessage--error";
-      return;
-    }
-
-    localStorage.setItem("basira_subscription_plan", sub.plan_id || "");
-    localStorage.setItem("basira_subscription_status", sub.status || "");
-    localStorage.setItem("basira_subscription_end", sub.current_period_end || "");
-
-    msg.textContent = "تم التحقق بنجاح. يمكنك الآن استخدام بصيرة.";
-    msg.className = "authMessage authMessage--success";
-
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 1200);
-  } catch (err) {
-    msg.textContent = err.message || "حدث خطأ أثناء تسجيل الدخول.";
-    msg.className = "authMessage authMessage--error";
-  }
+  return hasLength && hasUpper && hasLower && hasNumber && hasSpecial;
 }
 
 async function handleRegisterForm(event) {
   event.preventDefault();
 
-  const fullName = document.getElementById("fullName").value.trim();
-  const email = document.getElementById("registerEmail").value.trim();
-  const password = document.getElementById("registerPassword").value;
-  const selectedPlanId = document.getElementById("selectedPlan").value;
-  const msg = document.getElementById("registerMessage");
+  const fullName = document.getElementById("fullName")?.value.trim() || "";
+  const email = document.getElementById("registerEmail")?.value.trim() || "";
+  const password = document.getElementById("registerPassword")?.value || "";
+  const selectedPlanId = document.getElementById("selectedPlan")?.value || "";
 
-  msg.textContent = "جارٍ إنشاء الحساب...";
-  msg.className = "authMessage";
+  if (!fullName) {
+    showNote("registerMessage", "err", "الاسم الكامل مطلوب.");
+    return;
+  }
+
+  if (!selectedPlanId) {
+    showNote("registerMessage", "err", "يرجى اختيار الخطة.");
+    return;
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showNote("registerMessage", "err", "البريد الإلكتروني غير صحيح.");
+    return;
+  }
+
+  if (!validateStrongPassword(password)) {
+    showNote("registerMessage", "err", "كلمة المرور يجب أن تكون قوية وتحتوي على 8 أحرف على الأقل مع حرف كبير وصغير ورقم ورمز خاص.");
+    return;
+  }
+
+  showNote("registerMessage", "ok", "جارٍ إنشاء الحساب...");
 
   try {
     await signUpUser(fullName, email, password, selectedPlanId);
 
-    msg.textContent =
-      "تم إنشاء الحساب بنجاح. تم حفظ الخطة المختارة، ويمكن تفعيل الاشتراك لاحقًا عبر الإدارة أو الدفع التجريبي.";
-    msg.className = "authMessage authMessage--success";
+    localStorage.setItem("basira_user_name", fullName);
+    localStorage.setItem("basira_selected_plan", selectedPlanId);
+    setFlash("تم إنشاء الحساب بنجاح", `أهلًا ${fullName}، تم تسجيل الخطة ${selectedPlanId} بنجاح.`);
+
+    const popup = document.getElementById("successPopup");
+    const popupText = document.getElementById("successPopupText");
+    if (popup && popupText) {
+      popupText.textContent = `أهلًا ${fullName}، تم إنشاء الحساب بنجاح وسيتم تحويلك الآن إلى الصفحة التجريبية.`;
+      popup.classList.add("show");
+    }
 
     setTimeout(() => {
-      window.location.href = "login.html";
+      window.location.href = "home-test.html";
+    }, 1800);
+  } catch (err) {
+    showNote("registerMessage", "err", err.message || "حدث خطأ أثناء إنشاء الحساب.");
+  }
+}
+
+async function handleLoginForm(event) {
+  event.preventDefault();
+
+  const email = document.getElementById("email")?.value.trim() || "";
+  const password = document.getElementById("password")?.value || "";
+
+  showNote("loginMessage", "ok", "جارٍ التحقق من الحساب والاشتراك...");
+
+  try {
+    const result = await signInUser(email, password);
+    const sub = await getMySubscription();
+    const check = isSubscriptionValid(sub);
+
+    if (!check.ok) {
+      showNote("loginMessage", "err", check.message);
+      return;
+    }
+
+    const userName = result?.user?.user_metadata?.full_name || email;
+    localStorage.setItem("basira_user_name", userName);
+    localStorage.setItem("basira_subscription_plan", sub.plan_id || "");
+    localStorage.setItem("basira_subscription_status", sub.status || "");
+    localStorage.setItem("basira_subscription_end", sub.current_period_end || "");
+
+    setFlash("تم تسجيل الدخول بنجاح", `أهلًا ${userName}، تم التحقق من اشتراكك بنجاح.`);
+
+    const popup = document.getElementById("loginSuccessPopup");
+    const popupText = document.getElementById("loginSuccessPopupText");
+    if (popup && popupText) {
+      popupText.textContent = `أهلًا ${userName}، تم تسجيل الدخول بنجاح وسيتم تحويلك الآن إلى الصفحة التجريبية.`;
+      popup.classList.add("show");
+    }
+
+    showNote("loginMessage", "ok", "تم تسجيل الدخول بنجاح. سيتم تحويلك الآن.");
+
+    setTimeout(() => {
+      window.location.href = "home-test.html";
     }, 1500);
   } catch (err) {
-    msg.textContent = err.message || "حدث خطأ أثناء إنشاء الحساب.";
-    msg.className = "authMessage authMessage--error";
+    showNote("loginMessage", "err", err.message || "حدث خطأ أثناء تسجيل الدخول.");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
-    loginForm.addEventListener("submit", handleLoginForm);
-  }
-
   const registerForm = document.getElementById("registerForm");
   if (registerForm) {
     registerForm.addEventListener("submit", handleRegisterForm);
+  }
+
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", handleLoginForm);
   }
 });
