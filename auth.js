@@ -681,6 +681,8 @@
 //     loginForm.addEventListener("submit", handleLoginForm);
 //   }
 // });
+
+
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let pendingLoginContext = null;
@@ -715,7 +717,7 @@ function escapeHtml(value) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
+    .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
 
@@ -737,8 +739,7 @@ async function signUpUser(fullName, email, password, selectedPlanId) {
       data: {
         full_name: fullName,
         selected_plan_id: selectedPlanId
-      },
-      emailRedirectTo: window.location.origin + "/login.html"
+      }
     }
   });
 
@@ -796,6 +797,7 @@ async function ensureMyProfileAndSubscription() {
   const selectedPlanId = user.user_metadata?.selected_plan_id || "starter";
 
   const existingProfile = await getMyProfile();
+
   if (!existingProfile) {
     const { error: profileInsertError } = await supabaseClient
       .from("profiles")
@@ -808,26 +810,20 @@ async function ensureMyProfileAndSubscription() {
 
     if (profileInsertError) throw profileInsertError;
   } else {
-    const profileNeedsUpdate =
-      !existingProfile.full_name ||
-      !existingProfile.email ||
-      !existingProfile.selected_plan_id;
+    const { error: profileUpdateError } = await supabaseClient
+      .from("profiles")
+      .update({
+        full_name: existingProfile.full_name || fullName,
+        email: existingProfile.email || email,
+        selected_plan_id: existingProfile.selected_plan_id || selectedPlanId
+      })
+      .eq("user_id", user.id);
 
-    if (profileNeedsUpdate) {
-      const { error: profileUpdateError } = await supabaseClient
-        .from("profiles")
-        .update({
-          full_name: existingProfile.full_name || fullName,
-          email: existingProfile.email || email,
-          selected_plan_id: existingProfile.selected_plan_id || selectedPlanId
-        })
-        .eq("user_id", user.id);
-
-      if (profileUpdateError) throw profileUpdateError;
-    }
+    if (profileUpdateError) throw profileUpdateError;
   }
 
   const existingSubscription = await getMySubscription();
+
   if (!existingSubscription) {
     const { error: subInsertError } = await supabaseClient
       .from("subscriptions")
@@ -1064,28 +1060,12 @@ async function handleRegisterForm(event) {
   showNote("registerMessage", "ok", "جارٍ إنشاء الحساب...");
 
   try {
-    const result = await signUpUser(fullName, email, password, selectedPlanId);
+    await signUpUser(fullName, email, password, selectedPlanId);
 
     localStorage.setItem("basira_user_name", fullName);
     localStorage.setItem("basira_selected_plan", selectedPlanId);
 
-    const emailConfirmedAt = result?.user?.email_confirmed_at || null;
-    const needsEmailConfirmation = !emailConfirmedAt;
-
-    if (needsEmailConfirmation) {
-      showNote(
-        "registerMessage",
-        "ok",
-        `
-          <strong>تم إنشاء الحساب بنجاح.</strong><br>
-          تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.<br>
-          الرجاء التوجه إلى الإيميل، ثم اضغط رابط التأكيد، وبعدها ارجع إلى صفحة تسجيل الدخول وسجل دخولك من جديد.
-        `
-      );
-      return;
-    }
-
-    setFlash("تم إنشاء الحساب بنجاح", `أهلًا ${fullName}، تم تسجيل الخطة ${selectedPlanId} بنجاح.`);
+    showNote("registerMessage", "ok", "تم إنشاء الحساب بنجاح. يمكنك الآن تسجيل الدخول.");
 
     const popup = document.getElementById("successPopup");
     const popupText = document.getElementById("successPopupText");
@@ -1154,22 +1134,7 @@ async function handleLoginForm(event) {
   } catch (err) {
     pendingLoginContext = null;
     hideSubscriptionNotice();
-
-    const message = err?.message || "";
-
-    if (
-      message.includes("Email not confirmed") ||
-      message.includes("email not confirmed")
-    ) {
-      showNote(
-        "loginMessage",
-        "err",
-        "هذا الحساب لم يتم تأكيد بريده الإلكتروني بعد. الرجاء التوجه إلى بريدك الإلكتروني، إتمام تأكيد الإيميل، ثم إعادة تسجيل الدخول."
-      );
-      return;
-    }
-
-    showNote("loginMessage", "err", message || "حدث خطأ أثناء تسجيل الدخول.");
+    showNote("loginMessage", "err", err.message || "حدث خطأ أثناء تسجيل الدخول.");
   }
 }
 
