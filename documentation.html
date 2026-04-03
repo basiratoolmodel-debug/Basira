@@ -101,7 +101,7 @@
   </body>
 </html> -->
 
-
+<!-- 
 
 <!doctype html>
 <html lang="ar" dir="rtl" data-lang="ar">
@@ -1211,4 +1211,675 @@ Generate KPI Dashboard + Executive Report</code></pre>
     </script>
   </body>
 </html>
+ -->
 
+ <!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira Documentation | وثائق بصيرة</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        /* Clean SaaS Color Palette */
+        --bg-body: #F8FAFC;
+        --bg-surface: #FFFFFF;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --stroke: #E2E8F0;
+        
+        --primary: #2563EB;
+        --primary-hover: #1D4ED8;
+        --primary-light: #EFF6FF;
+        
+        --success: #16A34A;
+        --warning: #F59E0B;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+        --radius-md: 8px;
+        --radius-lg: 12px;
+        --radius-xl: 16px;
+
+        --max-width: 1280px;
+        --topbar-height: 64px;
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; scroll-behavior: smooth; }
+      
+      body {
+        font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+        color: var(--text-main);
+        background-color: var(--bg-body);
+        line-height: 1.6;
+      }
+
+      a { color: inherit; text-decoration: none; }
+      button, input { font-family: inherit; border: none; outline: none; }
+      
+      .container {
+        width: 100%;
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      /* ================= Topbar ================= */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--stroke);
+        height: var(--topbar-height);
+      }
+
+      .topbar__inner {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .topbar__left, .topbar__right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .menu-toggle {
+        display: none;
+        background: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--text-main);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.2px;
+      }
+
+      .brand__mark {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--primary) 0%, #60A5FA 100%);
+        color: white;
+        font-weight: bold;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .nav { display: flex; gap: 4px; }
+      .nav__link {
+        color: var(--text-muted);
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+        transition: all 0.2s;
+        font-size: 0.95rem;
+      }
+      .nav__link:hover, .nav__link--doc {
+        background: var(--primary-light);
+        color: var(--primary);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+      }
+      .btn--ghost { color: var(--text-main); }
+      .btn--ghost:hover { background: var(--stroke); }
+      .btn--primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: var(--shadow-sm);
+      }
+      .btn--primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+      /* ================= Layout ================= */
+      .docsShell {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 32px;
+        margin-top: 24px;
+        align-items: start;
+        padding-bottom: 40px;
+      }
+
+      /* ================= Sidebar ================= */
+      .docsSidebar {
+        position: sticky;
+        top: calc(var(--topbar-height) + 24px);
+        height: calc(100vh - var(--topbar-height) - 48px);
+        background: var(--bg-surface);
+        border: 1px solid var(--stroke);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .docsSidebar__top { padding: 20px; border-bottom: 1px solid var(--stroke); }
+      .docsTitle { font-weight: 700; font-size: 1.1rem; }
+      .docsSub { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+
+      .docsSearch { margin-top: 16px; position: relative; }
+      .docsSearch__input {
+        width: 100%;
+        padding: 10px 14px 10px 36px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--stroke);
+        background: var(--bg-body);
+        font-size: 0.9rem;
+        transition: border 0.2s;
+      }
+      .docsSearch__input:focus {
+        border-color: var(--primary);
+        background: white;
+      }
+
+      .docsNav { flex: 1; overflow-y: auto; padding: 12px; }
+      .docsNav::-webkit-scrollbar { width: 6px; }
+      .docsNav::-webkit-scrollbar-thumb { background: var(--stroke); border-radius: 10px; }
+
+      .navGroup { margin-bottom: 16px; }
+      .navGroup__btn {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: transparent;
+        color: var(--text-main);
+        font-weight: 700;
+        padding: 8px;
+        cursor: pointer;
+        font-size: 0.95rem;
+      }
+      
+      .navItems { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+      .navItem {
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+        color: var(--text-muted);
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        border-right: 3px solid transparent; /* Subtle active indicator on RTL */
+      }
+      .navItem:hover { background: var(--bg-body); color: var(--text-main); }
+      .navItem.isActive {
+        background: var(--primary-light);
+        color: var(--primary);
+        font-weight: 600;
+        border-right-color: var(--primary);
+      }
+
+      /* ================= Content Area ================= */
+      .docsContent {
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--stroke);
+        box-shadow: var(--shadow-sm);
+        min-height: 600px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .docsTop {
+        padding: 32px 40px 24px;
+        border-bottom: 1px solid var(--stroke);
+      }
+      
+      .docsBreadcrumb {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      
+      .docsHeading { font-size: 2rem; font-weight: 700; color: var(--text-main); }
+      
+      .docsMeta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      
+      .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+      .badge {
+        padding: 4px 10px;
+        border-radius: 99px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--bg-body);
+        color: var(--text-muted);
+        border: 1px solid var(--stroke);
+      }
+      .badge.info { background: var(--primary-light); color: var(--primary); border-color: rgba(37,99,235,0.2); }
+      .badge.ok { background: #DCFCE7; color: var(--success); border-color: rgba(22,163,74,0.2); }
+      
+      .miniLink {
+        font-size: 0.85rem;
+        color: var(--primary);
+        font-weight: 600;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: var(--radius-md);
+        background: var(--primary-light);
+      }
+
+      .docsArticle {
+        padding: 40px;
+        flex: 1;
+      }
+      
+      /* Article Typography */
+      .docsArticle p { margin-bottom: 16px; font-size: 1.05rem; color: #334155; }
+      .docsArticle h2 { margin: 32px 0 16px; font-size: 1.5rem; color: var(--text-main); padding-bottom: 8px; border-bottom: 1px solid var(--stroke); }
+      .docsArticle h3 { margin: 24px 0 12px; font-size: 1.25rem; color: var(--text-main); }
+      .docsArticle ul { margin: 0 24px 24px 0; padding-right: 16px; color: #334155; }
+      .docsArticle li { margin-bottom: 8px; }
+      
+      .callout {
+        padding: 16px 20px;
+        border-radius: var(--radius-md);
+        margin: 24px 0;
+        background: var(--bg-body);
+        border-right: 4px solid var(--stroke);
+        font-size: 1rem;
+      }
+      .callout.info { background: var(--primary-light); border-color: var(--primary); color: #1E3A8A; }
+      .callout.ok { background: #DCFCE7; border-color: var(--success); color: #14532D; }
+      .callout.warn { background: #FEF3C7; border-color: var(--warning); color: #78350F; }
+
+      /* Code Blocks */
+      .code-container { position: relative; margin: 24px 0; }
+      .copy-btn {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: rgba(255,255,255,0.1);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .copy-btn:hover { background: rgba(255,255,255,0.2); }
+      
+      pre {
+        background: #0F172A;
+        padding: 20px;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        direction: ltr;
+        text-align: left;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        color: #E2E8F0;
+        font-size: 0.9rem;
+      }
+      p code, li code {
+        background: var(--bg-body);
+        color: #C53030;
+        padding: 2px 6px;
+        border-radius: 4px;
+        border: 1px solid var(--stroke);
+        font-size: 0.85em;
+      }
+
+      /* Pager & Footer */
+      .docsPager {
+        display: flex;
+        justify-content: space-between;
+        padding: 24px 40px;
+        border-top: 1px solid var(--stroke);
+        background: #FAFAFA;
+      }
+      
+      .site-footer {
+        text-align: center;
+        padding: 32px 20px;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-top: 40px;
+        border-top: 1px solid var(--stroke);
+      }
+
+      /* ================= Responsive Design ================= */
+      @media (max-width: 1024px) {
+        .docsShell { grid-template-columns: 240px 1fr; gap: 20px; }
+        .docsArticle, .docsTop, .docsPager { padding: 24px; }
+      }
+
+      @media (max-width: 768px) {
+        .menu-toggle { display: block; }
+        .nav { display: none; }
+        .docsShell { grid-template-columns: 1fr; margin-top: 16px; }
+        
+        /* Mobile Drawer for Sidebar */
+        .docsSidebar {
+          position: fixed;
+          top: var(--topbar-height);
+          right: -100%;
+          width: 280px;
+          height: calc(100vh - var(--topbar-height));
+          z-index: 999;
+          border-radius: 0;
+          border: none;
+          border-left: 1px solid var(--stroke);
+          transition: right 0.3s ease;
+          box-shadow: -10px 0 15px rgba(0,0,0,0.05);
+        }
+        .docsSidebar.open { right: 0; }
+        
+        /* Overlay */
+        .sidebar-overlay {
+          display: none;
+          position: fixed;
+          top: var(--topbar-height);
+          left: 0; right: 0; bottom: 0;
+          background: rgba(0,0,0,0.4);
+          z-index: 998;
+          backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.active { display: block; }
+        
+        .docsHeading { font-size: 1.5rem; }
+      }
+      
+      @media (max-width: 480px) {
+        .actions .btn--ghost { display: none; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- HEADER -->
+    <header class="header" id="header">
+      <div class="container">
+        <div class="header__inner">
+          <a href="index.html" class="logo">
+            <div class="logo__icon">B</div>
+            <span>بصيرة</span>
+          </a>
+
+          <nav class="nav">
+            <a href="#start" class="nav__link">ابدأ</a>
+            <a href="#features" class="nav__link">المميزات</a>
+            <a href="#journey" class="nav__link">المراحل</a>
+            <a href="documentation.html" class="nav__link">Documentation</a>
+            <a href="#contact" class="nav__link">تواصل</a>
+          </nav>
+
+          <div class="header__actions">
+            <button class="lang-toggle" type="button">EN</button>
+            <a href="login.html" class="btn btn--ghost">تسجيل الدخول</a>
+            <a href="register.html" class="btn btn--primary">ابدأ الآن</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <main class="container docsShell">
+      <aside class="docsSidebar" id="docsSidebar">
+        <div class="docsSidebar__top">
+          <div class="docsTitle">Basira Documentation</div>
+          <div class="docsSub">دليل الاستخدام والتشغيل المحلي</div>
+          <div class="docsSearch">
+            <input id="docsSearch" class="docsSearch__input" type="search" placeholder="ابحث في الوثائق..." autocomplete="off" />
+          </div>
+        </div>
+        <div class="docsNav" id="docsNav"></div>
+      </aside>
+
+      <section class="docsContent">
+        <div class="docsTop">
+          <div class="docsBreadcrumb">
+            <span>الوثائق</span> <span>›</span> <span id="crumbGroup">البداية</span> <span>›</span> <span id="crumbPage">نظرة عامة</span>
+          </div>
+          <h1 class="docsHeading" id="docTitle">نظرة عامة على بصيرة</h1>
+          <div class="docsMeta">
+            <div class="badges">
+              <span class="badge info" id="docTag">أساسيات</span>
+              <span class="badge" id="docReading">5 دقائق</span>
+              <span class="badge ok" id="docUpdated">2026-02-17</span>
+            </div>
+            <button class="miniLink" id="copyLink">نسخ رابط القسم</button>
+          </div>
+        </div>
+
+        <article class="docsArticle" id="docsArticle"></article>
+
+        <div class="docsPager">
+          <button class="btn btn--ghost" id="prevDoc">السابق</button>
+          <button class="btn btn--primary" id="nextDoc">التالي</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer container">
+      <p>© بصيرة السعودية 2026 - التحليلات المتقدمة والبيانات محلياً</p>
+    </footer>
+
+    <script>
+      // Navigation Data
+      const DOCS = [
+        {
+          groupId: "getting-started", groupTitle: "البداية",
+          items: [
+            {
+              id: "overview", title: "نظرة عامة على بصيرة", tag: "أساسيات", reading: "5 دقائق", updated: "2026-02-17",
+              body: `
+                <p>بصيرة منصة ويب سعودية لتحليل البيانات وتشغيل الأتمتة محليًا داخل بيئة المستخدم. هدفها تحويل البيانات الخام إلى <strong>قرار تنفيذي واضح</strong> عبر رحلة منظمة تشمل فحص الجودة، التنظيف، التحليل، ثم إخراج تقرير ولوحة مؤشرات.</p>
+                <div class="callout info"><strong>الفكرة الأساسية:</strong> بدل إرسال البيانات إلى خدمات خارجية، تعمل بصيرة داخل بيئة المستخدم أو شبكة المؤسسة (On-Premises) لدعم الخصوصية وحوكمة البيانات.</div>
+                <h2>ماذا تقدم بصيرة؟</h2>
+                <ul>
+                  <li><strong>فحص جودة البيانات</strong>: اكتشاف القيم المفقودة، التكرار، وعدم الاتساق.</li>
+                  <li><strong>تنظيف وتحسين</strong>: تطبيق سياسات إصلاح واضحة مع قياس الأثر قبل وبعد.</li>
+                  <li><strong>تحليل وInsights</strong>: استخراج مؤشرات وتفسيرات مرتبطة بسياق العمل.</li>
+                  <li><strong>مخرجات جاهزة</strong>: تقرير تنفيذي ولوحات KPI قابلة للمراجعة والمشاركة.</li>
+                </ul>
+              `
+            },
+            {
+              id: "quickstart", title: "بدء سريع خلال 10 دقائق", tag: "أساسيات", reading: "6 دقائق", updated: "2026-02-17",
+              body: `
+                <p>هذا الدليل يوضح طريقة البدء السريع على ملف <code>CSV</code> أو <code>Excel</code>.</p>
+                <h2>الخطوة 1: تجهيز ملف البيانات</h2>
+                <ul>
+                  <li>تأكدي من وجود عناوين الأعمدة في الصف الأول.</li>
+                  <li>راجعي ترميز النصوص العربية (يفضل UTF-8).</li>
+                </ul>
+                <div class="callout ok"><strong>أفضل ممارسة:</strong> ابدئي بتطبيق إصلاح واحد في كل مرة، ثم راقبي الفرق في المؤشرات قبل تطبيق إصلاحات إضافية.</div>
+              `
+            }
+          ]
+        },
+        {
+          groupId: "data-quality", groupTitle: "معالجة البيانات",
+          items: [
+            {
+              id: "missing-values", title: "القيم المفقودة", tag: "متقدم", reading: "8 دقائق", updated: "2026-02-17",
+              body: `
+                <p>القيم المفقودة تؤثر على دقة التحليل. بصيرة تعرض نسبة الفقد وتقترح خيارات قابلة للتطبيق.</p>
+                <h2>مثال سياسة تعويض عبر الكود</h2>
+                <p>يمكنك تطبيق سياسات الأتمتة مباشرة:</p>
+<pre><code>// سياسة تعويض القيم المفقودة
+if (column.isNumeric) {
+  fillMissingWith(Median);
+} else {
+  fillMissingWith(Mode);
+}</code></pre>
+                <div class="callout warn"><strong>تحذير:</strong> التعويض غير المدروس قد يسبب انحيازًا في التحليل النهائي.</div>
+              `
+            }
+          ]
+        }
+      ];
+
+      // App State
+      const state = { query: "", current: { groupId: "getting-started", id: "overview" }, flat: [] };
+      const $ = (id) => document.getElementById(id);
+
+      // Utilities
+      function flattenDocs() {
+        const out = [];
+        for (const g of DOCS) for (const it of g.items) out.push({ ...it, groupId: g.groupId, groupTitle: g.groupTitle });
+        return out;
+      }
+
+      // Sidebar Rendering
+      function buildNav() {
+        const nav = $("docsNav");
+        nav.innerHTML = "";
+        
+        for (const g of DOCS) {
+          const groupItems = g.items.filter(it => 
+            (it.title + " " + g.groupTitle + " " + it.body).toLowerCase().includes(state.query.toLowerCase())
+          );
+          if (groupItems.length === 0) continue;
+
+          const group = document.createElement("div");
+          group.className = "navGroup";
+          group.innerHTML = `<button class="navGroup__btn"><span>${g.groupTitle}</span> ▾</button>`;
+          
+          const itemsDiv = document.createElement("div");
+          itemsDiv.className = "navItems";
+          
+          for (const it of groupItems) {
+            const a = document.createElement("a");
+            a.href = `#${it.groupId}/${it.id}`;
+            a.className = `navItem ${state.current.id === it.id ? 'isActive' : ''}`;
+            a.textContent = it.title;
+            a.onclick = (e) => { e.preventDefault(); navigateTo(it.groupId, it.id, true); closeMobileMenu(); };
+            itemsDiv.appendChild(a);
+          }
+          
+          group.querySelector("button").onclick = () => itemsDiv.style.display = itemsDiv.style.display === "none" ? "flex" : "none";
+          group.appendChild(itemsDiv);
+          nav.appendChild(group);
+        }
+      }
+
+      // Content Injection & Code Block Enhancements
+      function renderContent(it) {
+        $("crumbGroup").textContent = it.groupTitle;
+        $("crumbPage").textContent = it.title;
+        $("docTitle").textContent = it.title;
+        $("docTag").textContent = it.tag;
+        $("docTag").className = `badge ${it.tag === "متقدم" ? "warn" : "info"}`;
+        $("docReading").textContent = it.reading;
+        $("docUpdated").textContent = it.updated;
+        
+        // Add Copy Buttons to code blocks
+        let htmlBody = it.body.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, (match, code) => {
+          return `<div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                    <pre><code>${code}</code></pre>
+                  </div>`;
+        });
+        $("docsArticle").innerHTML = htmlBody;
+        document.title = `${it.title} | Basira Docs`;
+        
+        buildNav(); // re-highlight active
+        updatePager();
+      }
+
+      // Copy Code Script
+      window.copyCode = function(btn) {
+        const code = btn.nextElementSibling.innerText;
+        navigator.clipboard.writeText(code).then(() => {
+          btn.textContent = "تم النسخ!";
+          setTimeout(() => btn.textContent = "نسخ", 2000);
+        });
+      };
+
+      // Pagination
+      function updatePager() {
+        const idx = state.flat.findIndex(x => x.id === state.current.id);
+        const prev = state.flat[idx - 1];
+        const next = state.flat[idx + 1];
+
+        $("prevDoc").disabled = !prev;
+        $("nextDoc").disabled = !next;
+        $("prevDoc").onclick = () => prev && navigateTo(prev.groupId, prev.id, true);
+        $("nextDoc").onclick = () => next && navigateTo(next.groupId, next.id, true);
+      }
+
+      function navigateTo(groupId, id, pushHash) {
+        const it = state.flat.find(x => x.id === id);
+        if (!it) return;
+        state.current = { groupId, id };
+        if (pushHash) history.pushState(null, "", `#${groupId}/${id}`);
+        renderContent(it);
+        window.scrollTo(0, 0);
+      }
+
+      // Mobile Menu Logic
+      function toggleMobileMenu() {
+        $("docsSidebar").classList.toggle("open");
+        $("sidebarOverlay").classList.toggle("active");
+      }
+      function closeMobileMenu() {
+        $("docsSidebar").classList.remove("open");
+        $("sidebarOverlay").classList.remove("active");
+      }
+
+      // Initialization
+      function init() {
+        state.flat = flattenDocs();
+        const hash = location.hash.replace("#", "").split("/");
+        if (hash.length === 2) state.current = { groupId: hash[0], id: hash[1] };
+        
+        navigateTo(state.current.groupId, state.current.id, false);
+
+        $("docsSearch").oninput = (e) => { state.query = e.target.value; buildNav(); };
+        $("menuToggle").onclick = toggleMobileMenu;
+        $("sidebarOverlay").onclick = closeMobileMenu;
+        $("copyLink").onclick = () => navigator.clipboard.writeText(location.href).then(() => alert("تم نسخ الرابط"));
+      }
+
+      init();
+    </script>
+  </body>
+</html>
