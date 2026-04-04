@@ -12,8 +12,8 @@ CLOUD_REGISTER_URL = f"{CLOUD_BASE_URL}/register.html"
 CLOUD_RENEW_URL = f"{CLOUD_BASE_URL}/renew"
 LOADING_GIF_PATH = "images/loading_B.gif"
 
-st.set_page_config(
-    page_title="Basira Local" 
+st.set_page_config (
+    page_title="Basira Local" ,
     layout="wide",
     initial_sidebar_state="collapsed"
 )
