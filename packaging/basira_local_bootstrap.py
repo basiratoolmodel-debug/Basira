@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-app = Flask(__name__, static_folder=".")
+app = Flask(__name__, static_folder=".", static_url_path="")
 CORS(app)
 
 APP_NAME = "Basira"
@@ -434,7 +434,7 @@ def environment_self_check(config: dict):
 
 @app.route("/")
 def root():
-    return send_from_directory(".", "basira_local.html")
+    return send_from_directory(".", "local-setup.html")
 
 
 @app.route("/health")
