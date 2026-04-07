@@ -1,3 +1,375 @@
+// // // // // // // const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// // // // // // // const LOCAL_BOOTSTRAP_URL = "http://127.0.0.1:5001";
+// // // // // // // const CLOUD_RENEW_URL = "https://basira.basira-toolmodel.workers.dev/renew";
+// // // // // // // const LOCAL_STREAMLIT_URL = "http://127.0.0.1:8501";
+// // // // // // // const LOCAL_RUNTIME_DOWNLOADS = {
+// // // // // // //   windows: "https://basira.basira-toolmodel.workers.dev/downloads/basira-local-runtime-win-x64.zip",
+// // // // // // //   mac: "https://basira.basira-toolmodel.workers.dev/downloads/basira-local-runtime-macos.zip"
+// // // // // // // };
+
+// // // // // // // let startupState = null;
+
+// // // // // // // function showNote(id, type, message) {
+// // // // // // //   const el = document.getElementById(id);
+// // // // // // //   if (!el) return;
+// // // // // // //   el.innerHTML = message;
+// // // // // // //   el.className = "note " + (type === "ok" ? "isOk" : "isErr");
+// // // // // // // }
+
+// // // // // // // function $(id) {
+// // // // // // //   return document.getElementById(id);
+// // // // // // // }
+
+// // // // // // // function showCard(id) {
+// // // // // // //   ["newUserCard", "loadingCard", "recoveryCard", "readyCard"].forEach(cardId => {
+// // // // // // //     const el = $(cardId);
+// // // // // // //     if (el) el.classList.add("isHidden");
+// // // // // // //   });
+
+// // // // // // //   const target = $(id);
+// // // // // // //   if (target) target.classList.remove("isHidden");
+// // // // // // // }
+
+// // // // // // // function setStepState(activeIndex) {
+// // // // // // //   const steps = Array.from(document.querySelectorAll(".setup-step"));
+// // // // // // //   steps.forEach((step, index) => {
+// // // // // // //     step.classList.remove("isActive", "isDone");
+// // // // // // //     if (index < activeIndex) step.classList.add("isDone");
+// // // // // // //     if (index === activeIndex) step.classList.add("isActive");
+// // // // // // //   });
+// // // // // // // }
+
+// // // // // // // function setProgress(percent, text) {
+// // // // // // //   const fill = $("progressFill");
+// // // // // // //   const label = $("progressText");
+// // // // // // //   if (fill) fill.style.width = `${percent}%`;
+// // // // // // //   if (label) label.textContent = text;
+// // // // // // // }
+
+// // // // // // // function getStoredSessionPayload() {
+// // // // // // //   return {
+// // // // // // //     user_id: localStorage.getItem("basira_user_id") || "",
+// // // // // // //     access_token: localStorage.getItem("basira_access_token") || "",
+// // // // // // //     refresh_token: localStorage.getItem("basira_refresh_token") || "",
+// // // // // // //     expires_at: localStorage.getItem("basira_session_expires_at") || "",
+// // // // // // //     subscription_status: localStorage.getItem("basira_subscription_status") || "active"
+// // // // // // //   };
+// // // // // // // }
+
+// // // // // // // function detectPlatform() {
+// // // // // // //   const ua = navigator.userAgent.toLowerCase();
+// // // // // // //   if (ua.includes("mac")) return "mac";
+// // // // // // //   return "windows";
+// // // // // // // }
+
+// // // // // // // async function apiGet(path) {
+// // // // // // //   const response = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`);
+// // // // // // //   return response.json();
+// // // // // // // }
+
+// // // // // // // async function apiPost(path, payload = {}) {
+// // // // // // //   const response = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`, {
+// // // // // // //     method: "POST",
+// // // // // // //     headers: {
+// // // // // // //       "Content-Type": "application/json"
+// // // // // // //     },
+// // // // // // //     body: JSON.stringify(payload)
+// // // // // // //   });
+
+// // // // // // //   return response.json();
+// // // // // // // }
+
+// // // // // // // async function readCloudUser() {
+// // // // // // //   try {
+// // // // // // //     const {
+// // // // // // //       data: { session }
+// // // // // // //     } = await supabaseClient.auth.getSession();
+
+// // // // // // //     if (!session?.user) {
+// // // // // // //       $("cloudUserLabel").textContent = "لم يتم العثور على جلسة مستخدم.";
+// // // // // // //       $("subscriptionLabel").textContent = "غير معروف";
+// // // // // // //       return null;
+// // // // // // //     }
+
+// // // // // // //     const userName =
+// // // // // // //       session.user.user_metadata?.full_name ||
+// // // // // // //       session.user.email ||
+// // // // // // //       session.user.id;
+
+// // // // // // //     $("cloudUserLabel").textContent = userName;
+// // // // // // //     $("subscriptionLabel").textContent =
+// // // // // // //       localStorage.getItem("basira_subscription_status") || "غير معروف";
+
+// // // // // // //     return session;
+// // // // // // //   } catch (err) {
+// // // // // // //     $("cloudUserLabel").textContent = "تعذر قراءة بيانات المستخدم.";
+// // // // // // //     $("subscriptionLabel").textContent = "غير معروف";
+// // // // // // //     return null;
+// // // // // // //   }
+// // // // // // // }
+
+// // // // // // // async function pushLocalSession() {
+// // // // // // //   const payload = getStoredSessionPayload();
+
+// // // // // // //   if (!payload.user_id || !payload.access_token || !payload.expires_at) {
+// // // // // // //     throw new Error("بيانات الجلسة المحلية غير مكتملة بعد تسجيل الدخول.");
+// // // // // // //   }
+
+// // // // // // //   await apiPost("/api/setup/login-complete", payload);
+// // // // // // // }
+
+// // // // // // // async function initializeStartup() {
+// // // // // // //   setStepState(0);
+
+// // // // // // //   try {
+// // // // // // //     await readCloudUser();
+
+// // // // // // //     $("startupStatusCard").querySelector(".local-card__title").textContent = "جارٍ التحقق من البيئة المحلية";
+// // // // // // //     $("startupStatusCard").querySelector(".local-card__text").textContent =
+// // // // // // //       "يتم الآن فحص config المحلي، حالة الجلسة، data directory، وملفات البيئة المحلية على هذا الجهاز.";
+
+// // // // // // //     startupState = await apiGet("/api/startup-status");
+
+// // // // // // //     if (!startupState || !startupState.state) {
+// // // // // // //       throw new Error("تعذر قراءة حالة التشغيل المحلي.");
+// // // // // // //     }
+
+// // // // // // //     if (startupState.state === "new_user" || startupState.state === "setup_incomplete") {
+// // // // // // //       showCard("newUserCard");
+// // // // // // //       setStepState(1);
+// // // // // // //       showNote("localSetupMessage", "ok", "هذه أول مرة على هذا الجهاز أو أن التهيئة السابقة غير مكتملة.");
+// // // // // // //       return;
+// // // // // // //     }
+
+// // // // // // //     if (startupState.state === "healthy" || startupState.state === "healthy_with_optional_update") {
+// // // // // // //       showCard("readyCard");
+// // // // // // //       setStepState(3);
+// // // // // // //       showNote("localSetupMessage", "ok", "تم العثور على بيئة محلية جاهزة. يمكنك تشغيلها مباشرة.");
+// // // // // // //       return;
+// // // // // // //     }
+
+// // // // // // //     if (startupState.state === "login_required") {
+// // // // // // //       showNote(
+// // // // // // //         "localSetupMessage",
+// // // // // // //         "err",
+// // // // // // //         "انتهت الجلسة المحلية أو لم تُربط بعد. سيتم إعادة ربطها الآن من جلسة تسجيل الدخول الحالية."
+// // // // // // //       );
+
+// // // // // // //       await pushLocalSession();
+
+// // // // // // //       startupState = await apiGet("/api/startup-status");
+
+// // // // // // //       if (startupState.state === "healthy" || startupState.state === "healthy_with_optional_update") {
+// // // // // // //         showCard("readyCard");
+// // // // // // //         setStepState(3);
+// // // // // // //         showNote("localSetupMessage", "ok", "تم تحديث الجلسة المحلية بنجاح.");
+// // // // // // //       } else {
+// // // // // // //         showCard("newUserCard");
+// // // // // // //         setStepState(1);
+// // // // // // //       }
+
+// // // // // // //       return;
+// // // // // // //     }
+
+// // // // // // //     if (startupState.state === "recovery_required") {
+// // // // // // //       const reason = startupState.reason || "unknown";
+// // // // // // //       showCard("recoveryCard");
+// // // // // // //       setStepState(1);
+
+// // // // // // //       const recoveryText = $("recoveryText");
+// // // // // // //       const recoveryPathField = $("recoveryPathField");
+// // // // // // //       const repairPrimaryBtn = $("repairPrimaryBtn");
+
+// // // // // // //       if (reason === "missing_data_dir" || reason === "data_dir_not_found" || reason === "data_dir_not_writable") {
+// // // // // // //         recoveryText.textContent =
+// // // // // // //           "تم اكتشاف مشكلة في مسار حفظ الملفات المحلية. حددي مسارًا جديدًا ليتم إصلاح البيئة المحلية.";
+// // // // // // //         recoveryPathField.classList.remove("isHidden");
+// // // // // // //         repairPrimaryBtn.textContent = "تحديث المسار وإصلاح البيئة";
+// // // // // // //         repairPrimaryBtn.dataset.mode = "reselect-path";
+// // // // // // //       } else if (reason === "missing_model") {
+// // // // // // //         recoveryText.textContent =
+// // // // // // //           "تم اكتشاف ملفات محلية ناقصة. يمكن إصلاح البيئة عبر إعادة تنزيل الملفات الأساسية.";
+// // // // // // //         recoveryPathField.classList.add("isHidden");
+// // // // // // //         repairPrimaryBtn.textContent = "إعادة تنزيل الملفات الأساسية";
+// // // // // // //         repairPrimaryBtn.dataset.mode = "repair-models";
+// // // // // // //       } else {
+// // // // // // //         recoveryText.textContent =
+// // // // // // //           "تم اكتشاف خلل جزئي في البيئة المحلية. سنحاول إصلاحه دون إعادة إعداد كامل.";
+// // // // // // //         recoveryPathField.classList.add("isHidden");
+// // // // // // //         repairPrimaryBtn.textContent = "إصلاح الآن";
+// // // // // // //         repairPrimaryBtn.dataset.mode = "repair-models";
+// // // // // // //       }
+
+// // // // // // //       showNote("localSetupMessage", "err", "تم اكتشاف حالة recovery ويمكن إصلاحها من هذه الصفحة.");
+// // // // // // //       return;
+// // // // // // //     }
+
+// // // // // // //     if (startupState.state === "update_required") {
+// // // // // // //       showNote("localSetupMessage", "err", "هذه النسخة المحلية تحتاج تحديثًا إجباريًا قبل المتابعة.");
+// // // // // // //       showCard("recoveryCard");
+// // // // // // //       $("recoveryText").textContent = "يلزم تحديث النسخة المحلية قبل المتابعة.";
+// // // // // // //       $("repairPrimaryBtn").textContent = "فتح بوابة التحديث";
+// // // // // // //       $("repairPrimaryBtn").dataset.mode = "open-update";
+// // // // // // //       return;
+// // // // // // //     }
+
+// // // // // // //     throw new Error("حالة تشغيل غير معروفة.");
+// // // // // // //   } catch (err) {
+// // // // // // //     showNote("localSetupMessage", "err", err.message || "تعذر بدء صفحة التهيئة المحلية.");
+// // // // // // //   }
+// // // // // // // }
+
+// // // // // // // async function runFirstSetup() {
+// // // // // // //   try {
+// // // // // // //     const session = await readCloudUser();
+// // // // // // //     if (!session?.user) {
+// // // // // // //       throw new Error("لا توجد جلسة مستخدم صالحة. الرجاء تسجيل الدخول مجددًا.");
+// // // // // // //     }
+
+// // // // // // //     setStepState(2);
+// // // // // // //     showCard("loadingCard");
+
+// // // // // // //     setProgress(10, "تهيئة الحالة المحلية...");
+// // // // // // //     await apiPost("/api/setup/init");
+// // // // // // //     await pushLocalSession();
+
+// // // // // // //     const dataDir = $("dataDirectory")?.value.trim() || "C:\\BasiraData";
+
+// // // // // // //     setProgress(30, "إنشاء المجلدات المحلية...");
+// // // // // // //     await apiPost("/api/setup/select-data-dir", {
+// // // // // // //       data_dir: dataDir
+// // // // // // //     });
+
+// // // // // // //     const platform = detectPlatform();
+// // // // // // //     const runtimeUrl = LOCAL_RUNTIME_DOWNLOADS[platform];
+
+// // // // // // //     setProgress(55, "تنزيل الملفات الأساسية المحلية...");
+// // // // // // //     await apiPost("/api/setup/install-models", {
+// // // // // // //       runtime_url: runtimeUrl,
+// // // // // // //       platform
+// // // // // // //     });
+
+// // // // // // //     setProgress(80, "التحقق من الجاهزية...");
+// // // // // // //     const verifyResult = await apiGet("/api/setup/verify");
+
+// // // // // // //     if (!verifyResult || verifyResult.status !== "ok") {
+// // // // // // //       throw new Error("فشل التحقق من البيئة المحلية بعد التهيئة.");
+// // // // // // //     }
+
+// // // // // // //     setProgress(95, "اعتماد التهيئة النهائية...");
+// // // // // // //     await apiPost("/api/setup/finalize");
+
+// // // // // // //     setProgress(100, "اكتملت التهيئة بنجاح.");
+// // // // // // //     setStepState(3);
+
+// // // // // // //     showCard("readyCard");
+// // // // // // //     showNote("localSetupMessage", "ok", "تم تجهيز البيئة المحلية بنجاح على هذا الجهاز.");
+// // // // // // //   } catch (err) {
+// // // // // // //     showCard("recoveryCard");
+// // // // // // //     showNote("localSetupMessage", "err", err.message || "حدث خطأ أثناء التهيئة المحلية.");
+// // // // // // //   }
+// // // // // // // }
+
+// // // // // // // async function runRecoveryAction() {
+// // // // // // //   const mode = $("repairPrimaryBtn")?.dataset.mode || "";
+
+// // // // // // //   try {
+// // // // // // //     if (mode === "reselect-path") {
+// // // // // // //       const pathValue = $("recoveryDataDirectory")?.value.trim() || "C:\\BasiraData";
+// // // // // // //       showCard("loadingCard");
+// // // // // // //       setProgress(30, "تحديث مسار البيانات...");
+// // // // // // //       await apiPost("/api/recovery/reselect-data-dir", {
+// // // // // // //         data_dir: pathValue
+// // // // // // //       });
+
+// // // // // // //       setProgress(70, "التحقق من البيئة...");
+// // // // // // //       const verifyResult = await apiGet("/api/setup/verify");
+
+// // // // // // //       if (!verifyResult || verifyResult.status !== "ok") {
+// // // // // // //         throw new Error("ما زالت البيئة تحتاج إصلاحًا إضافيًا.");
+// // // // // // //       }
+
+// // // // // // //       setProgress(100, "تم إصلاح مسار البيانات.");
+// // // // // // //       showCard("readyCard");
+// // // // // // //       setStepState(3);
+// // // // // // //       showNote("localSetupMessage", "ok", "تم إصلاح البيئة المحلية بنجاح.");
+// // // // // // //       return;
+// // // // // // //     }
+
+// // // // // // //     if (mode === "repair-models") {
+// // // // // // //       showCard("loadingCard");
+// // // // // // //       setProgress(35, "إعادة تنزيل الملفات الأساسية...");
+// // // // // // //       await apiPost("/api/recovery/repair-models");
+
+// // // // // // //       setProgress(75, "التحقق النهائي...");
+// // // // // // //       const verifyResult = await apiGet("/api/setup/verify");
+
+// // // // // // //       if (!verifyResult || verifyResult.status !== "ok") {
+// // // // // // //         throw new Error("إصلاح الملفات لم يكتمل بنجاح.");
+// // // // // // //       }
+
+// // // // // // //       setProgress(100, "تم إصلاح الملفات الأساسية.");
+// // // // // // //       showCard("readyCard");
+// // // // // // //       setStepState(3);
+// // // // // // //       showNote("localSetupMessage", "ok", "تم إصلاح البيئة المحلية بنجاح.");
+// // // // // // //       return;
+// // // // // // //     }
+
+// // // // // // //     if (mode === "open-update") {
+// // // // // // //       window.open("https://basira.basira-toolmodel.workers.dev", "_blank");
+// // // // // // //       return;
+// // // // // // //     }
+// // // // // // //   } catch (err) {
+// // // // // // //     showCard("recoveryCard");
+// // // // // // //     showNote("localSetupMessage", "err", err.message || "تعذر تنفيذ recovery.");
+// // // // // // //   }
+// // // // // // // }
+
+// // // // // // // function launchLocalEnvironment() {
+// // // // // // //   window.open(LOCAL_STREAMLIT_URL, "_blank");
+// // // // // // //   showNote("localSetupMessage", "ok", "تم إرسال أمر تشغيل الواجهة المحلية. إذا لم تعمل بعد، تحققي من خدمة التشغيل المحلي.");
+// // // // // // // }
+
+// // // // // // // async function renewSubscriptionDemo() {
+// // // // // // //   try {
+// // // // // // //     const userId = localStorage.getItem("basira_user_id");
+// // // // // // //     if (!userId) {
+// // // // // // //       throw new Error("لم يتم العثور على مستخدم محلي مربوط بالجلسة.");
+// // // // // // //     }
+
+// // // // // // //     await apiPost("/api/subscription/renew-demo", {
+// // // // // // //       user_id: userId
+// // // // // // //     });
+
+// // // // // // //     localStorage.setItem("basira_subscription_status", "active");
+// // // // // // //     $("subscriptionLabel").textContent = "active";
+
+// // // // // // //     showNote("localSetupMessage", "ok", "تم تحديث الاشتراك محليًا في وضع demo.");
+// // // // // // //   } catch (err) {
+// // // // // // //     showNote("localSetupMessage", "err", err.message || "تعذر تنفيذ تجديد الاشتراك.");
+// // // // // // //   }
+// // // // // // // }
+
+// // // // // // // document.addEventListener("DOMContentLoaded", async () => {
+// // // // // // //   $("startSetupBtn")?.addEventListener("click", runFirstSetup);
+// // // // // // //   $("repairPrimaryBtn")?.addEventListener("click", runRecoveryAction);
+// // // // // // //   $("launchLocalBtn")?.addEventListener("click", launchLocalEnvironment);
+
+// // // // // // //   $("renewSubscriptionBtn")?.addEventListener("click", () => {
+// // // // // // //     const useCloud = confirm("هل تريد فتح صفحة التجديد السحابية؟ اضغط موافق للتجديد السحابي أو إلغاء لتجديد demo.");
+// // // // // // //     if (useCloud) {
+// // // // // // //       window.open(CLOUD_RENEW_URL, "_blank");
+// // // // // // //     } else {
+// // // // // // //       renewSubscriptionDemo();
+// // // // // // //     }
+// // // // // // //   });
+
+// // // // // // //   await initializeStartup();
+// // // // // // // });
+
+
+
 // // // // // // const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // // // // // // const LOCAL_BOOTSTRAP_URL = "http://127.0.0.1:5001";
@@ -9,6 +381,8 @@
 // // // // // // };
 
 // // // // // // let startupState = null;
+// // // // // // let inactivityTimer = null;
+// // // // // // const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;
 
 // // // // // // function showNote(id, type, message) {
 // // // // // //   const el = document.getElementById(id);
@@ -119,6 +493,65 @@
 // // // // // //   await apiPost("/api/setup/login-complete", payload);
 // // // // // // }
 
+// // // // // // async function sendHeartbeat() {
+// // // // // //   try {
+// // // // // //     const response = await fetch(`${LOCAL_BOOTSTRAP_URL}/api/auth/heartbeat`, {
+// // // // // //       method: "POST",
+// // // // // //       headers: {
+// // // // // //         "Content-Type": "application/json"
+// // // // // //       }
+// // // // // //     });
+
+// // // // // //     if (response.status === 401) {
+// // // // // //       showNote("localSetupMessage", "err", "انتهت الجلسة المحلية بسبب الخمول أو انتهاء الصلاحية.");
+// // // // // //       setTimeout(() => {
+// // // // // //         window.location.href = "./login.html";
+// // // // // //       }, 1200);
+// // // // // //     }
+// // // // // //   } catch (err) {
+// // // // // //     console.warn("Heartbeat failed:", err);
+// // // // // //   }
+// // // // // // }
+
+// // // // // // async function autoLogoutNow() {
+// // // // // //   try {
+// // // // // //     await fetch(`${LOCAL_BOOTSTRAP_URL}/api/auth/auto-logout`, {
+// // // // // //       method: "POST",
+// // // // // //       headers: {
+// // // // // //         "Content-Type": "application/json"
+// // // // // //       }
+// // // // // //     });
+// // // // // //   } catch (err) {
+// // // // // //     console.warn("Auto logout request failed:", err);
+// // // // // //   }
+
+// // // // // //   showNote("localSetupMessage", "err", "تم تسجيل الخروج تلقائيًا بعد 20 دقيقة من عدم النشاط.");
+// // // // // //   setTimeout(() => {
+// // // // // //     window.location.href = "./login.html";
+// // // // // //   }, 1200);
+// // // // // // }
+
+// // // // // // function resetInactivityTimer() {
+// // // // // //   if (inactivityTimer) {
+// // // // // //     clearTimeout(inactivityTimer);
+// // // // // //   }
+
+// // // // // //   inactivityTimer = setTimeout(() => {
+// // // // // //     autoLogoutNow();
+// // // // // //   }, INACTIVITY_LIMIT_MS);
+// // // // // // }
+
+// // // // // // function bindActivityTracking() {
+// // // // // //   ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(eventName => {
+// // // // // //     window.addEventListener(eventName, () => {
+// // // // // //       resetInactivityTimer();
+// // // // // //     });
+// // // // // //   });
+
+// // // // // //   resetInactivityTimer();
+// // // // // //   setInterval(sendHeartbeat, 60000);
+// // // // // // }
+
 // // // // // // async function initializeStartup() {
 // // // // // //   setStepState(0);
 
@@ -169,6 +602,17 @@
 // // // // // //         setStepState(1);
 // // // // // //       }
 
+// // // // // //       return;
+// // // // // //     }
+
+// // // // // //     if (startupState.state === "subscription_required") {
+// // // // // //       showCard("recoveryCard");
+// // // // // //       setStepState(1);
+// // // // // //       $("recoveryText").textContent =
+// // // // // //         "الاشتراك غير فعال حاليًا. يجب تجديد الاشتراك قبل تشغيل البيئة المحلية.";
+// // // // // //       $("repairPrimaryBtn").textContent = "فتح صفحة التجديد";
+// // // // // //       $("repairPrimaryBtn").dataset.mode = "open-update";
+// // // // // //       showNote("localSetupMessage", "err", "يلزم اشتراك فعال للمتابعة.");
 // // // // // //       return;
 // // // // // //     }
 
@@ -234,7 +678,8 @@
 // // // // // //     await apiPost("/api/setup/init");
 // // // // // //     await pushLocalSession();
 
-// // // // // //     const dataDir = $("dataDirectory")?.value.trim() || "C:\\BasiraData";
+// // // // // //     const dataDir =
+// // // // // //       $("dataDirectory")?.value.trim() || "C:\\Users\\Public\\Documents\\BasiraData";
 
 // // // // // //     setProgress(30, "إنشاء المجلدات المحلية...");
 // // // // // //     await apiPost("/api/setup/select-data-dir", {
@@ -276,7 +721,9 @@
 
 // // // // // //   try {
 // // // // // //     if (mode === "reselect-path") {
-// // // // // //       const pathValue = $("recoveryDataDirectory")?.value.trim() || "C:\\BasiraData";
+// // // // // //       const pathValue =
+// // // // // //         $("recoveryDataDirectory")?.value.trim() || "C:\\Users\\Public\\Documents\\BasiraData";
+
 // // // // // //       showCard("loadingCard");
 // // // // // //       setProgress(30, "تحديث مسار البيانات...");
 // // // // // //       await apiPost("/api/recovery/reselect-data-dir", {
@@ -317,7 +764,7 @@
 // // // // // //     }
 
 // // // // // //     if (mode === "open-update") {
-// // // // // //       window.open("https://basira.basira-toolmodel.workers.dev", "_blank");
+// // // // // //       window.open(CLOUD_RENEW_URL, "_blank");
 // // // // // //       return;
 // // // // // //     }
 // // // // // //   } catch (err) {
@@ -365,10 +812,9 @@
 // // // // // //     }
 // // // // // //   });
 
+// // // // // //   bindActivityTracking();
 // // // // // //   await initializeStartup();
 // // // // // // });
-
-
 
 // // // // // const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -550,6 +996,25 @@
 
 // // // // //   resetInactivityTimer();
 // // // // //   setInterval(sendHeartbeat, 60000);
+// // // // // }
+
+// // // // // async function browseForDataDirectory(targetInputId = "dataDirectory") {
+// // // // //   try {
+// // // // //     const result = await apiGet("/api/system/pick-data-dir");
+
+// // // // //     if (!result || result.status !== "ok") {
+// // // // //       throw new Error(result?.message || "تعذر فتح نافذة اختيار المجلد.");
+// // // // //     }
+
+// // // // //     if (result.path) {
+// // // // //       const input = $(targetInputId);
+// // // // //       if (input) {
+// // // // //         input.value = result.path;
+// // // // //       }
+// // // // //     }
+// // // // //   } catch (err) {
+// // // // //     showNote("localSetupMessage", "err", err.message || "تعذر فتح نافذة اختيار المجلد.");
+// // // // //   }
 // // // // // }
 
 // // // // // async function initializeStartup() {
@@ -803,6 +1268,14 @@
 // // // // //   $("repairPrimaryBtn")?.addEventListener("click", runRecoveryAction);
 // // // // //   $("launchLocalBtn")?.addEventListener("click", launchLocalEnvironment);
 
+// // // // //   $("browseDataDirectoryBtn")?.addEventListener("click", () => {
+// // // // //     browseForDataDirectory("dataDirectory");
+// // // // //   });
+
+// // // // //   $("browseRecoveryDirectoryBtn")?.addEventListener("click", () => {
+// // // // //     browseForDataDirectory("recoveryDataDirectory");
+// // // // //   });
+
 // // // // //   $("renewSubscriptionBtn")?.addEventListener("click", () => {
 // // // // //     const useCloud = confirm("هل تريد فتح صفحة التجديد السحابية؟ اضغط موافق للتجديد السحابي أو إلغاء لتجديد demo.");
 // // // // //     if (useCloud) {
@@ -816,29 +1289,26 @@
 // // // // //   await initializeStartup();
 // // // // // });
 
+
 // // // // const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // // // // const LOCAL_BOOTSTRAP_URL = "http://127.0.0.1:5001";
+// // // // const LOCAL_APP_URL = "http://127.0.0.1:5000";
 // // // // const CLOUD_RENEW_URL = "https://basira.basira-toolmodel.workers.dev/renew";
-// // // // const LOCAL_STREAMLIT_URL = "http://127.0.0.1:8501";
-// // // // const LOCAL_RUNTIME_DOWNLOADS = {
-// // // //   windows: "https://basira.basira-toolmodel.workers.dev/downloads/basira-local-runtime-win-x64.zip",
-// // // //   mac: "https://basira.basira-toolmodel.workers.dev/downloads/basira-local-runtime-macos.zip"
-// // // // };
 
 // // // // let startupState = null;
 // // // // let inactivityTimer = null;
 // // // // const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;
 
-// // // // function showNote(id, type, message) {
-// // // //   const el = document.getElementById(id);
-// // // //   if (!el) return;
-// // // //   el.innerHTML = message;
-// // // //   el.className = "note " + (type === "ok" ? "isOk" : "isErr");
-// // // // }
-
 // // // // function $(id) {
 // // // //   return document.getElementById(id);
+// // // // }
+
+// // // // function showNote(id, type, message) {
+// // // //   const el = $(id);
+// // // //   if (!el) return;
+// // // //   el.innerHTML = message || "";
+// // // //   el.className = "note " + (type === "ok" ? "isOk" : "isErr");
 // // // // }
 
 // // // // function showCard(id) {
@@ -863,28 +1333,19 @@
 // // // // function setProgress(percent, text) {
 // // // //   const fill = $("progressFill");
 // // // //   const label = $("progressText");
+
 // // // //   if (fill) fill.style.width = `${percent}%`;
-// // // //   if (label) label.textContent = text;
-// // // // }
-
-// // // // function getStoredSessionPayload() {
-// // // //   return {
-// // // //     user_id: localStorage.getItem("basira_user_id") || "",
-// // // //     access_token: localStorage.getItem("basira_access_token") || "",
-// // // //     refresh_token: localStorage.getItem("basira_refresh_token") || "",
-// // // //     expires_at: localStorage.getItem("basira_session_expires_at") || "",
-// // // //     subscription_status: localStorage.getItem("basira_subscription_status") || "active"
-// // // //   };
-// // // // }
-
-// // // // function detectPlatform() {
-// // // //   const ua = navigator.userAgent.toLowerCase();
-// // // //   if (ua.includes("mac")) return "mac";
-// // // //   return "windows";
+// // // //   if (label) label.textContent = text || "";
 // // // // }
 
 // // // // async function apiGet(path) {
-// // // //   const response = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`);
+// // // //   const response = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`, {
+// // // //     method: "GET",
+// // // //     headers: {
+// // // //       "Content-Type": "application/json"
+// // // //     }
+// // // //   });
+
 // // // //   return response.json();
 // // // // }
 
@@ -898,6 +1359,16 @@
 // // // //   });
 
 // // // //   return response.json();
+// // // // }
+
+// // // // function getStoredSessionPayload() {
+// // // //   return {
+// // // //     user_id: localStorage.getItem("basira_user_id") || "",
+// // // //     access_token: localStorage.getItem("basira_access_token") || "",
+// // // //     refresh_token: localStorage.getItem("basira_refresh_token") || "",
+// // // //     expires_at: localStorage.getItem("basira_session_expires_at") || "",
+// // // //     subscription_status: localStorage.getItem("basira_subscription_status") || "active"
+// // // //   };
 // // // // }
 
 // // // // async function readCloudUser() {
@@ -1023,9 +1494,17 @@
 // // // //   try {
 // // // //     await readCloudUser();
 
-// // // //     $("startupStatusCard").querySelector(".local-card__title").textContent = "جارٍ التحقق من البيئة المحلية";
-// // // //     $("startupStatusCard").querySelector(".local-card__text").textContent =
-// // // //       "يتم الآن فحص config المحلي، حالة الجلسة، data directory، وملفات البيئة المحلية على هذا الجهاز.";
+// // // //     const statusCard = $("startupStatusCard");
+// // // //     if (statusCard) {
+// // // //       const title = statusCard.querySelector(".local-card__title");
+// // // //       const text = statusCard.querySelector(".local-card__text");
+
+// // // //       if (title) title.textContent = "جارٍ التحقق من البيئة المحلية";
+// // // //       if (text) {
+// // // //         text.textContent =
+// // // //           "يتم الآن فحص config المحلي، حالة الجلسة، data directory، وملفات البيئة المحلية على هذا الجهاز.";
+// // // //       }
+// // // //     }
 
 // // // //     startupState = await apiGet("/api/startup-status");
 
@@ -1073,16 +1552,27 @@
 // // // //     if (startupState.state === "subscription_required") {
 // // // //       showCard("recoveryCard");
 // // // //       setStepState(1);
-// // // //       $("recoveryText").textContent =
-// // // //         "الاشتراك غير فعال حاليًا. يجب تجديد الاشتراك قبل تشغيل البيئة المحلية.";
-// // // //       $("repairPrimaryBtn").textContent = "فتح صفحة التجديد";
-// // // //       $("repairPrimaryBtn").dataset.mode = "open-update";
+
+// // // //       const recoveryText = $("recoveryText");
+// // // //       const repairPrimaryBtn = $("repairPrimaryBtn");
+
+// // // //       if (recoveryText) {
+// // // //         recoveryText.textContent =
+// // // //           "الاشتراك غير فعال حاليًا. يجب تجديد الاشتراك قبل تشغيل البيئة المحلية.";
+// // // //       }
+
+// // // //       if (repairPrimaryBtn) {
+// // // //         repairPrimaryBtn.textContent = "فتح صفحة التجديد";
+// // // //         repairPrimaryBtn.dataset.mode = "open-update";
+// // // //       }
+
 // // // //       showNote("localSetupMessage", "err", "يلزم اشتراك فعال للمتابعة.");
 // // // //       return;
 // // // //     }
 
 // // // //     if (startupState.state === "recovery_required") {
 // // // //       const reason = startupState.reason || "unknown";
+
 // // // //       showCard("recoveryCard");
 // // // //       setStepState(1);
 
@@ -1090,24 +1580,52 @@
 // // // //       const recoveryPathField = $("recoveryPathField");
 // // // //       const repairPrimaryBtn = $("repairPrimaryBtn");
 
-// // // //       if (reason === "missing_data_dir" || reason === "data_dir_not_found" || reason === "data_dir_not_writable") {
-// // // //         recoveryText.textContent =
-// // // //           "تم اكتشاف مشكلة في مسار حفظ الملفات المحلية. حددي مسارًا جديدًا ليتم إصلاح البيئة المحلية.";
-// // // //         recoveryPathField.classList.remove("isHidden");
-// // // //         repairPrimaryBtn.textContent = "تحديث المسار وإصلاح البيئة";
-// // // //         repairPrimaryBtn.dataset.mode = "reselect-path";
+// // // //       if (
+// // // //         reason === "missing_data_dir" ||
+// // // //         reason === "data_dir_not_found" ||
+// // // //         reason === "data_dir_not_writable"
+// // // //       ) {
+// // // //         if (recoveryText) {
+// // // //           recoveryText.textContent =
+// // // //             "تم اكتشاف مشكلة في مسار حفظ الملفات المحلية. حددي مسارًا جديدًا ليتم إصلاح البيئة المحلية.";
+// // // //         }
+
+// // // //         if (recoveryPathField) {
+// // // //           recoveryPathField.classList.remove("isHidden");
+// // // //         }
+
+// // // //         if (repairPrimaryBtn) {
+// // // //           repairPrimaryBtn.textContent = "تحديث المسار وإصلاح البيئة";
+// // // //           repairPrimaryBtn.dataset.mode = "reselect-path";
+// // // //         }
 // // // //       } else if (reason === "missing_model") {
-// // // //         recoveryText.textContent =
-// // // //           "تم اكتشاف ملفات محلية ناقصة. يمكن إصلاح البيئة عبر إعادة تنزيل الملفات الأساسية.";
-// // // //         recoveryPathField.classList.add("isHidden");
-// // // //         repairPrimaryBtn.textContent = "إعادة تنزيل الملفات الأساسية";
-// // // //         repairPrimaryBtn.dataset.mode = "repair-models";
+// // // //         if (recoveryText) {
+// // // //           recoveryText.textContent =
+// // // //             "تم اكتشاف ملفات محلية ناقصة. يمكن إصلاح البيئة عبر إعادة تنزيل الملفات الأساسية.";
+// // // //         }
+
+// // // //         if (recoveryPathField) {
+// // // //           recoveryPathField.classList.add("isHidden");
+// // // //         }
+
+// // // //         if (repairPrimaryBtn) {
+// // // //           repairPrimaryBtn.textContent = "إعادة تنزيل الملفات الأساسية";
+// // // //           repairPrimaryBtn.dataset.mode = "repair-models";
+// // // //         }
 // // // //       } else {
-// // // //         recoveryText.textContent =
-// // // //           "تم اكتشاف خلل جزئي في البيئة المحلية. سنحاول إصلاحه دون إعادة إعداد كامل.";
-// // // //         recoveryPathField.classList.add("isHidden");
-// // // //         repairPrimaryBtn.textContent = "إصلاح الآن";
-// // // //         repairPrimaryBtn.dataset.mode = "repair-models";
+// // // //         if (recoveryText) {
+// // // //           recoveryText.textContent =
+// // // //             "تم اكتشاف خلل جزئي في البيئة المحلية. سنحاول إصلاحه دون إعادة إعداد كامل.";
+// // // //         }
+
+// // // //         if (recoveryPathField) {
+// // // //           recoveryPathField.classList.add("isHidden");
+// // // //         }
+
+// // // //         if (repairPrimaryBtn) {
+// // // //           repairPrimaryBtn.textContent = "إصلاح الآن";
+// // // //           repairPrimaryBtn.dataset.mode = "repair-models";
+// // // //         }
 // // // //       }
 
 // // // //       showNote("localSetupMessage", "err", "تم اكتشاف حالة recovery ويمكن إصلاحها من هذه الصفحة.");
@@ -1115,17 +1633,32 @@
 // // // //     }
 
 // // // //     if (startupState.state === "update_required") {
-// // // //       showNote("localSetupMessage", "err", "هذه النسخة المحلية تحتاج تحديثًا إجباريًا قبل المتابعة.");
 // // // //       showCard("recoveryCard");
-// // // //       $("recoveryText").textContent = "يلزم تحديث النسخة المحلية قبل المتابعة.";
-// // // //       $("repairPrimaryBtn").textContent = "فتح بوابة التحديث";
-// // // //       $("repairPrimaryBtn").dataset.mode = "open-update";
+// // // //       setStepState(1);
+
+// // // //       const recoveryText = $("recoveryText");
+// // // //       const repairPrimaryBtn = $("repairPrimaryBtn");
+
+// // // //       if (recoveryText) {
+// // // //         recoveryText.textContent = "هذه النسخة المحلية تحتاج تحديثًا إجباريًا قبل المتابعة.";
+// // // //       }
+
+// // // //       if (repairPrimaryBtn) {
+// // // //         repairPrimaryBtn.textContent = "فتح بوابة التحديث";
+// // // //         repairPrimaryBtn.dataset.mode = "open-update";
+// // // //       }
+
+// // // //       showNote("localSetupMessage", "err", "هذه النسخة المحلية تحتاج تحديثًا.");
 // // // //       return;
 // // // //     }
 
 // // // //     throw new Error("حالة تشغيل غير معروفة.");
 // // // //   } catch (err) {
-// // // //     showNote("localSetupMessage", "err", err.message || "تعذر بدء صفحة التهيئة المحلية.");
+// // // //     showNote(
+// // // //       "localSetupMessage",
+// // // //       "err",
+// // // //       err.message || "تعذر بدء صفحة التهيئة المحلية. تأكدي من تشغيل Basira Local Launcher."
+// // // //     );
 // // // //   }
 // // // // }
 
@@ -1141,24 +1674,28 @@
 
 // // // //     setProgress(10, "تهيئة الحالة المحلية...");
 // // // //     await apiPost("/api/setup/init");
+
+// // // //     setProgress(20, "ربط الجلسة المحلية...");
 // // // //     await pushLocalSession();
 
 // // // //     const dataDir =
 // // // //       $("dataDirectory")?.value.trim() || "C:\\Users\\Public\\Documents\\BasiraData";
 
-// // // //     setProgress(30, "إنشاء المجلدات المحلية...");
-// // // //     await apiPost("/api/setup/select-data-dir", {
+// // // //     setProgress(35, "إنشاء المجلدات المحلية...");
+// // // //     const dirResult = await apiPost("/api/setup/select-data-dir", {
 // // // //       data_dir: dataDir
 // // // //     });
 
-// // // //     const platform = detectPlatform();
-// // // //     const runtimeUrl = LOCAL_RUNTIME_DOWNLOADS[platform];
+// // // //     if (!dirResult || dirResult.status !== "ok") {
+// // // //       throw new Error(dirResult?.message || "تعذر إنشاء مجلدات البيانات المحلية.");
+// // // //     }
 
-// // // //     setProgress(55, "تنزيل الملفات الأساسية المحلية...");
-// // // //     await apiPost("/api/setup/install-models", {
-// // // //       runtime_url: runtimeUrl,
-// // // //       platform
-// // // //     });
+// // // //     setProgress(60, "تنزيل الملفات الأساسية المحلية...");
+// // // //     const installResult = await apiPost("/api/setup/install-models");
+
+// // // //     if (!installResult || installResult.status !== "ok") {
+// // // //       throw new Error(installResult?.message || "تعذر تجهيز الملفات الأساسية المحلية.");
+// // // //     }
 
 // // // //     setProgress(80, "التحقق من الجاهزية...");
 // // // //     const verifyResult = await apiGet("/api/setup/verify");
@@ -1168,7 +1705,11 @@
 // // // //     }
 
 // // // //     setProgress(95, "اعتماد التهيئة النهائية...");
-// // // //     await apiPost("/api/setup/finalize");
+// // // //     const finalizeResult = await apiPost("/api/setup/finalize");
+
+// // // //     if (!finalizeResult || finalizeResult.status !== "ok") {
+// // // //       throw new Error("تعذر اعتماد التهيئة النهائية.");
+// // // //     }
 
 // // // //     setProgress(100, "اكتملت التهيئة بنجاح.");
 // // // //     setStepState(3);
@@ -1191,9 +1732,14 @@
 
 // // // //       showCard("loadingCard");
 // // // //       setProgress(30, "تحديث مسار البيانات...");
-// // // //       await apiPost("/api/recovery/reselect-data-dir", {
+
+// // // //       const result = await apiPost("/api/recovery/reselect-data-dir", {
 // // // //         data_dir: pathValue
 // // // //       });
+
+// // // //       if (!result || result.status !== "ok") {
+// // // //         throw new Error(result?.message || "تعذر تحديث مسار البيانات.");
+// // // //       }
 
 // // // //       setProgress(70, "التحقق من البيئة...");
 // // // //       const verifyResult = await apiGet("/api/setup/verify");
@@ -1212,7 +1758,12 @@
 // // // //     if (mode === "repair-models") {
 // // // //       showCard("loadingCard");
 // // // //       setProgress(35, "إعادة تنزيل الملفات الأساسية...");
-// // // //       await apiPost("/api/recovery/repair-models");
+
+// // // //       const result = await apiPost("/api/recovery/repair-models");
+
+// // // //       if (!result || result.status !== "ok") {
+// // // //         throw new Error(result?.message || "تعذر إصلاح الملفات الأساسية.");
+// // // //       }
 
 // // // //       setProgress(75, "التحقق النهائي...");
 // // // //       const verifyResult = await apiGet("/api/setup/verify");
@@ -1238,21 +1789,58 @@
 // // // //   }
 // // // // }
 
-// // // // function launchLocalEnvironment() {
-// // // //   window.open(LOCAL_STREAMLIT_URL, "_blank");
-// // // //   showNote("localSetupMessage", "ok", "تم إرسال أمر تشغيل الواجهة المحلية. إذا لم تعمل بعد، تحققي من خدمة التشغيل المحلي.");
+// // // // async function launchLocalEnvironment() {
+// // // //   try {
+// // // //     const startup = await apiGet("/api/startup-status");
+
+// // // //     if (!startup || !startup.state) {
+// // // //       throw new Error("تعذر التحقق من حالة البيئة المحلية.");
+// // // //     }
+
+// // // //     if (startup.state === "healthy" || startup.state === "healthy_with_optional_update") {
+// // // //       window.open(LOCAL_APP_URL, "_blank");
+// // // //       showNote("localSetupMessage", "ok", "تم فتح التطبيق المحلي بنجاح.");
+// // // //       return;
+// // // //     }
+
+// // // //     if (startup.state === "login_required") {
+// // // //       showNote("localSetupMessage", "err", "الجلسة المحلية تحتاج إعادة ربط قبل فتح التطبيق.");
+// // // //       return;
+// // // //     }
+
+// // // //     if (startup.state === "new_user" || startup.state === "setup_incomplete") {
+// // // //       showNote("localSetupMessage", "err", "يجب إكمال التهيئة المحلية أولًا.");
+// // // //       return;
+// // // //     }
+
+// // // //     if (startup.state === "recovery_required") {
+// // // //       showNote("localSetupMessage", "err", "توجد مشكلة في البيئة المحلية ويجب إصلاحها أولًا.");
+// // // //       return;
+// // // //     }
+
+// // // //     if (startup.state === "subscription_required") {
+// // // //       showNote("localSetupMessage", "err", "الاشتراك غير فعال حاليًا.");
+// // // //       return;
+// // // //     }
+
+// // // //     if (startup.state === "update_required") {
+// // // //       showNote("localSetupMessage", "err", "النسخة المحلية تحتاج تحديثًا قبل التشغيل.");
+// // // //       return;
+// // // //     }
+
+// // // //     throw new Error("الحالة الحالية لا تسمح بفتح التطبيق المحلي.");
+// // // //   } catch (err) {
+// // // //     showNote("localSetupMessage", "err", err.message || "تعذر فتح التطبيق المحلي.");
+// // // //   }
 // // // // }
 
 // // // // async function renewSubscriptionDemo() {
 // // // //   try {
-// // // //     const userId = localStorage.getItem("basira_user_id");
-// // // //     if (!userId) {
-// // // //       throw new Error("لم يتم العثور على مستخدم محلي مربوط بالجلسة.");
-// // // //     }
+// // // //     const result = await apiPost("/api/subscription/renew-demo");
 
-// // // //     await apiPost("/api/subscription/renew-demo", {
-// // // //       user_id: userId
-// // // //     });
+// // // //     if (!result || result.status !== "ok") {
+// // // //       throw new Error(result?.message || "تعذر تنفيذ تجديد الاشتراك.");
+// // // //     }
 
 // // // //     localStorage.setItem("basira_subscription_status", "active");
 // // // //     $("subscriptionLabel").textContent = "active";
@@ -1290,16 +1878,31 @@
 // // // // });
 
 
+// // // /**
+// // //  * local-setup.js — Basira Cloud Setup Page Logic
+// // //  * ================================================
+// // //  * Runs in the browser on the cloud website (local-setup.html).
+// // //  * Communicates with the local bootstrap API at http://127.0.0.1:5001
+// // //  * to set up or verify the on-premise environment, then opens
+// // //  * the main local app at http://127.0.0.1:5000.
+// // //  *
+// // //  * Prerequisites: supabase-config.js must define SUPABASE_URL and SUPABASE_ANON_KEY.
+// // //  */
+
+// // // // ─── Constants ────────────────────────────────────────────────────────────────
 // // // const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// // // const LOCAL_BOOTSTRAP_URL = "http://127.0.0.1:5001";
-// // // const LOCAL_APP_URL = "http://127.0.0.1:5000";
-// // // const CLOUD_RENEW_URL = "https://basira.basira-toolmodel.workers.dev/renew";
+// // // const LOCAL_BOOTSTRAP_URL = "http://127.0.0.1:5001";   // basira_local_bootstrap.py
+// // // const LOCAL_APP_URL       = "http://127.0.0.1:5000";   // Basira_app_structure.py
+// // // const CLOUD_RENEW_URL     = "https://basira.basira-toolmodel.workers.dev/renew";
 
-// // // let startupState = null;
+// // // const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;  // 20 minutes
+
+// // // let startupState    = null;
 // // // let inactivityTimer = null;
-// // // const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;
 
+
+// // // // ─── DOM helpers ─────────────────────────────────────────────────────────────
 // // // function $(id) {
 // // //   return document.getElementById(id);
 // // // }
@@ -1307,8 +1910,8 @@
 // // // function showNote(id, type, message) {
 // // //   const el = $(id);
 // // //   if (!el) return;
-// // //   el.innerHTML = message || "";
-// // //   el.className = "note " + (type === "ok" ? "isOk" : "isErr");
+// // //   el.innerHTML  = message || "";
+// // //   el.className  = "note " + (type === "ok" ? "isOk" : "isErr");
 // // // }
 
 // // // function showCard(id) {
@@ -1316,14 +1919,12 @@
 // // //     const el = $(cardId);
 // // //     if (el) el.classList.add("isHidden");
 // // //   });
-
 // // //   const target = $(id);
 // // //   if (target) target.classList.remove("isHidden");
 // // // }
 
 // // // function setStepState(activeIndex) {
-// // //   const steps = Array.from(document.querySelectorAll(".setup-step"));
-// // //   steps.forEach((step, index) => {
+// // //   document.querySelectorAll(".setup-step").forEach((step, index) => {
 // // //     step.classList.remove("isActive", "isDone");
 // // //     if (index < activeIndex) step.classList.add("isDone");
 // // //     if (index === activeIndex) step.classList.add("isActive");
@@ -1331,54 +1932,49 @@
 // // // }
 
 // // // function setProgress(percent, text) {
-// // //   const fill = $("progressFill");
+// // //   const fill  = $("progressFill");
 // // //   const label = $("progressText");
-
-// // //   if (fill) fill.style.width = `${percent}%`;
-// // //   if (label) label.textContent = text || "";
+// // //   if (fill)  fill.style.width   = `${percent}%`;
+// // //   if (label) label.textContent  = text || "";
 // // // }
 
+
+// // // // ─── API helpers ─────────────────────────────────────────────────────────────
 // // // async function apiGet(path) {
 // // //   const response = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`, {
-// // //     method: "GET",
-// // //     headers: {
-// // //       "Content-Type": "application/json"
-// // //     }
+// // //     method:  "GET",
+// // //     headers: { "Content-Type": "application/json" }
 // // //   });
-
 // // //   return response.json();
 // // // }
 
 // // // async function apiPost(path, payload = {}) {
 // // //   const response = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`, {
-// // //     method: "POST",
-// // //     headers: {
-// // //       "Content-Type": "application/json"
-// // //     },
-// // //     body: JSON.stringify(payload)
+// // //     method:  "POST",
+// // //     headers: { "Content-Type": "application/json" },
+// // //     body:    JSON.stringify(payload)
 // // //   });
-
 // // //   return response.json();
 // // // }
 
+
+// // // // ─── Session helpers ──────────────────────────────────────────────────────────
 // // // function getStoredSessionPayload() {
 // // //   return {
-// // //     user_id: localStorage.getItem("basira_user_id") || "",
-// // //     access_token: localStorage.getItem("basira_access_token") || "",
-// // //     refresh_token: localStorage.getItem("basira_refresh_token") || "",
-// // //     expires_at: localStorage.getItem("basira_session_expires_at") || "",
+// // //     user_id:             localStorage.getItem("basira_user_id")             || "",
+// // //     access_token:        localStorage.getItem("basira_access_token")        || "",
+// // //     refresh_token:       localStorage.getItem("basira_refresh_token")       || "",
+// // //     expires_at:          localStorage.getItem("basira_session_expires_at")  || "",
 // // //     subscription_status: localStorage.getItem("basira_subscription_status") || "active"
 // // //   };
 // // // }
 
 // // // async function readCloudUser() {
 // // //   try {
-// // //     const {
-// // //       data: { session }
-// // //     } = await supabaseClient.auth.getSession();
+// // //     const { data: { session } } = await supabaseClient.auth.getSession();
 
 // // //     if (!session?.user) {
-// // //       $("cloudUserLabel").textContent = "لم يتم العثور على جلسة مستخدم.";
+// // //       $("cloudUserLabel").textContent    = "لم يتم العثور على جلسة مستخدم.";
 // // //       $("subscriptionLabel").textContent = "غير معروف";
 // // //       return null;
 // // //     }
@@ -1388,13 +1984,13 @@
 // // //       session.user.email ||
 // // //       session.user.id;
 
-// // //     $("cloudUserLabel").textContent = userName;
+// // //     $("cloudUserLabel").textContent    = userName;
 // // //     $("subscriptionLabel").textContent =
 // // //       localStorage.getItem("basira_subscription_status") || "غير معروف";
 
 // // //     return session;
 // // //   } catch (err) {
-// // //     $("cloudUserLabel").textContent = "تعذر قراءة بيانات المستخدم.";
+// // //     $("cloudUserLabel").textContent    = "تعذر قراءة بيانات المستخدم.";
 // // //     $("subscriptionLabel").textContent = "غير معروف";
 // // //     return null;
 // // //   }
@@ -1402,28 +1998,24 @@
 
 // // // async function pushLocalSession() {
 // // //   const payload = getStoredSessionPayload();
-
 // // //   if (!payload.user_id || !payload.access_token || !payload.expires_at) {
 // // //     throw new Error("بيانات الجلسة المحلية غير مكتملة بعد تسجيل الدخول.");
 // // //   }
-
 // // //   await apiPost("/api/setup/login-complete", payload);
 // // // }
 
+
+// // // // ─── Heartbeat & inactivity ───────────────────────────────────────────────────
 // // // async function sendHeartbeat() {
 // // //   try {
 // // //     const response = await fetch(`${LOCAL_BOOTSTRAP_URL}/api/auth/heartbeat`, {
-// // //       method: "POST",
-// // //       headers: {
-// // //         "Content-Type": "application/json"
-// // //       }
+// // //       method:  "POST",
+// // //       headers: { "Content-Type": "application/json" }
 // // //     });
 
 // // //     if (response.status === 401) {
 // // //       showNote("localSetupMessage", "err", "انتهت الجلسة المحلية بسبب الخمول أو انتهاء الصلاحية.");
-// // //       setTimeout(() => {
-// // //         window.location.href = "./login.html";
-// // //       }, 1200);
+// // //       setTimeout(() => { window.location.href = "./login.html"; }, 1200);
 // // //     }
 // // //   } catch (err) {
 // // //     console.warn("Heartbeat failed:", err);
@@ -1433,61 +2025,48 @@
 // // // async function autoLogoutNow() {
 // // //   try {
 // // //     await fetch(`${LOCAL_BOOTSTRAP_URL}/api/auth/auto-logout`, {
-// // //       method: "POST",
-// // //       headers: {
-// // //         "Content-Type": "application/json"
-// // //       }
+// // //       method:  "POST",
+// // //       headers: { "Content-Type": "application/json" }
 // // //     });
 // // //   } catch (err) {
 // // //     console.warn("Auto logout request failed:", err);
 // // //   }
-
 // // //   showNote("localSetupMessage", "err", "تم تسجيل الخروج تلقائيًا بعد 20 دقيقة من عدم النشاط.");
-// // //   setTimeout(() => {
-// // //     window.location.href = "./login.html";
-// // //   }, 1200);
+// // //   setTimeout(() => { window.location.href = "./login.html"; }, 1200);
 // // // }
 
 // // // function resetInactivityTimer() {
-// // //   if (inactivityTimer) {
-// // //     clearTimeout(inactivityTimer);
-// // //   }
-
-// // //   inactivityTimer = setTimeout(() => {
-// // //     autoLogoutNow();
-// // //   }, INACTIVITY_LIMIT_MS);
+// // //   if (inactivityTimer) clearTimeout(inactivityTimer);
+// // //   inactivityTimer = setTimeout(autoLogoutNow, INACTIVITY_LIMIT_MS);
 // // // }
 
 // // // function bindActivityTracking() {
 // // //   ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(eventName => {
-// // //     window.addEventListener(eventName, () => {
-// // //       resetInactivityTimer();
-// // //     });
+// // //     window.addEventListener(eventName, resetInactivityTimer);
 // // //   });
-
 // // //   resetInactivityTimer();
-// // //   setInterval(sendHeartbeat, 60000);
+// // //   setInterval(sendHeartbeat, 60_000);
 // // // }
 
+
+// // // // ─── Folder picker ────────────────────────────────────────────────────────────
 // // // async function browseForDataDirectory(targetInputId = "dataDirectory") {
 // // //   try {
 // // //     const result = await apiGet("/api/system/pick-data-dir");
-
 // // //     if (!result || result.status !== "ok") {
 // // //       throw new Error(result?.message || "تعذر فتح نافذة اختيار المجلد.");
 // // //     }
-
 // // //     if (result.path) {
 // // //       const input = $(targetInputId);
-// // //       if (input) {
-// // //         input.value = result.path;
-// // //       }
+// // //       if (input) input.value = result.path;
 // // //     }
 // // //   } catch (err) {
 // // //     showNote("localSetupMessage", "err", err.message || "تعذر فتح نافذة اختيار المجلد.");
 // // //   }
 // // // }
 
+
+// // // // ─── Startup / state machine ──────────────────────────────────────────────────
 // // // async function initializeStartup() {
 // // //   setStepState(0);
 
@@ -1497,13 +2076,10 @@
 // // //     const statusCard = $("startupStatusCard");
 // // //     if (statusCard) {
 // // //       const title = statusCard.querySelector(".local-card__title");
-// // //       const text = statusCard.querySelector(".local-card__text");
-
+// // //       const text  = statusCard.querySelector(".local-card__text");
 // // //       if (title) title.textContent = "جارٍ التحقق من البيئة المحلية";
-// // //       if (text) {
-// // //         text.textContent =
-// // //           "يتم الآن فحص config المحلي، حالة الجلسة، data directory، وملفات البيئة المحلية على هذا الجهاز.";
-// // //       }
+// // //       if (text)  text.textContent  =
+// // //         "يتم الآن فحص config المحلي، حالة الجلسة، data directory، وملفات البيئة المحلية على هذا الجهاز.";
 // // //     }
 
 // // //     startupState = await apiGet("/api/startup-status");
@@ -1512,6 +2088,7 @@
 // // //       throw new Error("تعذر قراءة حالة التشغيل المحلي.");
 // // //     }
 
+// // //     // ── New user or incomplete setup ────────────────────────────────────────
 // // //     if (startupState.state === "new_user" || startupState.state === "setup_incomplete") {
 // // //       showCard("newUserCard");
 // // //       setStepState(1);
@@ -1519,6 +2096,7 @@
 // // //       return;
 // // //     }
 
+// // //     // ── Already healthy ─────────────────────────────────────────────────────
 // // //     if (startupState.state === "healthy" || startupState.state === "healthy_with_optional_update") {
 // // //       showCard("readyCard");
 // // //       setStepState(3);
@@ -1526,15 +2104,12 @@
 // // //       return;
 // // //     }
 
+// // //     // ── Session expired — try to re-link from Supabase ──────────────────────
 // // //     if (startupState.state === "login_required") {
-// // //       showNote(
-// // //         "localSetupMessage",
-// // //         "err",
-// // //         "انتهت الجلسة المحلية أو لم تُربط بعد. سيتم إعادة ربطها الآن من جلسة تسجيل الدخول الحالية."
-// // //       );
+// // //       showNote("localSetupMessage", "err",
+// // //         "انتهت الجلسة المحلية أو لم تُربط بعد. سيتم إعادة ربطها الآن من جلسة تسجيل الدخول الحالية.");
 
 // // //       await pushLocalSession();
-
 // // //       startupState = await apiGet("/api/startup-status");
 
 // // //       if (startupState.state === "healthy" || startupState.state === "healthy_with_optional_update") {
@@ -1545,85 +2120,52 @@
 // // //         showCard("newUserCard");
 // // //         setStepState(1);
 // // //       }
-
 // // //       return;
 // // //     }
 
+// // //     // ── Subscription issue ──────────────────────────────────────────────────
 // // //     if (startupState.state === "subscription_required") {
 // // //       showCard("recoveryCard");
 // // //       setStepState(1);
-
-// // //       const recoveryText = $("recoveryText");
+// // //       const recoveryText    = $("recoveryText");
 // // //       const repairPrimaryBtn = $("repairPrimaryBtn");
-
-// // //       if (recoveryText) {
-// // //         recoveryText.textContent =
-// // //           "الاشتراك غير فعال حاليًا. يجب تجديد الاشتراك قبل تشغيل البيئة المحلية.";
-// // //       }
-
+// // //       if (recoveryText)   recoveryText.textContent   = "الاشتراك غير فعال. يرجى تجديد الاشتراك للمتابعة.";
 // // //       if (repairPrimaryBtn) {
-// // //         repairPrimaryBtn.textContent = "فتح صفحة التجديد";
+// // //         repairPrimaryBtn.textContent  = "فتح بوابة التجديد";
 // // //         repairPrimaryBtn.dataset.mode = "open-update";
 // // //       }
-
-// // //       showNote("localSetupMessage", "err", "يلزم اشتراك فعال للمتابعة.");
+// // //       showNote("localSetupMessage", "err", "الاشتراك غير فعال حاليًا.");
 // // //       return;
 // // //     }
 
+// // //     // ── Recovery needed (missing dir / models) ───────────────────────────────
 // // //     if (startupState.state === "recovery_required") {
-// // //       const reason = startupState.reason || "unknown";
-
 // // //       showCard("recoveryCard");
 // // //       setStepState(1);
-
-// // //       const recoveryText = $("recoveryText");
-// // //       const recoveryPathField = $("recoveryPathField");
+// // //       const reason          = startupState.reason || "";
+// // //       const recoveryText    = $("recoveryText");
 // // //       const repairPrimaryBtn = $("repairPrimaryBtn");
+// // //       const recoveryPathField = $("recoveryPathField");
 
-// // //       if (
-// // //         reason === "missing_data_dir" ||
-// // //         reason === "data_dir_not_found" ||
-// // //         reason === "data_dir_not_writable"
-// // //       ) {
-// // //         if (recoveryText) {
-// // //           recoveryText.textContent =
-// // //             "تم اكتشاف مشكلة في مسار حفظ الملفات المحلية. حددي مسارًا جديدًا ليتم إصلاح البيئة المحلية.";
-// // //         }
-
-// // //         if (recoveryPathField) {
-// // //           recoveryPathField.classList.remove("isHidden");
-// // //         }
-
+// // //       if (reason === "data_dir_missing") {
+// // //         if (recoveryText)   recoveryText.textContent   = "مجلد البيانات المحلية غير موجود. اختاري مسارًا جديدًا ثم اضغطي إصلاح.";
+// // //         if (recoveryPathField) recoveryPathField.classList.remove("isHidden");
 // // //         if (repairPrimaryBtn) {
-// // //           repairPrimaryBtn.textContent = "تحديث المسار وإصلاح البيئة";
+// // //           repairPrimaryBtn.textContent  = "إصلاح المسار";
 // // //           repairPrimaryBtn.dataset.mode = "reselect-path";
 // // //         }
-// // //       } else if (reason === "missing_model") {
-// // //         if (recoveryText) {
-// // //           recoveryText.textContent =
-// // //             "تم اكتشاف ملفات محلية ناقصة. يمكن إصلاح البيئة عبر إعادة تنزيل الملفات الأساسية.";
-// // //         }
-
-// // //         if (recoveryPathField) {
-// // //           recoveryPathField.classList.add("isHidden");
-// // //         }
-
+// // //       } else if (reason === "models_not_installed") {
+// // //         if (recoveryText)   recoveryText.textContent   = "تم اكتشاف ملفات محلية ناقصة. يمكن إصلاح البيئة عبر إعادة تنزيل الملفات الأساسية.";
+// // //         if (recoveryPathField) recoveryPathField.classList.add("isHidden");
 // // //         if (repairPrimaryBtn) {
-// // //           repairPrimaryBtn.textContent = "إعادة تنزيل الملفات الأساسية";
+// // //           repairPrimaryBtn.textContent  = "إعادة تنزيل الملفات الأساسية";
 // // //           repairPrimaryBtn.dataset.mode = "repair-models";
 // // //         }
 // // //       } else {
-// // //         if (recoveryText) {
-// // //           recoveryText.textContent =
-// // //             "تم اكتشاف خلل جزئي في البيئة المحلية. سنحاول إصلاحه دون إعادة إعداد كامل.";
-// // //         }
-
-// // //         if (recoveryPathField) {
-// // //           recoveryPathField.classList.add("isHidden");
-// // //         }
-
+// // //         if (recoveryText)   recoveryText.textContent   = "تم اكتشاف خلل جزئي في البيئة المحلية. سنحاول إصلاحه دون إعادة إعداد كامل.";
+// // //         if (recoveryPathField) recoveryPathField.classList.add("isHidden");
 // // //         if (repairPrimaryBtn) {
-// // //           repairPrimaryBtn.textContent = "إصلاح الآن";
+// // //           repairPrimaryBtn.textContent  = "إصلاح الآن";
 // // //           repairPrimaryBtn.dataset.mode = "repair-models";
 // // //         }
 // // //       }
@@ -1632,36 +2174,30 @@
 // // //       return;
 // // //     }
 
+// // //     // ── Mandatory update required ────────────────────────────────────────────
 // // //     if (startupState.state === "update_required") {
 // // //       showCard("recoveryCard");
 // // //       setStepState(1);
-
-// // //       const recoveryText = $("recoveryText");
+// // //       const recoveryText    = $("recoveryText");
 // // //       const repairPrimaryBtn = $("repairPrimaryBtn");
-
-// // //       if (recoveryText) {
-// // //         recoveryText.textContent = "هذه النسخة المحلية تحتاج تحديثًا إجباريًا قبل المتابعة.";
-// // //       }
-
+// // //       if (recoveryText)     recoveryText.textContent   = "هذه النسخة المحلية تحتاج تحديثًا إجباريًا قبل المتابعة.";
 // // //       if (repairPrimaryBtn) {
-// // //         repairPrimaryBtn.textContent = "فتح بوابة التحديث";
+// // //         repairPrimaryBtn.textContent  = "فتح بوابة التحديث";
 // // //         repairPrimaryBtn.dataset.mode = "open-update";
 // // //       }
-
 // // //       showNote("localSetupMessage", "err", "هذه النسخة المحلية تحتاج تحديثًا.");
 // // //       return;
 // // //     }
 
 // // //     throw new Error("حالة تشغيل غير معروفة.");
 // // //   } catch (err) {
-// // //     showNote(
-// // //       "localSetupMessage",
-// // //       "err",
-// // //       err.message || "تعذر بدء صفحة التهيئة المحلية. تأكدي من تشغيل Basira Local Launcher."
-// // //     );
+// // //     showNote("localSetupMessage", "err",
+// // //       err.message || "تعذر بدء صفحة التهيئة المحلية. تأكدي من تشغيل Basira Local Launcher.");
 // // //   }
 // // // }
 
+
+// // // // ─── First-time setup flow ────────────────────────────────────────────────────
 // // // async function runFirstSetup() {
 // // //   try {
 // // //     const session = await readCloudUser();
@@ -1672,48 +2208,41 @@
 // // //     setStepState(2);
 // // //     showCard("loadingCard");
 
-// // //     setProgress(10, "تهيئة الحالة المحلية...");
+// // //     setProgress(10,  "تهيئة الحالة المحلية...");
 // // //     await apiPost("/api/setup/init");
 
-// // //     setProgress(20, "ربط الجلسة المحلية...");
+// // //     setProgress(20,  "ربط الجلسة المحلية...");
 // // //     await pushLocalSession();
 
-// // //     const dataDir =
-// // //       $("dataDirectory")?.value.trim() || "C:\\Users\\Public\\Documents\\BasiraData";
+// // //     const dataDir = $("dataDirectory")?.value.trim()
+// // //       || "C:\\Users\\Public\\Documents\\BasiraData";
 
-// // //     setProgress(35, "إنشاء المجلدات المحلية...");
-// // //     const dirResult = await apiPost("/api/setup/select-data-dir", {
-// // //       data_dir: dataDir
-// // //     });
-
+// // //     setProgress(35,  "إنشاء المجلدات المحلية...");
+// // //     const dirResult = await apiPost("/api/setup/select-data-dir", { data_dir: dataDir });
 // // //     if (!dirResult || dirResult.status !== "ok") {
 // // //       throw new Error(dirResult?.message || "تعذر إنشاء مجلدات البيانات المحلية.");
 // // //     }
 
-// // //     setProgress(60, "تنزيل الملفات الأساسية المحلية...");
+// // //     setProgress(60,  "تنزيل الملفات الأساسية المحلية...");
 // // //     const installResult = await apiPost("/api/setup/install-models");
-
 // // //     if (!installResult || installResult.status !== "ok") {
 // // //       throw new Error(installResult?.message || "تعذر تجهيز الملفات الأساسية المحلية.");
 // // //     }
 
-// // //     setProgress(80, "التحقق من الجاهزية...");
+// // //     setProgress(80,  "التحقق من الجاهزية...");
 // // //     const verifyResult = await apiGet("/api/setup/verify");
-
 // // //     if (!verifyResult || verifyResult.status !== "ok") {
 // // //       throw new Error("فشل التحقق من البيئة المحلية بعد التهيئة.");
 // // //     }
 
-// // //     setProgress(95, "اعتماد التهيئة النهائية...");
+// // //     setProgress(95,  "اعتماد التهيئة النهائية...");
 // // //     const finalizeResult = await apiPost("/api/setup/finalize");
-
 // // //     if (!finalizeResult || finalizeResult.status !== "ok") {
 // // //       throw new Error("تعذر اعتماد التهيئة النهائية.");
 // // //     }
 
 // // //     setProgress(100, "اكتملت التهيئة بنجاح.");
 // // //     setStepState(3);
-
 // // //     showCard("readyCard");
 // // //     showNote("localSetupMessage", "ok", "تم تجهيز البيئة المحلية بنجاح على هذا الجهاز.");
 // // //   } catch (err) {
@@ -1722,28 +2251,25 @@
 // // //   }
 // // // }
 
+
+// // // // ─── Recovery flow ────────────────────────────────────────────────────────────
 // // // async function runRecoveryAction() {
 // // //   const mode = $("repairPrimaryBtn")?.dataset.mode || "";
 
 // // //   try {
 // // //     if (mode === "reselect-path") {
-// // //       const pathValue =
-// // //         $("recoveryDataDirectory")?.value.trim() || "C:\\Users\\Public\\Documents\\BasiraData";
+// // //       const pathValue = $("recoveryDataDirectory")?.value.trim()
+// // //         || "C:\\Users\\Public\\Documents\\BasiraData";
 
 // // //       showCard("loadingCard");
 // // //       setProgress(30, "تحديث مسار البيانات...");
-
-// // //       const result = await apiPost("/api/recovery/reselect-data-dir", {
-// // //         data_dir: pathValue
-// // //       });
-
+// // //       const result = await apiPost("/api/recovery/reselect-data-dir", { data_dir: pathValue });
 // // //       if (!result || result.status !== "ok") {
 // // //         throw new Error(result?.message || "تعذر تحديث مسار البيانات.");
 // // //       }
 
 // // //       setProgress(70, "التحقق من البيئة...");
 // // //       const verifyResult = await apiGet("/api/setup/verify");
-
 // // //       if (!verifyResult || verifyResult.status !== "ok") {
 // // //         throw new Error("ما زالت البيئة تحتاج إصلاحًا إضافيًا.");
 // // //       }
@@ -1758,16 +2284,13 @@
 // // //     if (mode === "repair-models") {
 // // //       showCard("loadingCard");
 // // //       setProgress(35, "إعادة تنزيل الملفات الأساسية...");
-
 // // //       const result = await apiPost("/api/recovery/repair-models");
-
 // // //       if (!result || result.status !== "ok") {
 // // //         throw new Error(result?.message || "تعذر إصلاح الملفات الأساسية.");
 // // //       }
 
 // // //       setProgress(75, "التحقق النهائي...");
 // // //       const verifyResult = await apiGet("/api/setup/verify");
-
 // // //       if (!verifyResult || verifyResult.status !== "ok") {
 // // //         throw new Error("إصلاح الملفات لم يكتمل بنجاح.");
 // // //       }
@@ -1789,10 +2312,11 @@
 // // //   }
 // // // }
 
+
+// // // // ─── Launch local app ─────────────────────────────────────────────────────────
 // // // async function launchLocalEnvironment() {
 // // //   try {
 // // //     const startup = await apiGet("/api/startup-status");
-
 // // //     if (!startup || !startup.state) {
 // // //       throw new Error("تعذر التحقق من حالة البيئة المحلية.");
 // // //     }
@@ -1803,54 +2327,40 @@
 // // //       return;
 // // //     }
 
-// // //     if (startup.state === "login_required") {
-// // //       showNote("localSetupMessage", "err", "الجلسة المحلية تحتاج إعادة ربط قبل فتح التطبيق.");
-// // //       return;
-// // //     }
+// // //     const messages = {
+// // //       login_required:       "الجلسة المحلية تحتاج إعادة ربط قبل فتح التطبيق.",
+// // //       new_user:             "يجب إكمال التهيئة المحلية أولًا.",
+// // //       setup_incomplete:     "يجب إكمال التهيئة المحلية أولًا.",
+// // //       recovery_required:    "توجد مشكلة في البيئة المحلية ويجب إصلاحها أولًا.",
+// // //       subscription_required:"الاشتراك غير فعال حاليًا.",
+// // //       update_required:      "النسخة المحلية تحتاج تحديثًا قبل التشغيل."
+// // //     };
 
-// // //     if (startup.state === "new_user" || startup.state === "setup_incomplete") {
-// // //       showNote("localSetupMessage", "err", "يجب إكمال التهيئة المحلية أولًا.");
-// // //       return;
-// // //     }
-
-// // //     if (startup.state === "recovery_required") {
-// // //       showNote("localSetupMessage", "err", "توجد مشكلة في البيئة المحلية ويجب إصلاحها أولًا.");
-// // //       return;
-// // //     }
-
-// // //     if (startup.state === "subscription_required") {
-// // //       showNote("localSetupMessage", "err", "الاشتراك غير فعال حاليًا.");
-// // //       return;
-// // //     }
-
-// // //     if (startup.state === "update_required") {
-// // //       showNote("localSetupMessage", "err", "النسخة المحلية تحتاج تحديثًا قبل التشغيل.");
-// // //       return;
-// // //     }
-
-// // //     throw new Error("الحالة الحالية لا تسمح بفتح التطبيق المحلي.");
+// // //     showNote("localSetupMessage", "err",
+// // //       messages[startup.state] || "الحالة الحالية لا تسمح بفتح التطبيق المحلي.");
 // // //   } catch (err) {
 // // //     showNote("localSetupMessage", "err", err.message || "تعذر فتح التطبيق المحلي.");
 // // //   }
 // // // }
 
+
+// // // // ─── Subscription renew (demo / cloud) ───────────────────────────────────────
 // // // async function renewSubscriptionDemo() {
 // // //   try {
 // // //     const result = await apiPost("/api/subscription/renew-demo");
-
 // // //     if (!result || result.status !== "ok") {
 // // //       throw new Error(result?.message || "تعذر تنفيذ تجديد الاشتراك.");
 // // //     }
-
 // // //     localStorage.setItem("basira_subscription_status", "active");
 // // //     $("subscriptionLabel").textContent = "active";
-
 // // //     showNote("localSetupMessage", "ok", "تم تحديث الاشتراك محليًا في وضع demo.");
 // // //   } catch (err) {
 // // //     showNote("localSetupMessage", "err", err.message || "تعذر تنفيذ تجديد الاشتراك.");
 // // //   }
 // // // }
 
+
+// // // // ─── Boot ─────────────────────────────────────────────────────────────────────
 // // // document.addEventListener("DOMContentLoaded", async () => {
 // // //   $("startSetupBtn")?.addEventListener("click", runFirstSetup);
 // // //   $("repairPrimaryBtn")?.addEventListener("click", runRecoveryAction);
@@ -1865,7 +2375,9 @@
 // // //   });
 
 // // //   $("renewSubscriptionBtn")?.addEventListener("click", () => {
-// // //     const useCloud = confirm("هل تريد فتح صفحة التجديد السحابية؟ اضغط موافق للتجديد السحابي أو إلغاء لتجديد demo.");
+// // //     const useCloud = confirm(
+// // //       "هل تريد فتح صفحة التجديد السحابية؟\nاضغط موافق للتجديد السحابي أو إلغاء لتجديد demo."
+// // //     );
 // // //     if (useCloud) {
 // // //       window.open(CLOUD_RENEW_URL, "_blank");
 // // //     } else {
@@ -1876,8 +2388,6 @@
 // // //   bindActivityTracking();
 // // //   await initializeStartup();
 // // // });
-
-
 // // /**
 // //  * local-setup.js — Basira Cloud Setup Page Logic
 // //  * ================================================
@@ -2388,6 +2898,7 @@
 // //   bindActivityTracking();
 // //   await initializeStartup();
 // // });
+
 // /**
 //  * local-setup.js — Basira Cloud Setup Page Logic
 //  * ================================================
@@ -2425,12 +2936,20 @@
 // }
 
 // function showCard(id) {
-//   ["newUserCard", "loadingCard", "recoveryCard", "readyCard"].forEach(cardId => {
+//   ["newUserCard", "loadingCard", "recoveryCard", "readyCard", "notRunningCard"].forEach(cardId => {
 //     const el = $(cardId);
 //     if (el) el.classList.add("isHidden");
 //   });
 //   const target = $(id);
 //   if (target) target.classList.remove("isHidden");
+// }
+
+// async function retryConnection() {
+//   const btn = $("retryConnectBtn");
+//   if (btn) btn.disabled = true;
+//   showNote("localSetupMessage", "ok", "جارٍ إعادة الاتصال بالبيئة المحلية...");
+//   await initializeStartup();
+//   if (btn) btn.disabled = false;
 // }
 
 // function setStepState(activeIndex) {
@@ -2577,6 +3096,18 @@
 
 
 // // ─── Startup / state machine ──────────────────────────────────────────────────
+// async function isBootstrapReachable() {
+//   try {
+//     const ctrl     = new AbortController();
+//     const timer    = setTimeout(() => ctrl.abort(), 3000);
+//     const response = await fetch(`${LOCAL_BOOTSTRAP_URL}/health`, { signal: ctrl.signal });
+//     clearTimeout(timer);
+//     return response.ok;
+//   } catch {
+//     return false;
+//   }
+// }
+
 // async function initializeStartup() {
 //   setStepState(0);
 
@@ -2590,6 +3121,15 @@
 //       if (title) title.textContent = "جارٍ التحقق من البيئة المحلية";
 //       if (text)  text.textContent  =
 //         "يتم الآن فحص config المحلي، حالة الجلسة، data directory، وملفات البيئة المحلية على هذا الجهاز.";
+//     }
+
+//     // ── Check if the local launcher is actually running ─────────────────────
+//     const reachable = await isBootstrapReachable();
+//     if (!reachable) {
+//       showCard("notRunningCard");
+//       showNote("localSetupMessage", "err",
+//         "تعذر الاتصال بالبيئة المحلية. تأكدي من تشغيل Basira Launcher أولًا.");
+//       return;
 //     }
 
 //     startupState = await apiGet("/api/startup-status");
@@ -2875,6 +3415,7 @@
 //   $("startSetupBtn")?.addEventListener("click", runFirstSetup);
 //   $("repairPrimaryBtn")?.addEventListener("click", runRecoveryAction);
 //   $("launchLocalBtn")?.addEventListener("click", launchLocalEnvironment);
+//   $("retryConnectBtn")?.addEventListener("click", retryConnection);
 
 //   $("browseDataDirectoryBtn")?.addEventListener("click", () => {
 //     browseForDataDirectory("dataDirectory");
@@ -2900,56 +3441,60 @@
 // });
 
 /**
- * local-setup.js — Basira Cloud Setup Page Logic
- * ================================================
- * Runs in the browser on the cloud website (local-setup.html).
- * Communicates with the local bootstrap API at http://127.0.0.1:5001
- * to set up or verify the on-premise environment, then opens
- * the main local app at http://127.0.0.1:5000.
+ * local-setup.js — Basira On-Premise Setup
+ * ==========================================
+ * STATE MACHINE:
  *
- * Prerequisites: supabase-config.js must define SUPABASE_URL and SUPABASE_ANON_KEY.
+ *  Launcher not running → show "notRunningCard" (retry button)
+ *
+ *  new_user / setup_incomplete
+ *      → show "pickFolderCard" (user picks data folder ONCE)
+ *      → on confirm → run setup silently → open app
+ *
+ *  login_required
+ *      → auto re-link Supabase session → re-check state
+ *
+ *  healthy / healthy_with_optional_update
+ *      → open local app automatically (no clicks needed)
+ *
+ *  recovery_required  → show repair card (one click)
+ *  subscription_required → show subscription card
+ *  update_required    → show update card
  */
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const LOCAL_BOOTSTRAP_URL = "http://127.0.0.1:5001";   // basira_local_bootstrap.py
-const LOCAL_APP_URL       = "http://127.0.0.1:5000";   // Basira_app_structure.py
+const LOCAL_BOOTSTRAP_URL = "http://127.0.0.1:5001";
+const LOCAL_APP_URL       = "http://127.0.0.1:5000";
 const CLOUD_RENEW_URL     = "https://basira.basira-toolmodel.workers.dev/renew";
+const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;
 
-const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;  // 20 minutes
+// Suggested default — shown pre-filled in the input but user can change it
+const SUGGESTED_DATA_DIR  = "C:\\BasiraData";
 
 let startupState    = null;
 let inactivityTimer = null;
 
 
-// ─── DOM helpers ─────────────────────────────────────────────────────────────
-function $(id) {
-  return document.getElementById(id);
-}
+// ─── DOM ──────────────────────────────────────────────────────────────────────
+function $(id) { return document.getElementById(id); }
 
 function showNote(id, type, message) {
   const el = $(id);
   if (!el) return;
-  el.innerHTML  = message || "";
-  el.className  = "note " + (type === "ok" ? "isOk" : "isErr");
+  el.innerHTML = message || "";
+  el.className = "note " + (type === "ok" ? "isOk" : "isErr");
 }
 
 function showCard(id) {
-  ["newUserCard", "loadingCard", "recoveryCard", "readyCard", "notRunningCard"].forEach(cardId => {
+  ["startupStatusCard","pickFolderCard","loadingCard",
+   "recoveryCard","readyCard","notRunningCard","subscriptionCard"
+  ].forEach(cardId => {
     const el = $(cardId);
     if (el) el.classList.add("isHidden");
   });
   const target = $(id);
   if (target) target.classList.remove("isHidden");
-}
-
-async function retryConnection() {
-  const btn = $("retryConnectBtn");
-  if (btn) btn.disabled = true;
-  showNote("localSetupMessage", "ok", "جارٍ إعادة الاتصال بالبيئة المحلية...");
-  await initializeStartup();
-  if (btn) btn.disabled = false;
 }
 
 function setStepState(activeIndex) {
@@ -2963,31 +3508,51 @@ function setStepState(activeIndex) {
 function setProgress(percent, text) {
   const fill  = $("progressFill");
   const label = $("progressText");
-  if (fill)  fill.style.width   = `${percent}%`;
-  if (label) label.textContent  = text || "";
+  if (fill)  fill.style.width  = `${percent}%`;
+  if (label) label.textContent = text || "";
 }
 
 
-// ─── API helpers ─────────────────────────────────────────────────────────────
+// ─── API ─────────────────────────────────────────────────────────────────────
 async function apiGet(path) {
-  const response = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`, {
-    method:  "GET",
-    headers: { "Content-Type": "application/json" }
-  });
-  return response.json();
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const r = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`, {
+      method: "GET", headers: { "Content-Type": "application/json" }, signal: ctrl.signal
+    });
+    clearTimeout(timer);
+    return r.json();
+  } catch (e) { clearTimeout(timer); throw e; }
 }
 
 async function apiPost(path, payload = {}) {
-  const response = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`, {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body:    JSON.stringify(payload)
-  });
-  return response.json();
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const r = await fetch(`${LOCAL_BOOTSTRAP_URL}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal
+    });
+    clearTimeout(timer);
+    return r.json();
+  } catch (e) { clearTimeout(timer); throw e; }
+}
+
+async function isBootstrapReachable() {
+  try {
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 3000);
+    const resp  = await fetch(`${LOCAL_BOOTSTRAP_URL}/health`, { signal: ctrl.signal });
+    clearTimeout(timer);
+    return resp.ok;
+  } catch { return false; }
 }
 
 
-// ─── Session helpers ──────────────────────────────────────────────────────────
+// ─── Session ─────────────────────────────────────────────────────────────────
 function getStoredSessionPayload() {
   return {
     user_id:             localStorage.getItem("basira_user_id")             || "",
@@ -3001,66 +3566,46 @@ function getStoredSessionPayload() {
 async function readCloudUser() {
   try {
     const { data: { session } } = await supabaseClient.auth.getSession();
-
     if (!session?.user) {
-      $("cloudUserLabel").textContent    = "لم يتم العثور على جلسة مستخدم.";
-      $("subscriptionLabel").textContent = "غير معروف";
+      if ($("cloudUserLabel"))    $("cloudUserLabel").textContent    = "لم يتم العثور على جلسة.";
+      if ($("subscriptionLabel")) $("subscriptionLabel").textContent = "غير معروف";
       return null;
     }
-
-    const userName =
-      session.user.user_metadata?.full_name ||
-      session.user.email ||
-      session.user.id;
-
-    $("cloudUserLabel").textContent    = userName;
-    $("subscriptionLabel").textContent =
+    const name = session.user.user_metadata?.full_name || session.user.email || session.user.id;
+    if ($("cloudUserLabel"))    $("cloudUserLabel").textContent    = name;
+    if ($("subscriptionLabel")) $("subscriptionLabel").textContent =
       localStorage.getItem("basira_subscription_status") || "غير معروف";
-
     return session;
-  } catch (err) {
-    $("cloudUserLabel").textContent    = "تعذر قراءة بيانات المستخدم.";
-    $("subscriptionLabel").textContent = "غير معروف";
+  } catch {
+    if ($("cloudUserLabel"))    $("cloudUserLabel").textContent    = "تعذر قراءة البيانات.";
+    if ($("subscriptionLabel")) $("subscriptionLabel").textContent = "غير معروف";
     return null;
   }
 }
 
 async function pushLocalSession() {
-  const payload = getStoredSessionPayload();
-  if (!payload.user_id || !payload.access_token || !payload.expires_at) {
-    throw new Error("بيانات الجلسة المحلية غير مكتملة بعد تسجيل الدخول.");
-  }
-  await apiPost("/api/setup/login-complete", payload);
+  const p = getStoredSessionPayload();
+  if (!p.user_id || !p.access_token || !p.expires_at) return;
+  try { await apiPost("/api/setup/login-complete", p); } catch {}
 }
 
 
 // ─── Heartbeat & inactivity ───────────────────────────────────────────────────
 async function sendHeartbeat() {
   try {
-    const response = await fetch(`${LOCAL_BOOTSTRAP_URL}/api/auth/heartbeat`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" }
+    const r = await fetch(`${LOCAL_BOOTSTRAP_URL}/api/auth/heartbeat`, {
+      method: "POST", headers: { "Content-Type": "application/json" }
     });
-
-    if (response.status === 401) {
-      showNote("localSetupMessage", "err", "انتهت الجلسة المحلية بسبب الخمول أو انتهاء الصلاحية.");
-      setTimeout(() => { window.location.href = "./login.html"; }, 1200);
-    }
-  } catch (err) {
-    console.warn("Heartbeat failed:", err);
-  }
+    if (r.status === 401) setTimeout(() => { window.location.href = "./login.html"; }, 1200);
+  } catch {}
 }
 
 async function autoLogoutNow() {
   try {
     await fetch(`${LOCAL_BOOTSTRAP_URL}/api/auth/auto-logout`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" }
+      method: "POST", headers: { "Content-Type": "application/json" }
     });
-  } catch (err) {
-    console.warn("Auto logout request failed:", err);
-  }
-  showNote("localSetupMessage", "err", "تم تسجيل الخروج تلقائيًا بعد 20 دقيقة من عدم النشاط.");
+  } catch {}
   setTimeout(() => { window.location.href = "./login.html"; }, 1200);
 }
 
@@ -3070,373 +3615,281 @@ function resetInactivityTimer() {
 }
 
 function bindActivityTracking() {
-  ["click", "mousemove", "keydown", "scroll", "touchstart"].forEach(eventName => {
-    window.addEventListener(eventName, resetInactivityTimer);
-  });
+  ["click","mousemove","keydown","scroll","touchstart"].forEach(ev =>
+    window.addEventListener(ev, resetInactivityTimer));
   resetInactivityTimer();
   setInterval(sendHeartbeat, 60_000);
 }
 
 
-// ─── Folder picker ────────────────────────────────────────────────────────────
-async function browseForDataDirectory(targetInputId = "dataDirectory") {
+// ─── Native folder picker (calls bootstrap API which opens tkinter dialog) ───
+async function browseFolder(inputId) {
   try {
     const result = await apiGet("/api/system/pick-data-dir");
-    if (!result || result.status !== "ok") {
-      throw new Error(result?.message || "تعذر فتح نافذة اختيار المجلد.");
-    }
-    if (result.path) {
-      const input = $(targetInputId);
+    if (result?.status === "ok" && result.path) {
+      const input = $(inputId);
       if (input) input.value = result.path;
+    } else {
+      showNote("localSetupMessage", "err", "تعذر فتح نافذة اختيار المجلد.");
     }
-  } catch (err) {
-    showNote("localSetupMessage", "err", err.message || "تعذر فتح نافذة اختيار المجلد.");
-  }
-}
-
-
-// ─── Startup / state machine ──────────────────────────────────────────────────
-async function isBootstrapReachable() {
-  try {
-    const ctrl     = new AbortController();
-    const timer    = setTimeout(() => ctrl.abort(), 3000);
-    const response = await fetch(`${LOCAL_BOOTSTRAP_URL}/health`, { signal: ctrl.signal });
-    clearTimeout(timer);
-    return response.ok;
   } catch {
-    return false;
-  }
-}
-
-async function initializeStartup() {
-  setStepState(0);
-
-  try {
-    await readCloudUser();
-
-    const statusCard = $("startupStatusCard");
-    if (statusCard) {
-      const title = statusCard.querySelector(".local-card__title");
-      const text  = statusCard.querySelector(".local-card__text");
-      if (title) title.textContent = "جارٍ التحقق من البيئة المحلية";
-      if (text)  text.textContent  =
-        "يتم الآن فحص config المحلي، حالة الجلسة، data directory، وملفات البيئة المحلية على هذا الجهاز.";
-    }
-
-    // ── Check if the local launcher is actually running ─────────────────────
-    const reachable = await isBootstrapReachable();
-    if (!reachable) {
-      showCard("notRunningCard");
-      showNote("localSetupMessage", "err",
-        "تعذر الاتصال بالبيئة المحلية. تأكدي من تشغيل Basira Launcher أولًا.");
-      return;
-    }
-
-    startupState = await apiGet("/api/startup-status");
-
-    if (!startupState || !startupState.state) {
-      throw new Error("تعذر قراءة حالة التشغيل المحلي.");
-    }
-
-    // ── New user or incomplete setup ────────────────────────────────────────
-    if (startupState.state === "new_user" || startupState.state === "setup_incomplete") {
-      showCard("newUserCard");
-      setStepState(1);
-      showNote("localSetupMessage", "ok", "هذه أول مرة على هذا الجهاز أو أن التهيئة السابقة غير مكتملة.");
-      return;
-    }
-
-    // ── Already healthy ─────────────────────────────────────────────────────
-    if (startupState.state === "healthy" || startupState.state === "healthy_with_optional_update") {
-      showCard("readyCard");
-      setStepState(3);
-      showNote("localSetupMessage", "ok", "تم العثور على بيئة محلية جاهزة. يمكنك تشغيلها مباشرة.");
-      return;
-    }
-
-    // ── Session expired — try to re-link from Supabase ──────────────────────
-    if (startupState.state === "login_required") {
-      showNote("localSetupMessage", "err",
-        "انتهت الجلسة المحلية أو لم تُربط بعد. سيتم إعادة ربطها الآن من جلسة تسجيل الدخول الحالية.");
-
-      await pushLocalSession();
-      startupState = await apiGet("/api/startup-status");
-
-      if (startupState.state === "healthy" || startupState.state === "healthy_with_optional_update") {
-        showCard("readyCard");
-        setStepState(3);
-        showNote("localSetupMessage", "ok", "تم تحديث الجلسة المحلية بنجاح.");
-      } else {
-        showCard("newUserCard");
-        setStepState(1);
-      }
-      return;
-    }
-
-    // ── Subscription issue ──────────────────────────────────────────────────
-    if (startupState.state === "subscription_required") {
-      showCard("recoveryCard");
-      setStepState(1);
-      const recoveryText    = $("recoveryText");
-      const repairPrimaryBtn = $("repairPrimaryBtn");
-      if (recoveryText)   recoveryText.textContent   = "الاشتراك غير فعال. يرجى تجديد الاشتراك للمتابعة.";
-      if (repairPrimaryBtn) {
-        repairPrimaryBtn.textContent  = "فتح بوابة التجديد";
-        repairPrimaryBtn.dataset.mode = "open-update";
-      }
-      showNote("localSetupMessage", "err", "الاشتراك غير فعال حاليًا.");
-      return;
-    }
-
-    // ── Recovery needed (missing dir / models) ───────────────────────────────
-    if (startupState.state === "recovery_required") {
-      showCard("recoveryCard");
-      setStepState(1);
-      const reason          = startupState.reason || "";
-      const recoveryText    = $("recoveryText");
-      const repairPrimaryBtn = $("repairPrimaryBtn");
-      const recoveryPathField = $("recoveryPathField");
-
-      if (reason === "data_dir_missing") {
-        if (recoveryText)   recoveryText.textContent   = "مجلد البيانات المحلية غير موجود. اختاري مسارًا جديدًا ثم اضغطي إصلاح.";
-        if (recoveryPathField) recoveryPathField.classList.remove("isHidden");
-        if (repairPrimaryBtn) {
-          repairPrimaryBtn.textContent  = "إصلاح المسار";
-          repairPrimaryBtn.dataset.mode = "reselect-path";
-        }
-      } else if (reason === "models_not_installed") {
-        if (recoveryText)   recoveryText.textContent   = "تم اكتشاف ملفات محلية ناقصة. يمكن إصلاح البيئة عبر إعادة تنزيل الملفات الأساسية.";
-        if (recoveryPathField) recoveryPathField.classList.add("isHidden");
-        if (repairPrimaryBtn) {
-          repairPrimaryBtn.textContent  = "إعادة تنزيل الملفات الأساسية";
-          repairPrimaryBtn.dataset.mode = "repair-models";
-        }
-      } else {
-        if (recoveryText)   recoveryText.textContent   = "تم اكتشاف خلل جزئي في البيئة المحلية. سنحاول إصلاحه دون إعادة إعداد كامل.";
-        if (recoveryPathField) recoveryPathField.classList.add("isHidden");
-        if (repairPrimaryBtn) {
-          repairPrimaryBtn.textContent  = "إصلاح الآن";
-          repairPrimaryBtn.dataset.mode = "repair-models";
-        }
-      }
-
-      showNote("localSetupMessage", "err", "تم اكتشاف حالة recovery ويمكن إصلاحها من هذه الصفحة.");
-      return;
-    }
-
-    // ── Mandatory update required ────────────────────────────────────────────
-    if (startupState.state === "update_required") {
-      showCard("recoveryCard");
-      setStepState(1);
-      const recoveryText    = $("recoveryText");
-      const repairPrimaryBtn = $("repairPrimaryBtn");
-      if (recoveryText)     recoveryText.textContent   = "هذه النسخة المحلية تحتاج تحديثًا إجباريًا قبل المتابعة.";
-      if (repairPrimaryBtn) {
-        repairPrimaryBtn.textContent  = "فتح بوابة التحديث";
-        repairPrimaryBtn.dataset.mode = "open-update";
-      }
-      showNote("localSetupMessage", "err", "هذه النسخة المحلية تحتاج تحديثًا.");
-      return;
-    }
-
-    throw new Error("حالة تشغيل غير معروفة.");
-  } catch (err) {
-    showNote("localSetupMessage", "err",
-      err.message || "تعذر بدء صفحة التهيئة المحلية. تأكدي من تشغيل Basira Local Launcher.");
+    showNote("localSetupMessage", "err", "تعذر فتح نافذة اختيار المجلد.");
   }
 }
 
 
-// ─── First-time setup flow ────────────────────────────────────────────────────
-async function runFirstSetup() {
+// ─── FIRST-TIME SETUP: runs silently after user picks folder ─────────────────
+async function runSetupWithDir(dataDir) {
+  showCard("loadingCard");
+  setStepState(1);
+
   try {
-    const session = await readCloudUser();
-    if (!session?.user) {
-      throw new Error("لا توجد جلسة مستخدم صالحة. الرجاء تسجيل الدخول مجددًا.");
-    }
+    setProgress(10, "تهيئة الإعدادات...");
+    await apiPost("/api/setup/init", {});
 
-    setStepState(2);
-    showCard("loadingCard");
-
-    setProgress(10,  "تهيئة الحالة المحلية...");
-    await apiPost("/api/setup/init");
-
-    setProgress(20,  "ربط الجلسة المحلية...");
+    setProgress(22, "ربط جلسة الدخول...");
     await pushLocalSession();
 
-    const dataDir = $("dataDirectory")?.value.trim()
-      || "C:\\Users\\Public\\Documents\\BasiraData";
-
-    setProgress(35,  "إنشاء المجلدات المحلية...");
+    setProgress(38, "إنشاء مجلدات البيانات في: " + dataDir);
     const dirResult = await apiPost("/api/setup/select-data-dir", { data_dir: dataDir });
     if (!dirResult || dirResult.status !== "ok") {
-      throw new Error(dirResult?.message || "تعذر إنشاء مجلدات البيانات المحلية.");
+      throw new Error(dirResult?.message || "تعذر إنشاء مجلدات البيانات.");
     }
 
-    setProgress(60,  "تنزيل الملفات الأساسية المحلية...");
-    const installResult = await apiPost("/api/setup/install-models");
-    if (!installResult || installResult.status !== "ok") {
-      throw new Error(installResult?.message || "تعذر تجهيز الملفات الأساسية المحلية.");
+    setProgress(58, "تثبيت الملفات الأساسية...");
+    await apiPost("/api/setup/install-models", {});
+
+    setProgress(78, "التحقق من البيئة...");
+    const verify = await apiGet("/api/setup/verify");
+    if (!verify || verify.status !== "ok") {
+      throw new Error("فشل التحقق من البيئة المحلية بعد الإعداد.");
     }
 
-    setProgress(80,  "التحقق من الجاهزية...");
-    const verifyResult = await apiGet("/api/setup/verify");
-    if (!verifyResult || verifyResult.status !== "ok") {
-      throw new Error("فشل التحقق من البيئة المحلية بعد التهيئة.");
-    }
+    setProgress(92, "اعتماد الإعداد...");
+    await apiPost("/api/setup/finalize", {});
 
-    setProgress(95,  "اعتماد التهيئة النهائية...");
-    const finalizeResult = await apiPost("/api/setup/finalize");
-    if (!finalizeResult || finalizeResult.status !== "ok") {
-      throw new Error("تعذر اعتماد التهيئة النهائية.");
-    }
-
-    setProgress(100, "اكتملت التهيئة بنجاح.");
+    setProgress(100, "اكتمل الإعداد بنجاح ✓");
     setStepState(3);
     showCard("readyCard");
-    showNote("localSetupMessage", "ok", "تم تجهيز البيئة المحلية بنجاح على هذا الجهاز.");
+    showNote("localSetupMessage", "ok", "تم إعداد البيئة المحلية. جارٍ فتح التطبيق...");
+    setTimeout(() => { window.open(LOCAL_APP_URL, "_blank"); }, 700);
+
   } catch (err) {
     showCard("recoveryCard");
-    showNote("localSetupMessage", "err", err.message || "حدث خطأ أثناء التهيئة المحلية.");
+    const rt = $("recoveryText");
+    if (rt) rt.textContent = err.message || "فشل الإعداد. يرجى المحاولة مجدداً.";
+    const rb = $("repairPrimaryBtn");
+    if (rb) { rb.textContent = "إعادة المحاولة"; rb.dataset.mode = "retry-setup"; }
+    showNote("localSetupMessage", "err", err.message || "فشل الإعداد التلقائي.");
+  }
+}
+
+// Called when user clicks "بدء الإعداد" on the pick-folder card
+async function confirmFolderAndSetup() {
+  const input   = $("dataDirectoryInput");
+  const dataDir = input?.value.trim() || SUGGESTED_DATA_DIR;
+  if (!dataDir) {
+    showNote("localSetupMessage", "err", "يرجى اختيار مسار حفظ الملفات أولاً.");
+    return;
+  }
+  await runSetupWithDir(dataDir);
+}
+
+
+// ─── STATE MACHINE ───────────────────────────────────────────────────────────
+async function initializeStartup() {
+  setStepState(0);
+  showCard("startupStatusCard");
+  await readCloudUser();
+
+  // 1. Is the local launcher running?
+  const reachable = await isBootstrapReachable();
+  if (!reachable) {
+    showCard("notRunningCard");
+    showNote("localSetupMessage", "err", "الخادم المحلي غير مشغّل.");
+    return;
+  }
+
+  // 2. Get state from bootstrap
+  try {
+    startupState = await apiGet("/api/startup-status");
+  } catch {
+    showCard("notRunningCard");
+    showNote("localSetupMessage", "err", "تعذر قراءة حالة الخادم المحلي.");
+    return;
+  }
+
+  const state  = startupState?.state;
+  const reason = startupState?.reason || "";
+
+  switch (state) {
+
+    // ── Already fully set up → open app directly ───────────────────────────
+    case "healthy":
+    case "healthy_with_optional_update":
+      setStepState(3);
+      showCard("readyCard");
+      showNote("localSetupMessage", "ok", "البيئة جاهزة. جارٍ فتح التطبيق...");
+      setTimeout(() => { window.open(LOCAL_APP_URL, "_blank"); }, 600);
+      break;
+
+    // ── First time: ask user to pick their data folder ─────────────────────
+    case "new_user":
+    case "setup_incomplete":
+      setStepState(1);
+      showCard("pickFolderCard");
+      showNote("localSetupMessage", "ok",
+        "هذه أول مرة على هذا الجهاز. اختاري مكان حفظ ملفات بصيرة.");
+      break;
+
+    // ── Session expired → auto re-link → re-check ──────────────────────────
+    case "login_required":
+      await pushLocalSession();
+      startupState = await apiGet("/api/startup-status");
+      if (startupState?.state === "healthy" ||
+          startupState?.state === "healthy_with_optional_update") {
+        setStepState(3);
+        showCard("readyCard");
+        showNote("localSetupMessage", "ok", "تم تجديد الجلسة. جارٍ فتح التطبيق...");
+        setTimeout(() => { window.open(LOCAL_APP_URL, "_blank"); }, 600);
+      } else {
+        // Session re-linked but still incomplete setup → show folder picker
+        setStepState(1);
+        showCard("pickFolderCard");
+        showNote("localSetupMessage", "ok", "اختاري مكان حفظ ملفات بصيرة.");
+      }
+      break;
+
+    // ── Subscription issue ─────────────────────────────────────────────────
+    case "subscription_required":
+      showCard("subscriptionCard");
+      showNote("localSetupMessage", "err", "الاشتراك غير فعال. يرجى التجديد.");
+      break;
+
+    // ── Data/models missing → auto repair ─────────────────────────────────
+    case "recovery_required": {
+      showCard("recoveryCard");
+      setStepState(1);
+      const rt = $("recoveryText");
+      const rb = $("repairPrimaryBtn");
+      const rf = $("recoveryPathField");
+      if (reason === "data_dir_missing") {
+        if (rt) rt.textContent = "مجلد البيانات غير موجود. اختاري مساراً جديداً.";
+        if (rf) rf.classList.remove("isHidden");
+        if (rb) { rb.textContent = "إصلاح المسار"; rb.dataset.mode = "reselect-path"; }
+      } else {
+        if (rt) rt.textContent = "تم اكتشاف خلل في الملفات الأساسية.";
+        if (rf) rf.classList.add("isHidden");
+        if (rb) { rb.textContent = "إصلاح تلقائي"; rb.dataset.mode = "repair-models"; }
+      }
+      showNote("localSetupMessage", "err", "يلزم إصلاح البيئة المحلية.");
+      break;
+    }
+
+    // ── Mandatory update ───────────────────────────────────────────────────
+    case "update_required": {
+      showCard("recoveryCard");
+      const rt2 = $("recoveryText");
+      const rb2 = $("repairPrimaryBtn");
+      const rf2 = $("recoveryPathField");
+      if (rt2) rt2.textContent = "النسخة الحالية تحتاج تحديثاً إجبارياً.";
+      if (rf2) rf2.classList.add("isHidden");
+      if (rb2) { rb2.textContent = "فتح بوابة التحديث"; rb2.dataset.mode = "open-update"; }
+      showNote("localSetupMessage", "err", "تحديث إجباري مطلوب.");
+      break;
+    }
+
+    default:
+      showNote("localSetupMessage", "err", "حالة غير معروفة: " + (state || "—"));
   }
 }
 
 
-// ─── Recovery flow ────────────────────────────────────────────────────────────
+// ─── Recovery action ──────────────────────────────────────────────────────────
 async function runRecoveryAction() {
-  const mode = $("repairPrimaryBtn")?.dataset.mode || "";
+  const mode = $("repairPrimaryBtn")?.dataset.mode || "repair-models";
 
-  try {
-    if (mode === "reselect-path") {
-      const pathValue = $("recoveryDataDirectory")?.value.trim()
-        || "C:\\Users\\Public\\Documents\\BasiraData";
+  if (mode === "open-update") {
+    window.open(CLOUD_RENEW_URL, "_blank");
+    return;
+  }
 
-      showCard("loadingCard");
-      setProgress(30, "تحديث مسار البيانات...");
-      const result = await apiPost("/api/recovery/reselect-data-dir", { data_dir: pathValue });
-      if (!result || result.status !== "ok") {
-        throw new Error(result?.message || "تعذر تحديث مسار البيانات.");
-      }
+  if (mode === "reselect-path") {
+    const rf    = $("recoveryPathField");
+    const input = rf?.querySelector("input");
+    const path  = input?.value.trim() || SUGGESTED_DATA_DIR;
+    await runSetupWithDir(path);
+    return;
+  }
 
-      setProgress(70, "التحقق من البيئة...");
-      const verifyResult = await apiGet("/api/setup/verify");
-      if (!verifyResult || verifyResult.status !== "ok") {
-        throw new Error("ما زالت البيئة تحتاج إصلاحًا إضافيًا.");
-      }
-
-      setProgress(100, "تم إصلاح مسار البيانات.");
+  if (mode === "repair-models") {
+    showCard("loadingCard");
+    setProgress(30, "إصلاح الملفات الأساسية...");
+    try {
+      await apiPost("/api/recovery/repair-models");
+      setProgress(70, "التحقق النهائي...");
+      const verify = await apiGet("/api/setup/verify");
+      if (!verify || verify.status !== "ok") throw new Error("الإصلاح لم يكتمل.");
+      setProgress(100, "تم الإصلاح.");
       showCard("readyCard");
       setStepState(3);
-      showNote("localSetupMessage", "ok", "تم إصلاح البيئة المحلية بنجاح.");
-      return;
+      showNote("localSetupMessage", "ok", "تم الإصلاح. جارٍ فتح التطبيق...");
+      setTimeout(() => { window.open(LOCAL_APP_URL, "_blank"); }, 700);
+    } catch (err) {
+      showCard("recoveryCard");
+      showNote("localSetupMessage", "err", err.message || "فشل الإصلاح.");
     }
+    return;
+  }
 
-    if (mode === "repair-models") {
-      showCard("loadingCard");
-      setProgress(35, "إعادة تنزيل الملفات الأساسية...");
-      const result = await apiPost("/api/recovery/repair-models");
-      if (!result || result.status !== "ok") {
-        throw new Error(result?.message || "تعذر إصلاح الملفات الأساسية.");
-      }
-
-      setProgress(75, "التحقق النهائي...");
-      const verifyResult = await apiGet("/api/setup/verify");
-      if (!verifyResult || verifyResult.status !== "ok") {
-        throw new Error("إصلاح الملفات لم يكتمل بنجاح.");
-      }
-
-      setProgress(100, "تم إصلاح الملفات الأساسية.");
-      showCard("readyCard");
-      setStepState(3);
-      showNote("localSetupMessage", "ok", "تم إصلاح البيئة المحلية بنجاح.");
-      return;
-    }
-
-    if (mode === "open-update") {
-      window.open(CLOUD_RENEW_URL, "_blank");
-      return;
-    }
-  } catch (err) {
-    showCard("recoveryCard");
-    showNote("localSetupMessage", "err", err.message || "تعذر تنفيذ recovery.");
+  if (mode === "retry-setup") {
+    setStepState(1);
+    showCard("pickFolderCard");
+    return;
   }
 }
 
-
-// ─── Launch local app ─────────────────────────────────────────────────────────
-async function launchLocalEnvironment() {
-  try {
-    const startup = await apiGet("/api/startup-status");
-    if (!startup || !startup.state) {
-      throw new Error("تعذر التحقق من حالة البيئة المحلية.");
-    }
-
-    if (startup.state === "healthy" || startup.state === "healthy_with_optional_update") {
-      window.open(LOCAL_APP_URL, "_blank");
-      showNote("localSetupMessage", "ok", "تم فتح التطبيق المحلي بنجاح.");
-      return;
-    }
-
-    const messages = {
-      login_required:       "الجلسة المحلية تحتاج إعادة ربط قبل فتح التطبيق.",
-      new_user:             "يجب إكمال التهيئة المحلية أولًا.",
-      setup_incomplete:     "يجب إكمال التهيئة المحلية أولًا.",
-      recovery_required:    "توجد مشكلة في البيئة المحلية ويجب إصلاحها أولًا.",
-      subscription_required:"الاشتراك غير فعال حاليًا.",
-      update_required:      "النسخة المحلية تحتاج تحديثًا قبل التشغيل."
-    };
-
-    showNote("localSetupMessage", "err",
-      messages[startup.state] || "الحالة الحالية لا تسمح بفتح التطبيق المحلي.");
-  } catch (err) {
-    showNote("localSetupMessage", "err", err.message || "تعذر فتح التطبيق المحلي.");
-  }
+async function retryConnection() {
+  const btn = $("retryConnectBtn");
+  if (btn) btn.disabled = true;
+  showNote("localSetupMessage", "ok", "جارٍ إعادة الاتصال...");
+  await initializeStartup();
+  if (btn) btn.disabled = false;
 }
 
-
-// ─── Subscription renew (demo / cloud) ───────────────────────────────────────
 async function renewSubscriptionDemo() {
   try {
-    const result = await apiPost("/api/subscription/renew-demo");
-    if (!result || result.status !== "ok") {
-      throw new Error(result?.message || "تعذر تنفيذ تجديد الاشتراك.");
-    }
+    await apiPost("/api/subscription/renew-demo");
     localStorage.setItem("basira_subscription_status", "active");
-    $("subscriptionLabel").textContent = "active";
-    showNote("localSetupMessage", "ok", "تم تحديث الاشتراك محليًا في وضع demo.");
+    if ($("subscriptionLabel")) $("subscriptionLabel").textContent = "active";
+    showNote("localSetupMessage", "ok", "تم تجديد الاشتراك. جارٍ إعادة التحقق...");
+    setTimeout(initializeStartup, 800);
   } catch (err) {
-    showNote("localSetupMessage", "err", err.message || "تعذر تنفيذ تجديد الاشتراك.");
+    showNote("localSetupMessage", "err", err.message || "تعذر تجديد الاشتراك.");
   }
 }
 
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
-  $("startSetupBtn")?.addEventListener("click", runFirstSetup);
-  $("repairPrimaryBtn")?.addEventListener("click", runRecoveryAction);
-  $("launchLocalBtn")?.addEventListener("click", launchLocalEnvironment);
-  $("retryConnectBtn")?.addEventListener("click", retryConnection);
+  // Folder picker card
+  $("browseFolderBtn")   ?.addEventListener("click", () => browseFolder("dataDirectoryInput"));
+  $("startSetupBtn")     ?.addEventListener("click", confirmFolderAndSetup);
 
-  $("browseDataDirectoryBtn")?.addEventListener("click", () => {
-    browseForDataDirectory("dataDirectory");
-  });
+  // Recovery card
+  $("repairPrimaryBtn")  ?.addEventListener("click", runRecoveryAction);
+  $("browseRecoveryBtn") ?.addEventListener("click", () => browseFolder("recoveryDirInput"));
 
-  $("browseRecoveryDirectoryBtn")?.addEventListener("click", () => {
-    browseForDataDirectory("recoveryDataDirectory");
-  });
+  // Ready card
+  $("launchLocalBtn")    ?.addEventListener("click", () => window.open(LOCAL_APP_URL, "_blank"));
 
-  $("renewSubscriptionBtn")?.addEventListener("click", () => {
-    const useCloud = confirm(
-      "هل تريد فتح صفحة التجديد السحابية؟\nاضغط موافق للتجديد السحابي أو إلغاء لتجديد demo."
-    );
-    if (useCloud) {
-      window.open(CLOUD_RENEW_URL, "_blank");
-    } else {
-      renewSubscriptionDemo();
-    }
-  });
+  // Not-running card
+  $("retryConnectBtn")   ?.addEventListener("click", retryConnection);
+
+  // Subscription card
+  $("renewSubscriptionBtn")?.addEventListener("click", () => window.open(CLOUD_RENEW_URL, "_blank"));
+  $("renewDemoBtn")        ?.addEventListener("click", renewSubscriptionDemo);
 
   bindActivityTracking();
   await initializeStartup();
 });
-
