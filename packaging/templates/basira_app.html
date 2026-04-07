@@ -1,3 +1,1093 @@
+<!-- <!DOCTYPE html>
+<html lang="en" data-theme="light" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basira | Core Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono&family=Noto+Sans+Arabic:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+:root {
+    --bg: #f8fafc;
+    --surface: rgba(255,255,255,0.95);
+    --accent: #0ea5e9;
+    --text-main: #0f172a;
+    --text-dim: #64748b;
+    --border: #e2e8f0;
+    --accent-glow: rgba(14,165,233,0.15);
+    --danger: #ef4444;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --purple: #8b5cf6;
+    --indigo: #6366f1;
+}
+[data-theme="dark"] {
+    --bg: #0f172a;
+    --surface: rgba(30,41,59,0.7);
+    --accent: #38bdf8;
+    --accent-glow: rgba(56,189,248,0.2);
+    --text-main: #f1f5f9;
+    --text-dim: #94a3b8;
+    --border: rgba(255,255,255,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;outline:none;}
+body{background:var(--bg);color:var(--text-main);font-family:'Plus Jakarta Sans','Noto Sans Arabic',sans-serif;height:100vh;overflow:hidden;}
+#bg-canvas{position:fixed;top:0;left:0;z-index:-1;width:100vw;height:100vh;filter:blur(60px);}
+nav{height:70px;display:none;justify-content:space-between;align-items:center;padding:0 5%;background:var(--surface);backdrop-filter:blur(25px);border-bottom:1px solid var(--border);z-index:1000;}
+.page{display:none;height:calc(100vh - 70px);padding:25px 5%;overflow-y:auto;flex-direction:column;align-items:stretch;}
+.page.active{display:flex;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.centered{justify-content:center;align-items:center;height:100vh;padding:0;}
+.glass-card{background:var(--surface);border:1px solid var(--border);padding:2rem;border-radius:24px;backdrop-filter:blur(30px);margin-bottom:20px;}
+.bento-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.bento-large{grid-column:span 2;}
+.track-card{background:var(--surface);border:1px solid var(--border);padding:1.8rem;border-radius:24px;transition:0.3s;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;min-height:150px;}
+.track-card:hover{border-color:var(--accent);transform:translateY(-5px);}
+.btn-primary{background:var(--accent);color:white;border:none;padding:14px 28px;border-radius:14px;font-weight:800;cursor:pointer;transition:0.3s;font-family:inherit;}
+.btn-primary:disabled{opacity:0.3;cursor:not-allowed;filter:grayscale(1);}
+.btn-glass{background:rgba(0,0,0,0.05);border:1px solid var(--border);color:var(--text-main);padding:10px 20px;border-radius:12px;cursor:pointer;font-weight:600;font-family:inherit;}
+input,select{width:100%;padding:14px;border-radius:12px;background:rgba(0,0,0,0.05);border:1px solid var(--border);color:var(--text-main);margin-bottom:12px;font-family:inherit;}
+.strength-meter{height:6px;width:100%;background:rgba(0,0,0,0.1);border-radius:10px;margin-bottom:15px;overflow:hidden;}
+.strength-bar{height:100%;width:0%;transition:0.4s;}
+.checkbox-container{display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:0.85rem;color:var(--text-dim);}
+.checkbox-container input{width:18px;height:18px;margin:0;cursor:pointer;}
+#toast{position:fixed;bottom:20px;right:20px;padding:15px 25px;border-radius:15px;background:var(--surface);border-left:5px solid var(--accent);display:none;z-index:9999;backdrop-filter:blur(20px);}
+.settings-layout{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;}
+.side-btn{padding:15px;width:100%;text-align:left;background:transparent;border:none;color:var(--text-dim);cursor:pointer;border-radius:12px;margin-bottom:5px;font-weight:700;transition:0.2s;font-family:inherit;}
+html[dir="rtl"] .side-btn{text-align:right;}
+.side-btn.active{background:var(--accent);color:white;box-shadow:0 4px 15px var(--accent-glow);}
+.set-pane{display:none;}
+.set-pane.active{display:block;}
+.log-table{width:100%;border-collapse:collapse;}
+.log-table th{color:var(--accent);text-align:left;padding:12px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono';}
+html[dir="rtl"] .log-table th{text-align:right;}
+.log-table td{padding:12px;border-bottom:1px solid var(--border);}
+div::-webkit-scrollbar{width:6px;}
+div::-webkit-scrollbar-track{background:rgba(0,0,0,0.1);}
+div::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+div::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+#dynamic-display-area{display:none;flex-direction:column;gap:30px;}
+.insight-card{background:white;border-radius:20px;padding:22px;border-top:4px solid;box-shadow:0 4px 20px rgba(0,0,0,0.04);display:flex;flex-direction:column;justify-content:space-between;min-height:210px;transition:transform 0.2s;}
+.insight-card:hover{transform:translateY(-3px);}
+.rca-node{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:18px;position:relative;overflow:hidden;}
+.rca-node::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;}
+.rca-critical::before{background:#ef4444;}
+.rca-high::before{background:#f59e0b;}
+.rca-standard::before{background:#0ea5e9;}
+.chart-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:rgba(14,165,233,0.1);color:var(--accent);font-size:0.72rem;font-weight:700;border:1px solid rgba(14,165,233,0.2);margin-bottom:12px;}
+.stat-pill{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 20px;border-radius:16px;background:var(--surface);border:1px solid var(--border);min-width:120px;}
+.heatmap-cell{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;font-family:'JetBrains Mono';transition:transform 0.15s;cursor:default;}
+.heatmap-cell:hover{transform:scale(1.15);z-index:10;position:relative;}
+.xai-row{margin-bottom:20px;}
+#preview-table td,#preview-table th{padding:8px 12px;border-bottom:1px solid var(--border);font-size:0.75rem;white-space:nowrap;}
+#preview-table th{color:var(--accent);font-family:'JetBrains Mono';background:rgba(0,0,0,0.02);}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.section-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.analysis-tab{padding:8px 18px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;font-weight:600;font-size:0.85rem;transition:0.2s;font-family:inherit;}
+.analysis-tab.active{background:var(--accent);color:white;border-color:var(--accent);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.pulse{animation:pulse 2s infinite;}
+
+.narrative-banner {
+    background: linear-gradient(135deg, rgba(14,165,233,0.06) 0%, rgba(99,102,241,0.06) 100%);
+    border: 1px solid rgba(14,165,233,0.2);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 8px;
+}
+.narrative-headline {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+}
+.narrative-paragraph {
+    font-size: 0.88rem;
+    line-height: 1.75;
+    color: var(--text-main);
+    margin-bottom: 12px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 12px;
+    border-left: 3px solid var(--accent);
+}
+.narrative-paragraph.danger { border-left-color: #ef4444; }
+.narrative-paragraph.success { border-left-color: #22c55e; }
+.narrative-paragraph.warning { border-left-color: #f59e0b; }
+
+.rca-cause-item {
+    padding: 10px 14px;
+    background: rgba(239,68,68,0.04);
+    border: 1px solid rgba(239,68,68,0.12);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--text-main);
+    margin-bottom: 8px;
+}
+.rca-recommendation {
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text-main);
+    margin-top: 14px;
+}
+    </style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div id="toast"></div>
+
+<nav id="navbar">
+    <div style="font-weight:800;color:var(--accent);font-size:1.6rem;letter-spacing:-1px;">BASIRA</div>
+    <div style="display:flex;gap:12px;">
+        <button class="btn-glass" onclick="showPage('home-page')">Hub</button>
+        <button class="btn-glass" onclick="showPage('settings-page')">Settings</button>
+        <button class="btn-glass" style="color:var(--danger);border-color:rgba(239,68,68,0.2);" onclick="logoutSession()">Logout</button>
+    </div>
+</nav>
+
+<section id="home-page" class="page">
+    <div class="glass-card">
+        <h2 style="color:var(--accent);margin-bottom:5px;" data-key="mis-t">The Basira Mission</h2>
+        <p data-key="mis-d">Automating 80% of data preprocessing to empower Saudi Arabia's digital sovereignty under Vision 2030.</p>
+    </div>
+    <div class="bento-grid">
+        <div class="track-card bento-large" onclick="showPage('track-a-page')">
+            <div>
+                <h3 style="color:var(--accent);" data-key="trk-a-t">Data Ingestion & Intelligence</h3>
+                <p style="color:var(--text-dim);margin-top:10px;">Advanced XAI engine with auto-target detection, RCA, smart chart selection, and plain-language decision support.</p>
+            </div>
+            <div style="color:var(--accent);font-weight:800;font-size:0.75rem;letter-spacing:1px;">READY FOR UPLOAD →</div>
+        </div>
+        <div class="track-card" onclick="showPage('track-b-page')">
+            <div>
+                <h3 style="color:var(--accent);">Scraping</h3>
+                <p style="color:var(--text-dim);margin-top:10px;">Dynamic web extraction with full Arabic NLP support.</p>
+            </div>
+            <div style="color:var(--accent);font-weight:800;font-size:0.75rem;letter-spacing:1px;">ACTIVE ENGINE →</div>
+        </div>
+        <div class="track-card bento-large" onclick="showPage('history-page')" style="flex-direction:row;align-items:center;gap:20px;">
+            <div style="font-size:2.5rem;background:rgba(16,185,129,0.1);padding:20px;border-radius:20px;">🗂</div>
+            <div>
+                <h3 style="color:var(--success);">Records Vault</h3>
+                <p style="color:var(--text-dim);">Review operational logs, root-cause analysis, and system audits.</p>
+            </div>
+        </div>
+        <div class="glass-card" style="text-align:center;padding:1.5rem;margin-bottom:0;">
+            <div style="font-size:0.8rem;color:var(--text-dim);">KERNEL ACTIVE</div>
+            <div style="font-size:1.8rem;font-weight:800;color:var(--accent);">99.9%</div>
+        </div>
+    </div>
+</section>
+
+<section id="history-page" class="page">
+    <div class="glass-card" style="max-width:1000px;margin:0 auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;">
+            <h2>Records Vault</h2>
+            <div style="font-size:0.8rem;color:var(--text-dim);">Total Operations: 124</div>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Date</th><th>Operation</th><th>Status</th><th>Action</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size:0.9rem;">
+                    <tr>
+                        <td style="font-family:monospace;">#BSR-771</td>
+                        <td>2026-01-10</td><td>MoE Bilingual Scraping</td>
+                        <td><span style="background:rgba(16,185,129,0.1);color:var(--success);padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;">● COMPLETED</span></td>
+                        <td><button class="btn-glass" style="padding:5px 10px;font-size:0.7rem;">Download</button></td>
+                    </tr>
+                    <tr style="border-top:1px solid var(--border);">
+                        <td style="font-family:monospace;">#BSR-770</td>
+                        <td>2026-01-09</td><td>Batch Ingestion (Large)</td>
+                        <td><span style="background:rgba(16,185,129,0.1);color:var(--success);padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;">● COMPLETED</span></td>
+                        <td><button class="btn-glass" style="padding:5px 10px;font-size:0.7rem;">Download</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <button class="btn-glass" style="margin-top:20px;" onclick="showPage('home-page')">← Back to Hub</button>
+</section>
+
+<section id="settings-page" class="page">
+    <h2 style="margin-bottom:20px;">Settings</h2>
+    <div class="settings-layout">
+        <div class="glass-card" style="padding:10px;display:flex;flex-direction:column;gap:5px;">
+            <button class="side-btn active" onclick="setTab(event,'s-ui')">Interface</button>
+            <button class="side-btn" onclick="setTab(event,'s-profile')">Personal Data</button>
+            <button class="side-btn" onclick="setTab(event,'s-eng')">Engine Tuning</button>
+            <button class="side-btn" onclick="setTab(event,'s-alrm')">Alarms</button>
+            <button class="side-btn" onclick="setTab(event,'s-adm')">Admin</button>
+        </div>
+        <div class="glass-card">
+            <div id="s-ui" class="set-pane active">
+                <label>System Language</label>
+                <select onchange="updateLang(this.value)">
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                </select>
+                <label>Theme</label>
+                <select onchange="document.documentElement.setAttribute('data-theme',this.value)">
+                    <option value="light">Clinical Light</option>
+                    <option value="dark">Sovereign Dark</option>
+                </select>
+            </div>
+            <div id="s-profile" class="set-pane">
+                <h3 style="margin-bottom:20px;color:var(--accent);">Analyst Profile</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                    <div><label>Full Name</label><input type="text" value="User Name" readonly></div>
+                    <div><label>Job Title</label><input type="text" value="Senior Analyst" readonly></div>
+                </div>
+            </div>
+            <div id="s-eng" class="set-pane">
+                <label>NLP Weight</label>
+                <select><option>Balanced</option><option>Deep Arabic</option></select>
+                <label>Extraction Speed</label>
+                <input type="range" style="accent-color:var(--accent);">
+            </div>
+            <div id="s-alrm" class="set-pane">
+                <div style="margin-bottom:15px;"><input type="checkbox" checked style="width:auto"> Email Alert on Failure</div>
+                <label>CPU Limit (%)</label><input type="range" value="80"></div>
+            <div id="s-adm" class="set-pane">
+                <label>Analyst ID</label>
+                <p style="font-family:'JetBrains Mono';margin-bottom:10px;">SYS-ADM-01</p>
+                <p style="color:var(--danger);font-size:0.8rem;">Admin profile is system-managed.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="track-b-page" class="page">
+    <div class="glass-card" style="max-width:700px;margin:auto;">
+        <h2>Scraping</h2>
+        <input type="url" id="scrape-url-input" placeholder="https://..." style="margin-top:20px;">
+        <button class="btn-primary" id="scrape-run-btn" style="width:100%;" onclick="runScrapeAnalysis()">Execute</button>
+        <button class="btn-glass" style="width:100%;margin-top:15px;" onclick="showPage('home-page')">← Back</button>
+    </div>
+</section>
+
+<section id="change-pass-page" class="page centered">
+    <div class="glass-card" style="width:100%;max-width:450px;">
+        <h2 style="margin-bottom:20px;">Security Update</h2>
+        <div id="pass-step-1">
+            <input type="text" id="cp-email" placeholder="Enter your email">
+            <input type="password" id="cp-old-pass" placeholder="Old Access Key">
+            <button class="btn-primary" style="width:100%;" onclick="verifyForPass()">Verify & Send Code</button>
+        </div>
+        <div id="pass-step-2" style="display:none;">
+            <input type="text" id="cp-code" placeholder="Enter Verification Code">
+            <button class="btn-primary" style="width:100%;" onclick="checkCode()">Verify Code</button>
+        </div>
+        <div id="pass-step-3" style="display:none;">
+            <input type="password" id="cp-new-pass" placeholder="New Access Key" oninput="checkStrength(this.value,'cp-bar')">
+            <div class="strength-meter"><div id="cp-bar" class="strength-bar"></div></div>
+            <input type="password" id="cp-confirm-pass" placeholder="Confirm New Access Key">
+            <button class="btn-primary" style="width:100%;" onclick="saveNewPass()">Update & Force Logout</button>
+        </div>
+        <button class="btn-glass" onclick="showPage('settings-page')" style="width:100%;margin-top:10px;border:none;">Cancel</button>
+    </div>
+</section>
+
+<section id="track-a-page" class="page" style="padding:20px;min-height:100vh;">
+    <div class="glass-card" style="width:100%;flex-grow:1;padding:40px;display:flex;flex-direction:column;gap:30px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--border);padding-bottom:20px;">
+            <div>
+                <h2 style="font-size:2.2rem;color:var(--accent);margin-bottom:8px;font-weight:800;">Data Intelligence Engine</h2>
+                <p style="color:var(--text-dim);font-size:0.95rem;">Auto Target Detection · XAI · Root Cause Analysis · Smart Visualization · Decision Intelligence</p>
+            </div>
+            <button class="btn-glass" onclick="showPage('home-page')" style="padding:10px 25px;border-radius:12px;font-weight:600;">← Exit to Hub</button>
+        </div>
+
+        <div id="upload-container" style="border:2px dashed var(--border);padding:35px;border-radius:20px;text-align:center;background:rgba(255,255,255,0.01);">
+            <div style="max-width:450px;margin:0 auto;display:flex;flex-direction:column;gap:15px;">
+                <div style="font-size:0.8rem;color:var(--text-dim);letter-spacing:1px;font-weight:700;margin-bottom:5px;">UPLOAD DATASET · CSV FORMAT</div>
+                <input type="file" id="python-file-input" accept=".csv,.xlsx,.xls" style="background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:10px;border-radius:8px;color:var(--text-dim);width:100%;">
+                <button class="btn-primary" id="main-exec-btn" style="width:60%;align-self:center;padding:14px;font-weight:700;letter-spacing:1px;" onclick="runFinalAnalysis()">EXECUTE ANALYSIS</button>
+            </div>
+        </div>
+
+        <div id="dynamic-display-area">
+            <div id="target-detection-banner" style="display:none; padding:16px 22px; background:rgba(139,92,246,0.06); border:1px solid rgba(139,92,246,0.2); border-radius:14px;">
+                <div style="font-size:0.72rem;font-weight:800;color:#8b5cf6;letter-spacing:1px;margin-bottom:6px;">🎯 AI TARGET DETECTION</div>
+                <div id="target-detection-text" style="font-size:0.82rem;color:var(--text-main);line-height:1.6;"></div>
+            </div>
+
+            <div id="meta-banner" style="display:flex;flex-wrap:wrap;gap:12px;padding:20px;background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.15);border-radius:16px;align-items:center;">
+                <div class="stat-pill"><div style="font-size:1.4rem;font-weight:800;color:var(--accent);" id="meta-rows">-</div><div style="font-size:0.7rem;color:var(--text-dim);">RECORDS</div></div>
+                <div class="stat-pill"><div style="font-size:1.4rem;font-weight:800;color:var(--indigo);" id="meta-cols">-</div><div style="font-size:0.7rem;color:var(--text-dim);">FEATURES</div></div>
+                <div class="stat-pill"><div style="font-size:1.4rem;font-weight:800;color:var(--success);" id="meta-score">-</div><div style="font-size:0.7rem;color:var(--text-dim);">MODEL R²</div></div>
+                <div class="stat-pill"><div style="font-size:1.4rem;font-weight:800;color:var(--warning);" id="meta-missing">-</div><div style="font-size:0.7rem;color:var(--text-dim);">MISSING</div></div>
+                <div class="stat-pill"><div style="font-size:1.4rem;font-weight:800;color:var(--danger);" id="meta-dups">-</div><div style="font-size:0.7rem;color:var(--text-dim);">DUPLICATES</div></div>
+                <div style="flex:1;min-width:200px;font-size:0.8rem;color:var(--text-dim);">
+                    Target: <strong id="meta-target" style="color:var(--text-main);">—</strong>
+                    <span style="margin-left:15px;font-size:0.7rem;" id="meta-file">—</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-header">
+                    <div class="section-dot" style="background:#22c55e;"></div>
+                    <h4 style="font-weight:800;font-size:1rem;">What Your Data Is Telling You</h4>
+                    <span style="font-size:0.72rem;color:var(--text-dim);background:rgba(34,197,94,0.1);padding:3px 10px;border-radius:10px;border:1px solid rgba(34,197,94,0.2);">AI-GENERATED INSIGHTS</span>
+                </div>
+                <div id="decision-narrative-container" class="narrative-banner"></div>
+            </div>
+
+            <div>
+                <div class="section-header">
+                    <div class="section-dot"></div>
+                    <h4 style="font-weight:800;font-size:1rem;">Strategic Intelligence Overview</h4>
+                </div>
+                <div id="insight-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;"></div>
+            </div>
+
+            <div>
+                <div class="section-header" style="justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div class="section-dot" style="background:var(--purple);"></div>
+                        <h4 style="font-weight:800;font-size:1rem;">Smart Visualization Engine</h4>
+                        <span style="font-size:0.72rem;color:var(--text-dim);background:rgba(139,92,246,0.1);padding:3px 10px;border-radius:10px;border:1px solid rgba(139,92,246,0.2);">AUTO-SELECTED</span>
+                    </div>
+                    <div id="chart-recommendation-badges" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                </div>
+                <div id="smart-charts-container" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:25px;"></div>
+            </div>
+
+            <div>
+                <div class="section-header" style="justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div class="section-dot" style="background:#ef4444;"></div>
+                        <h4 style="font-weight:800;font-size:1rem;">Deep Analysis & Root Cause</h4>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="analysis-tab active" onclick="switchAnalysisTab('xai',this)">XAI Weights</button>
+                        <button class="analysis-tab" onclick="switchAnalysisTab('rca',this)">Root Cause</button>
+                        <button class="analysis-tab" onclick="switchAnalysisTab('corr',this)">Correlation</button>
+                        <button class="analysis-tab" onclick="switchAnalysisTab('preview',this)">Data Preview</button>
+                    </div>
+                </div>
+
+                <div id="analysis-tabs-container">
+                    <div id="tab-xai" class="analysis-panel glass-card" style="background:white;border:1px solid var(--border);margin-bottom:0;">
+                        <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:20px;padding:12px 16px;background:rgba(14,165,233,0.05);border-radius:10px;border:1px solid rgba(14,165,233,0.15);line-height:1.7;">
+                            <strong>How to read this:</strong> Each bar shows how much that variable influences your predictions.
+                            A higher percentage means this factor matters more. Green arrows mean the variable pushes outcomes up; red arrows mean it pulls outcomes down.
+                            Use this to know where to focus your attention.
+                        </div>
+                        <div id="xai-bars-container"></div>
+                    </div>
+
+                    <div id="tab-rca" class="analysis-panel" style="display:none;">
+                        <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:20px;padding:14px 18px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.15);border-radius:12px;line-height:1.7;">
+                            <strong style="color:#ef4444;">What is Root Cause Analysis?</strong>
+                            For each important variable, we explain WHY it matters, what problems it might have, and what you should do about it.
+                            Written in plain language so anyone can understand.
+                        </div>
+                        <div id="rca-container"></div>
+                    </div>
+
+                    <div id="tab-corr" class="analysis-panel" style="display:none;">
+                        <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:16px;padding:12px 16px;background:rgba(0,0,0,0.03);border-radius:10px;line-height:1.7;">
+                            <strong>How to read this:</strong> Each cell shows how closely two variables move together.
+                            Dark blue means strong positive relation. Dark red means strong negative relation.
+                        </div>
+                        <div id="corr-heatmap" style="overflow-x:auto;"></div>
+                    </div>
+
+                    <div id="tab-preview" class="analysis-panel glass-card" style="background:white;border:1px solid var(--border);margin-bottom:0;display:none;overflow-x:auto;">
+                        <h5 style="color:var(--accent);margin-bottom:15px;font-size:0.8rem;letter-spacing:1px;">RAW DATA SAMPLE — FIRST 10 RECORDS</h5>
+                        <table style="width:100%;" id="preview-table">
+                            <thead id="table-head"></thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const API_BASE = "";
+let basiraHeartbeatInterval = null;
+let basiraLastPingTime = 0;
+const chartInstances = {};
+
+function msg(t) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.innerText = t;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 3000);
+}
+
+function showToast(message) {
+    msg(message);
+}
+
+function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
+    const nav = document.getElementById('navbar');
+    if (nav) nav.style.display = 'flex';
+}
+
+function setTab(e, id) {
+    document.querySelectorAll('.set-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id)?.classList.add('active');
+    if (e) e.currentTarget.classList.add('active');
+}
+
+function switchAnalysisTab(name, btn) {
+    document.querySelectorAll('.analysis-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.analysis-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).style.display = 'block';
+    btn.classList.add('active');
+}
+
+function checkStrength(val, barId = 'strength-bar') {
+    const bar = document.getElementById(barId);
+    if (!bar) return;
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const colors = ['#ef4444','#f59e0b','#0ea5e9','#22c55e'];
+    bar.style.width = (score * 25) + '%';
+    bar.style.background = colors[score - 1] || '#e2e8f0';
+}
+
+function verifyForPass() {
+    const email = document.getElementById('cp-email')?.value;
+    if (email?.includes('@')) {
+        msg("Code sent to " + email);
+        document.getElementById('pass-step-1').style.display='none';
+        document.getElementById('pass-step-2').style.display='block';
+    } else {
+        msg("Enter valid email");
+    }
+}
+
+function checkCode() {
+    if (document.getElementById('cp-code')?.value.length === 6) {
+        document.getElementById('pass-step-2').style.display='none';
+        document.getElementById('pass-step-3').style.display='block';
+    } else {
+        msg("Invalid Code");
+    }
+}
+
+function saveNewPass() {
+    const p1 = document.getElementById('cp-new-pass')?.value;
+    const p2 = document.getElementById('cp-confirm-pass')?.value;
+    if (p1 === p2 && p1?.length >= 8) {
+        msg("Success. Reloading...");
+        setTimeout(() => location.reload(), 2000);
+    } else {
+        msg("Error in password requirements");
+    }
+}
+
+const dict = {
+    en: { "mis-t":"The Basira Mission","mis-d":"Automating 80% of data preprocessing to empower Saudi Arabia's digital sovereignty under Vision 2030.","trk-a-t":"Data Ingestion & Intelligence" },
+    ar: { "mis-t":"رسالة بصيرة","mis-d":"أتمتة 80% من معالجة البيانات لتمكين السيادة الرقمية للمملكة تحت رؤية 2030.","trk-a-t":"تحليل البيانات" }
+};
+
+function updateLang(lang) {
+    document.documentElement.dir = (lang === 'ar' ? 'rtl' : 'ltr');
+    document.querySelectorAll('[data-key]').forEach(el => {
+        const k = el.getAttribute('data-key');
+        if (dict[lang]?.[k]) el.innerText = dict[lang][k];
+    });
+}
+
+(function() {
+    const canvas = document.getElementById('bg-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const blobs = [
+        { x:0.1, y:0.2, r:300, c:'rgba(14,165,233,0.15)' },
+        { x:0.8, y:0.1, r:250, c:'rgba(99,102,241,0.1)' },
+        { x:0.5, y:0.8, r:350, c:'rgba(139,92,246,0.08)' }
+    ];
+    blobs.forEach(b => {
+        const g = ctx.createRadialGradient(b.x*canvas.width, b.y*canvas.height, 0, b.x*canvas.width, b.y*canvas.height, b.r);
+        g.addColorStop(0, b.c);
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    });
+})();
+
+function destroyChart(id) {
+    if (chartInstances[id]) {
+        chartInstances[id].destroy();
+        delete chartInstances[id];
+    }
+}
+
+async function apiJson(url, options = {}) {
+    const config = { ...options };
+    config.credentials = "same-origin";
+    config.headers = {
+        ...(options.headers || {})
+    };
+
+    const res = await fetch(url, config);
+    const data = await res.json().catch(() => ({
+        status: "error",
+        message: "Invalid server response."
+    }));
+
+    if (!res.ok) {
+        throw new Error(data.message || "Request failed.");
+    }
+
+    return data;
+}
+
+async function bootstrapLocalSession() {
+    const data = await apiJson("/api/session/bootstrap", { method: "GET" });
+    if (data.status === "success" && data.session?.authenticated) {
+        showPage("home-page");
+        startSessionHeartbeat();
+        bindActivityPing();
+        return true;
+    }
+    return false;
+}
+
+async function checkLocalSession() {
+    try {
+        const data = await apiJson("/api/session/status", { method: "GET" });
+        return !!(data.status === "success" && data.session?.authenticated);
+    } catch {
+        return false;
+    }
+}
+
+async function pingLocalSession() {
+    try {
+        await apiJson("/api/session/ping", { method: "POST" });
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function startSessionHeartbeat() {
+    if (basiraHeartbeatInterval) clearInterval(basiraHeartbeatInterval);
+    basiraHeartbeatInterval = setInterval(async () => {
+        const ok = await checkLocalSession();
+        if (!ok) {
+            if (basiraHeartbeatInterval) clearInterval(basiraHeartbeatInterval);
+            msg("Session expired. Reinitializing local access...");
+            await bootstrapLocalSession();
+        }
+    }, 60000);
+}
+
+function bindActivityPing() {
+    const handler = async () => {
+        const now = Date.now();
+        if (now - basiraLastPingTime < 120000) return;
+        basiraLastPingTime = now;
+        await pingLocalSession();
+    };
+
+    ["click", "keydown", "mousemove", "scroll"].forEach(name => {
+        window.addEventListener(name, handler, { passive: true });
+    });
+}
+
+async function logoutSession() {
+    try {
+        await apiJson("/api/session/logout", { method: "POST" });
+        if (basiraHeartbeatInterval) clearInterval(basiraHeartbeatInterval);
+        msg("Session closed.");
+        location.reload();
+    } catch (error) {
+        console.error(error);
+        msg("Logout failed.");
+    }
+}
+
+function renderDecisionNarrative(narrative) {
+    const container = document.getElementById('decision-narrative-container');
+    if (!container || !narrative) return;
+    const riskClass = narrative.risk_alert && narrative.risk_alert.startsWith('⚠') ? 'warning' : 'success';
+    container.innerHTML = `
+        <div class="narrative-headline">${narrative.headline || ''}</div>
+        <div class="narrative-paragraph">${narrative.summary || ''}</div>
+        <div class="narrative-paragraph" style="border-left-color:#0ea5e9;">${narrative.key_finding || ''}</div>
+        <div class="narrative-paragraph" style="border-left-color:#6366f1;">${narrative.secondary_finding || ''}</div>
+        <div class="narrative-paragraph ${riskClass}">${narrative.risk_alert || ''}</div>
+        <div class="narrative-paragraph" style="border-left-color:#22c55e;">
+            <strong style="color:#22c55e;">💡 Recommended Action:</strong> ${narrative.recommended_action || ''}
+        </div>
+    `;
+}
+
+function renderAdvancedInsights(insights) {
+    const grid = document.getElementById('insight-grid');
+    if (!grid) return;
+    grid.innerHTML = (insights || []).map(ins => {
+        const c = ins.color || '#0ea5e9';
+        return `
+        <div class="insight-card" style="border-color:${c};background:white;">
+            <div>
+                <div style="color:${c};font-weight:800;font-size:0.68rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">${ins.title || ''}</div>
+                <div style="font-size:1.35rem;font-weight:800;color:#1e293b;margin-bottom:6px;font-family:'JetBrains Mono';">${ins.value || ''}</div>
+                <div style="font-size:0.7rem;color:${c};font-weight:700;margin-bottom:12px;opacity:0.85;">${ins.metric || ''}</div>
+                <p style="font-size:0.8rem;line-height:1.7;color:#475569;">${ins.desc || ''}</p>
+            </div>
+            <div style="margin-top:14px;padding:9px 14px;background:${c}12;border-radius:8px;font-size:0.72rem;color:${c};font-weight:700;border:1px solid ${c}22;">
+                ${ins.action || ''}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderSmartCharts(xaiReport, recommendations, distData, scatterData, cumulativeData) {
+    const container = document.getElementById('smart-charts-container');
+    const badges = document.getElementById('chart-recommendation-badges');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const typeIcons = {
+        bar:'▬', horizontalBar:'☰', doughnut:'◎', radar:'⬡',
+        polarArea:'✦', line:'↗', histogram:'▨', scatter:'⋮',
+        bubble:'◉', area:'▲'
+    };
+
+    if (badges) {
+        badges.innerHTML = (recommendations || []).map(r =>
+            `<span class="chart-badge">${typeIcons[r.type] || '●'} ${String(r.type || '').toUpperCase()}</span>`
+        ).join('');
+    }
+
+    (recommendations || []).forEach(config => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:white;padding:25px;border-radius:20px;min-height:380px;box-shadow:0 8px 30px rgba(0,0,0,0.04);border:1px solid var(--border);';
+        const canvasId = 'chart-' + config.type + '-' + Date.now() + Math.random().toString(36).slice(2, 7);
+        card.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                <div>
+                    <h6 style="color:#0f172a;font-size:0.88rem;font-weight:800;margin-bottom:4px;">${config.title || ''}</h6>
+                    <p style="font-size:0.7rem;color:#94a3b8;line-height:1.5;max-width:300px;">${config.reason || ''}</p>
+                </div>
+                <span style="font-size:0.65rem;background:rgba(14,165,233,0.08);color:#0ea5e9;padding:4px 10px;border-radius:20px;font-weight:700;white-space:nowrap;">${String(config.type || '').toUpperCase()}</span>
+            </div>
+            <div style="height:290px;"><canvas id="${canvasId}"></canvas></div>
+        `;
+        container.appendChild(card);
+        setTimeout(() => buildChart(config, canvasId, xaiReport, distData, scatterData, cumulativeData), 50);
+    });
+}
+
+function buildChart(config, canvasId, report, distData, scatterData, cumulativeData) {
+    destroyChart(canvasId);
+    const ctx = document.getElementById(canvasId)?.getContext('2d');
+    if (!ctx) return;
+
+    const labels = (report || []).map(r => String(r.feature || '').toUpperCase());
+    const data = (report || []).map(r => r.impact || 0);
+    const palette = ['#0ea5e9','#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#ef4444','#14b8a6','#f97316','#06b6d4'];
+    const topColor = (v) => v > 25 ? '#0ea5e9' : v > 10 ? '#6366f1' : '#94a3b8';
+    const baseOpts = { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} };
+
+    let cfg = null;
+    const type = config.type;
+
+    if (type === 'bar') {
+        cfg = {
+            type:'bar',
+            data:{ labels, datasets:[{ data, backgroundColor:data.map(topColor), borderRadius:8, barThickness:22 }] },
+            options:{ ...baseOpts, scales:{ y:{beginAtZero:true,grid:{color:'#f1f5f9'},border:{display:false}}, x:{grid:{display:false}} } }
+        };
+    } else if (type === 'horizontalBar') {
+        cfg = {
+            type:'bar',
+            data:{ labels, datasets:[{ data, backgroundColor:data.map(topColor), borderRadius:6, barThickness:20 }] },
+            options:{ ...baseOpts, indexAxis:'y', scales:{ x:{beginAtZero:true,grid:{color:'#f1f5f9'},border:{display:false}}, y:{grid:{display:false}} } }
+        };
+    } else if (type === 'doughnut') {
+        cfg = {
+            type:'doughnut',
+            data:{ labels, datasets:[{ data, backgroundColor:palette.slice(0,data.length), borderWidth:0 }] },
+            options:{ responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:10},color:'#64748b'}}} }
+        };
+    } else if (type === 'radar') {
+        cfg = {
+            type:'radar',
+            data:{ labels, datasets:[{ label:'Impact', data, backgroundColor:'rgba(14,165,233,0.1)', borderColor:'#0ea5e9', pointBackgroundColor:'#0ea5e9', borderWidth:2, pointRadius:4 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ r:{ticks:{display:false,backdropColor:'transparent'}, grid:{color:'#e2e8f0'}, pointLabels:{font:{size:10}}} } }
+        };
+    } else if (type === 'polarArea') {
+        cfg = {
+            type:'polarArea',
+            data:{ labels, datasets:[{ data, backgroundColor:palette.map(c=>c+'cc'), borderWidth:0 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{font:{size:10},color:'#64748b',usePointStyle:true}}}, scales:{ r:{ticks:{display:false},grid:{color:'#e2e8f0'}} } }
+        };
+    } else if (type === 'line') {
+        cfg = {
+            type:'line',
+            data:{ labels, datasets:[{ data, borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,0.07)', fill:true, tension:0.4, pointBackgroundColor:'#0ea5e9', pointRadius:5 }] },
+            options:{ ...baseOpts, scales:{ y:{beginAtZero:true,grid:{color:'#f1f5f9'},border:{display:false}}, x:{grid:{display:false}} } }
+        };
+    } else if (type === 'histogram' && config.histFeature && distData && distData[config.histFeature]) {
+        const hd = distData[config.histFeature];
+        cfg = {
+            type:'bar',
+            data:{ labels:hd.labels, datasets:[{ data:hd.counts, backgroundColor:'rgba(99,102,241,0.7)', borderColor:'#6366f1', borderWidth:1, borderRadius:4, barPercentage:0.95, categoryPercentage:1.0 }] },
+            options:{ ...baseOpts, scales:{ y:{beginAtZero:true,title:{display:true,text:'Frequency',font:{size:10}},grid:{color:'#f1f5f9'},border:{display:false}}, x:{title:{display:true,text:config.histFeature,font:{size:10}},grid:{display:false}} } }
+        };
+    } else if (type === 'scatter' && scatterData && scatterData.points) {
+        cfg = {
+            type:'scatter',
+            data:{ datasets:[{ label:'Records', data:scatterData.points.map(p=>({x:p.x,y:p.y})), backgroundColor:'rgba(14,165,233,0.45)', pointRadius:4 }] },
+            options:{ ...baseOpts, plugins:{legend:{display:false}}, scales:{ x:{title:{display:true,text:String(scatterData.feat1 || '').toUpperCase(),font:{size:10}},grid:{color:'#f1f5f9'}}, y:{title:{display:true,text:String(scatterData.feat2 || '').toUpperCase(),font:{size:10}},grid:{color:'#f1f5f9'}} } }
+        };
+    } else if (type === 'bubble' && scatterData && scatterData.points) {
+        cfg = {
+            type:'bubble',
+            data:{ datasets:[{ label:'Records', data:scatterData.points.slice(0,200), backgroundColor:'rgba(139,92,246,0.35)', borderColor:'rgba(139,92,246,0.8)', borderWidth:1 }] },
+            options:{ ...baseOpts, plugins:{legend:{display:false}}, scales:{ x:{title:{display:true,text:String(scatterData.feat1 || '').toUpperCase(),font:{size:10}},grid:{color:'#f1f5f9'}}, y:{title:{display:true,text:String(scatterData.feat2 || '').toUpperCase(),font:{size:10}},grid:{color:'#f1f5f9'}} } }
+        };
+    } else if (type === 'area' && cumulativeData) {
+        cfg = {
+            type:'line',
+            data:{ labels:cumulativeData.labels, datasets:[{ label:'Cumulative %', data:cumulativeData.values, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.12)', fill:true, tension:0.3, pointBackgroundColor:'#10b981', pointRadius:5, borderWidth:2 }] },
+            options:{ ...baseOpts, scales:{ y:{beginAtZero:true,max:100,title:{display:true,text:'Cumulative Impact %',font:{size:10}},grid:{color:'#f1f5f9'},border:{display:false}}, x:{grid:{display:false}} }, plugins:{legend:{display:false}} }
+        };
+    } else {
+        cfg = {
+            type:'bar',
+            data:{ labels, datasets:[{ data, backgroundColor:data.map(topColor), borderRadius:8 }] },
+            options:{ ...baseOpts, scales:{ y:{beginAtZero:true,grid:{color:'#f1f5f9'}}, x:{grid:{display:false}} } }
+        };
+    }
+
+    if (cfg) chartInstances[canvasId] = new Chart(ctx, cfg);
+}
+
+function renderXAIBars(report) {
+    const container = document.getElementById('xai-bars-container');
+    if (!container) return;
+    container.innerHTML = (report || []).map((item, idx) => {
+        const color = item.importance_level === 'Critical' ? '#ef4444' : item.importance_level === 'High' ? '#f59e0b' : '#0ea5e9';
+        const badge = `<span style="font-size:0.6rem;padding:2px 8px;border-radius:10px;background:${color}15;color:${color};font-weight:800;">${item.importance_level || ''}</span>`;
+        const trendIcon = item.trend === 'Positive' ? '↑' : '↓';
+        const trendColor = item.trend === 'Positive' ? '#22c55e' : '#ef4444';
+        const relation = item.trend === 'Positive'
+            ? 'When this variable increases, the predicted outcome tends to increase as well.'
+            : 'When this variable increases, the predicted outcome tends to decrease.';
+        const rank = idx + 1;
+        return `
+        <div class="xai-row">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;">
+                <div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+                        <span style="font-size:0.65rem;background:rgba(0,0,0,0.06);padding:2px 8px;border-radius:6px;font-weight:800;color:var(--text-dim);">#${rank}</span>
+                        <b style="font-family:'JetBrains Mono';font-size:0.88rem;">${String(item.feature || '').toUpperCase()}</b>
+                        ${badge}
+                        <span style="font-size:0.75rem;font-weight:800;color:${trendColor};">${trendIcon} ${item.trend || ''}</span>
+                    </div>
+                    <div style="font-size:0.72rem;color:var(--text-dim);line-height:1.5;">${relation}</div>
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-size:0.95rem;font-weight:800;color:${color};font-family:'JetBrains Mono';">${item.impact || 0}%</span>
+                    <div style="font-size:0.58rem;color:var(--text-dim);">SHAP WEIGHT</div>
+                </div>
+            </div>
+            <div style="height:8px;background:rgba(0,0,0,0.06);border-radius:20px;overflow:hidden;">
+                <div style="width:0;height:100%;background:linear-gradient(90deg,${color}55,${color});border-radius:20px;transition:width 1.5s cubic-bezier(0.22,1,0.36,1);" data-target="${item.impact || 0}" class="impact-bar"></div>
+            </div>
+        </div>`;
+    }).join('');
+    setTimeout(() => {
+        document.querySelectorAll('.impact-bar').forEach(bar => {
+            bar.style.width = bar.dataset.target + '%';
+        });
+    }, 100);
+}
+
+function renderRCA(rcaReport) {
+    const container = document.getElementById('rca-container');
+    if (!container || !rcaReport) return;
+
+    container.innerHTML = rcaReport.map(node => {
+        const cls = node.importance_level === 'Critical' ? 'rca-critical' : node.importance_level === 'High' ? 'rca-high' : 'rca-standard';
+        const levelColor = node.importance_level === 'Critical' ? '#ef4444' : node.importance_level === 'High' ? '#f59e0b' : '#0ea5e9';
+
+        const statItems = [
+            { label:'Mean', val:node.stats?.mean ?? '—' },
+            { label:'Std Dev', val:node.stats?.std ?? '—' },
+            { label:'Min', val:node.stats?.min ?? '—' },
+            { label:'Max', val:node.stats?.max ?? '—' },
+            { label:'Skewness', val:node.stats?.skew ?? '—' },
+            { label:'Kurtosis', val:node.stats?.kurtosis ?? '—' },
+            { label:'CV%', val:(node.stats?.cv ?? '—') + '%' },
+            { label:'Outliers', val:node.stats?.outliers ?? '—' },
+            { label:'Positive SHAP', val:(node.shap_pos_pct ?? '—') + '%' }
+        ];
+
+        return `
+        <div class="rca-node ${cls}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                <div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+                        <span style="font-size:0.7rem;background:${levelColor}15;color:${levelColor};font-weight:800;padding:3px 10px;border-radius:10px;">#${node.rank} ${node.importance_level}</span>
+                        <span style="font-size:0.7rem;color:var(--text-dim);">SHAP avg: <b style="font-family:'JetBrains Mono';color:var(--text-main);">${node.shap_mean ?? '—'}</b></span>
+                        <span style="font-size:0.7rem;color:var(--text-dim);">Corr(target): <b style="font-family:'JetBrains Mono';color:var(--text-main);">${node.corr_with_target ?? '—'}</b></span>
+                    </div>
+                    <h4 style="font-family:'JetBrains Mono';font-size:1.1rem;font-weight:800;color:var(--text-main);">${String(node.feature || '').toUpperCase()}</h4>
+                    <span style="font-size:0.75rem;color:${levelColor};font-weight:700;">${node.impact || 0}% total influence weight</span>
+                </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+                ${statItems.map(s => `
+                <div style="padding:6px 12px;background:rgba(0,0,0,0.04);border-radius:10px;font-size:0.7rem;">
+                    <div style="color:var(--text-dim);font-size:0.6rem;font-weight:700;">${s.label}</div>
+                    <div style="font-family:'JetBrains Mono';font-weight:700;color:var(--text-main);">${s.val}</div>
+                </div>`).join('')}
+            </div>
+            <div style="margin-bottom:16px;">
+                <div style="font-size:0.72rem;font-weight:800;color:var(--text-dim);letter-spacing:1px;margin-bottom:10px;">WHAT IS CAUSING THIS INFLUENCE</div>
+                ${(node.root_causes || []).map(c => `<div class="rca-cause-item">▸ ${c}</div>`).join('')}
+            </div>
+            <div class="rca-recommendation" style="background:${levelColor}08;border:1px solid ${levelColor}25;">
+                <div style="font-size:0.72rem;font-weight:800;color:${levelColor};letter-spacing:1px;margin-bottom:8px;">WHAT YOU SHOULD DO</div>
+                <p style="font-size:0.82rem;line-height:1.7;color:var(--text-main);">${node.recommendation || ''}</p>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderCorrHeatmap(corrMatrix) {
+    const container = document.getElementById('corr-heatmap');
+    if (!container || !corrMatrix.length) return;
+
+    const rows = [...new Set(corrMatrix.map(c => c.row))];
+    const cols = [...new Set(corrMatrix.map(c => c.col))];
+    const lookup = {};
+    corrMatrix.forEach(c => { lookup[`${c.row}||${c.col}`] = c.value; });
+
+    const getColor = (v) => {
+        if (v >= 0.7) return '#1d4ed8';
+        if (v >= 0.4) return '#60a5fa';
+        if (v >= 0.1) return '#bfdbfe';
+        if (v >= -0.1) return '#f1f5f9';
+        if (v >= -0.4) return '#fca5a5';
+        if (v >= -0.7) return '#f87171';
+        return '#b91c1c';
+    };
+    const getTextColor = (v) => (Math.abs(v) > 0.5 ? 'white' : '#1e293b');
+    const shortName = (n) => n.length > 9 ? n.substring(0,8)+'…' : n;
+
+    let html = `<table style="border-collapse:separate;border-spacing:4px;">`;
+    html += `<tr><th style="width:80px;"></th>${cols.map(c=>`<th style="font-size:0.6rem;font-family:'JetBrains Mono';color:var(--text-dim);text-align:center;padding:4px;max-width:52px;">${shortName(c)}</th>`).join('')}</tr>`;
+    rows.forEach(r => {
+        html += `<tr><td style="font-size:0.6rem;font-family:'JetBrains Mono';color:var(--text-dim);padding-right:8px;white-space:nowrap;">${shortName(r)}</td>`;
+        cols.forEach(c => {
+            const v = lookup[`${r}||${c}`] ?? 0;
+            html += `<td><div class="heatmap-cell" style="background:${getColor(v)};color:${getTextColor(v)};" title="${r} ↔ ${c}: ${v}">${v}</div></td>`;
+        });
+        html += '</tr>';
+    });
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+function updateDataTable(preview) {
+    const head = document.getElementById('table-head');
+    const body = document.getElementById('table-body');
+    if (!head || !body || !preview || !preview.length) return;
+    const headers = Object.keys(preview[0]);
+    head.innerHTML = `<tr>${headers.map(h=>`<th>${h.toUpperCase()}</th>`).join('')}</tr>`;
+    body.innerHTML = preview.map(row =>
+        `<tr>${headers.map(h=>`<td>${row[h] ?? '—'}</td>`).join('')}</tr>`
+    ).join('');
+}
+
+async function runFinalAnalysis() {
+    const fileInput = document.getElementById('python-file-input');
+    const displayArea = document.getElementById('dynamic-display-area');
+    const btn = document.getElementById('main-exec-btn');
+
+    if (!fileInput?.files[0]) {
+        alert("Please upload a dataset.");
+        return;
+    }
+
+    try {
+        btn.innerHTML = '<span class="pulse">⬛</span> PROCESSING NEURAL MAP...';
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const response = await fetch('/analyze', {
+            method:'POST',
+            body:formData,
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) throw new Error("Connection to analytics engine failed.");
+
+        const data = await response.json();
+        if (data.status === 'error') throw new Error(data.message);
+
+        displayArea.style.display = 'flex';
+        displayArea.style.opacity = '0';
+        setTimeout(() => {
+            displayArea.style.transition = 'opacity 0.8s';
+            displayArea.style.opacity = '1';
+        }, 10);
+
+        const m = data.dataset_meta || {};
+        document.getElementById('meta-rows').textContent = (m.rows || 0).toLocaleString();
+        document.getElementById('meta-cols').textContent = (m.numeric_cols || m.cols || 0);
+        document.getElementById('meta-score').textContent = (data.model_score || 0) + '%';
+        document.getElementById('meta-missing').textContent = (m.missing_total || 0);
+        document.getElementById('meta-dups').textContent = (m.duplicate_rows || 0);
+        document.getElementById('meta-target').textContent = m.target_column || '—';
+        document.getElementById('meta-file').textContent = fileInput.files[0].name;
+
+        if (data.target_detection) {
+            const banner = document.getElementById('target-detection-banner');
+            const text = document.getElementById('target-detection-text');
+            if (banner && text) {
+                text.textContent = data.target_detection.reason || '';
+                banner.style.display = 'block';
+            }
+        }
+
+        renderDecisionNarrative(data.decision_narrative);
+        renderAdvancedInsights(data.advanced_insights || []);
+        renderSmartCharts(
+            data.xai_report || [],
+            data.chart_recommendations || [],
+            data.dist_data || {},
+            data.scatter_data || null,
+            data.cumulative_data || null
+        );
+        renderXAIBars(data.xai_report || []);
+        renderRCA(data.rca_report || []);
+        renderCorrHeatmap(data.corr_matrix || []);
+        updateDataTable(data.preview || []);
+        displayArea.scrollIntoView({ behavior:'smooth' });
+
+    } catch (err) {
+        console.error(err);
+        alert('CRITICAL ERROR: ' + err.message);
+    } finally {
+        btn.innerHTML = 'EXECUTE ANALYSIS';
+        btn.disabled = false;
+    }
+}
+
+async function runScrapeAnalysis() {
+    const input = document.getElementById('scrape-url-input');
+    const btn = document.getElementById('scrape-run-btn');
+
+    if (!input?.value.trim()) {
+        alert("Please enter a URL.");
+        return;
+    }
+
+    try {
+        btn.disabled = true;
+        btn.textContent = "RUNNING...";
+
+        const formData = new FormData();
+        formData.append('url', input.value.trim());
+
+        const response = await fetch('/scrape_analyze', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+
+        const data = await response.json();
+        if (!response.ok || data.status === 'error') {
+            throw new Error(data.message || "Scraping failed.");
+        }
+
+        showPage('track-a-page');
+
+        const displayArea = document.getElementById('dynamic-display-area');
+        displayArea.style.display = 'flex';
+
+        const m = data.dataset_meta || {};
+        document.getElementById('meta-rows').textContent = (m.rows || 0).toLocaleString();
+        document.getElementById('meta-cols').textContent = (m.numeric_cols || m.cols || 0);
+        document.getElementById('meta-score').textContent = (data.model_score || 0) + '%';
+        document.getElementById('meta-missing').textContent = (m.missing_total || 0);
+        document.getElementById('meta-dups').textContent = (m.duplicate_rows || 0);
+        document.getElementById('meta-target').textContent = m.target_column || '—';
+        document.getElementById('meta-file').textContent = m.source_url || 'Scraped source';
+
+        if (data.target_detection) {
+            const banner = document.getElementById('target-detection-banner');
+            const text = document.getElementById('target-detection-text');
+            if (banner && text) {
+                text.textContent = data.target_detection.reason || '';
+                banner.style.display = 'block';
+            }
+        }
+
+        renderDecisionNarrative(data.decision_narrative);
+        renderAdvancedInsights(data.advanced_insights || []);
+        renderSmartCharts(
+            data.xai_report || [],
+            data.chart_recommendations || [],
+            data.dist_data || {},
+            data.scatter_data || null,
+            data.cumulative_data || null
+        );
+        renderXAIBars(data.xai_report || []);
+        renderRCA(data.rca_report || []);
+        renderCorrHeatmap(data.corr_matrix || []);
+        updateDataTable(data.preview || []);
+
+    } catch (error) {
+        console.error(error);
+        alert(error.message || "Scraping failed.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Execute";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const ok = await bootstrapLocalSession();
+        if (!ok) {
+            msg("Failed to initialize local session.");
+        }
+    } catch (error) {
+        console.error(error);
+        msg("Failed to initialize local session.");
+    }
+});
+</script>
+</body>
+</html> -->
+
+
 <!DOCTYPE html>
 <html lang="en" data-theme="light" dir="ltr">
 <head>

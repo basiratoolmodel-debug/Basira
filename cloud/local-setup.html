@@ -649,7 +649,7 @@
     </script>
   </body>
 </html> -->
-<!doctype html>
+<!-- <!doctype html>
 <html lang="ar" dir="rtl" data-lang="ar">
   <head>
     <meta charset="UTF-8" />
@@ -693,7 +693,7 @@
             </p>
           </div>
 
-          <!-- Progress steps -->
+          
           <div class="setup-steps" id="setupSteps">
             <div class="setup-step isActive">
               <span class="setup-step__index">1</span>
@@ -714,14 +714,14 @@
           </div>
 
 
-          <!-- ① Checking (default visible) -->
+         
           <div class="local-card" id="startupStatusCard">
             <h3 class="local-card__title">جارٍ التحقق من البيئة المحلية...</h3>
             <p class="local-card__text">يتم فحص الخادم المحلي على هذا الجهاز.</p>
           </div>
 
 
-          <!-- ② Launcher not running -->
+      
           <div class="local-card isHidden" id="notRunningCard">
             <h3 class="local-card__title">⚠️ البيئة المحلية غير مشغّلة</h3>
             <p class="local-card__text">
@@ -740,7 +740,7 @@
           </div>
 
 
-          <!-- ③ FIRST TIME: pick data folder (only shown once ever) -->
+     
           <div class="local-card isHidden" id="pickFolderCard">
             <h3 class="local-card__title">اختيار مكان حفظ الملفات</h3>
             <p class="local-card__text">
@@ -772,8 +772,6 @@
             </button>
           </div>
 
-
-          <!-- ④ Auto-progress while setting up -->
           <div class="local-card isHidden" id="loadingCard">
             <h3 class="local-card__title">جارٍ إعداد البيئة المحلية...</h3>
             <p class="local-card__text">يتم إنشاء المجلدات وتثبيت الملفات تلقائياً.</p>
@@ -786,14 +784,12 @@
           </div>
 
 
-          <!-- ⑤ Recovery / repair -->
           <div class="local-card isHidden" id="recoveryCard">
             <h3 class="local-card__title">تم اكتشاف خلل</h3>
             <p class="local-card__text" id="recoveryText">
               توجد مشكلة في البيئة المحلية.
             </p>
 
-            <!-- shown only when data_dir_missing -->
             <div class="isHidden" id="recoveryPathField" style="margin:.8rem 0;">
               <label class="field">
                 <span class="field__label">اختيار مسار جديد</span>
@@ -820,7 +816,6 @@
           </div>
 
 
-          <!-- ⑥ Subscription required -->
           <div class="local-card isHidden" id="subscriptionCard">
             <h3 class="local-card__title">الاشتراك غير فعال</h3>
             <p class="local-card__text">يرجى تجديد اشتراكك للمتابعة.</p>
@@ -835,7 +830,6 @@
           </div>
 
 
-          <!-- ⑦ Ready / done -->
           <div class="local-card isHidden" id="readyCard">
             <h3 class="local-card__title">✓ البيئة المحلية جاهزة</h3>
             <p class="local-card__text">تم الإعداد بنجاح. يمكنك فتح بصيرة في أي وقت.</p>
@@ -849,7 +843,6 @@
           <div class="note" id="localSetupMessage" role="status" aria-live="polite"></div>
         </section>
 
-        <!-- Side info -->
         <aside class="panel" aria-label="Info panel">
           <h2 class="sideTitle">كيف يعمل الإعداد؟</h2>
           <p class="sideText">
@@ -889,4 +882,252 @@
       });
     </script>
   </body>
+</html> -->
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Basira | تهيئة البيئة المحلية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="auth-ui.css" />
+  <link rel="stylesheet" href="local-setup.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="local-setup.js" defer></script>
+</head>
+<body class="auth">
+
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="./index.html" aria-label="Basira Home">
+      <span class="brand__mark" aria-hidden="true">B</span>
+      <span class="brand__text">Basira</span>
+    </a>
+    <div class="actions">
+      <button class="lang" id="langBtn" type="button" aria-label="Toggle language">
+        <span class="lang__dot" aria-hidden="true"></span>
+        <span id="langLabel">AR</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="auth__main">
+  <div class="container auth__grid local-setup-grid">
+
+    <section class="panel" aria-label="Local setup panel">
+
+      <div class="setup-hero">
+        <div class="setup-badge">Local Environment</div>
+        <h1 class="auth__title">تهيئة البيئة المحلية</h1>
+        <p class="auth__subtitle">
+          بعد تسجيل الدخول، يجهّز بصيرة بيئتك المحلية تلقائياً.
+          أول مرة فقط: اختاري مجلد لحفظ الملفات ثم يتم التنزيل والإعداد تلقائياً.
+        </p>
+      </div>
+
+      <!-- Progress steps -->
+      <div class="setup-steps" id="setupSteps">
+        <div class="setup-step isActive">
+          <span class="setup-step__index">1</span>
+          <span class="setup-step__label">فحص الجهاز</span>
+        </div>
+        <div class="setup-step">
+          <span class="setup-step__index">2</span>
+          <span class="setup-step__label">اختيار المسار</span>
+        </div>
+        <div class="setup-step">
+          <span class="setup-step__index">3</span>
+          <span class="setup-step__label">تنزيل الملفات</span>
+        </div>
+        <div class="setup-step">
+          <span class="setup-step__index">4</span>
+          <span class="setup-step__label">تشغيل المحلي</span>
+        </div>
+      </div>
+
+
+      <!-- ① Checking -->
+      <div class="local-card" id="startupStatusCard">
+        <h3 class="local-card__title">جارٍ فحص البيئة المحلية...</h3>
+        <p class="local-card__text">نتحقق من تشغيل الخادم المحلي على هذا الجهاز.</p>
+      </div>
+
+
+      <!-- ② Launcher not running -->
+      <div class="local-card isHidden" id="notRunningCard">
+        <h3 class="local-card__title">⚠️ الخادم المحلي غير مشغّل</h3>
+        <p class="local-card__text">
+          يجب تشغيل <strong>launcher.py</strong> على هذا الجهاز أولاً.
+        </p>
+        <ol style="text-align:right;padding-right:1.4rem;margin:1rem 0;line-height:2.2;color:#475569;font-size:.9rem;">
+          <li>افتح مجلد Basira المُنزَّل من GitHub.</li>
+          <li>شغّل: <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;font-size:.85rem;">python launcher.py</code></li>
+          <li>انتظر حتى يفتح المتصفح أو تظهر رسالة "Both services running".</li>
+          <li>اضغط <strong>إعادة المحاولة</strong> أدناه.</li>
+        </ol>
+        <button class="btn btn--primary btn--lg" id="retryConnectBtn" type="button">
+          إعادة المحاولة
+        </button>
+      </div>
+
+
+      <!-- ③ First time: pick data folder -->
+      <div class="local-card isHidden" id="newUserCard">
+        <h3 class="local-card__title">اختيار مجلد حفظ الملفات</h3>
+        <p class="local-card__text">
+          هذه أول مرة على هذا الجهاز.<br/>
+          اختاري المجلد الذي ستُحفظ فيه نماذج بصيرة والملفات والنتائج.
+          <strong>لن تُسألي عن هذا مجدداً.</strong>
+        </p>
+        <label class="field" style="margin-top:.9rem;">
+          <span class="field__label">مجلد البيانات</span>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input class="input" id="dataDirectory" type="text"
+                   value="C:\BasiraData" placeholder="C:\BasiraData"
+                   style="flex:1;" />
+            <button class="btn btn--ghost" id="browseDataDirectoryBtn" type="button">
+              استعراض
+            </button>
+          </div>
+        </label>
+        <button class="btn btn--primary btn--lg" id="startSetupBtn"
+                type="button" style="margin-top:1.2rem;">
+          بدء الإعداد والتنزيل
+        </button>
+      </div>
+
+
+      <!-- ④ Loading / progress -->
+      <div class="local-card isHidden" id="loadingCard">
+        <h3 class="local-card__title">جارٍ إعداد البيئة المحلية...</h3>
+        <p class="local-card__text" id="loadingDetail">
+          يتم إنشاء المجلدات وتنزيل الملفات من GitHub.
+        </p>
+        <div class="loading-gif-wrap" style="margin:1rem 0;">
+          <img src="images/loading_B.gif" alt="Loading" class="loading-gif"
+               onerror="this.style.display='none'" />
+        </div>
+        <div class="progress-block">
+          <div class="progress-bar">
+            <div class="progress-bar__fill" id="progressFill"></div>
+          </div>
+          <p class="progress-text" id="progressText">جارٍ الإعداد...</p>
+        </div>
+      </div>
+
+
+      <!-- ⑤ Recovery -->
+      <div class="local-card isHidden" id="recoveryCard">
+        <h3 class="local-card__title">تم اكتشاف خلل</h3>
+        <p class="local-card__text" id="recoveryText">
+          توجد مشكلة في البيئة المحلية.
+        </p>
+        <div class="isHidden" id="recoveryPathField" style="margin:.8rem 0;">
+          <label class="field">
+            <span class="field__label">اختيار مسار جديد</span>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <input class="input" id="recoveryDataDirectory" type="text"
+                     value="C:\BasiraData" placeholder="C:\BasiraData"
+                     style="flex:1;" />
+              <button class="btn btn--ghost" id="browseRecoveryDirectoryBtn" type="button">
+                استعراض
+              </button>
+            </div>
+          </label>
+        </div>
+        <div class="recovery-actions" style="margin-top:.8rem;">
+          <button class="btn btn--primary btn--lg" id="repairPrimaryBtn"
+                  type="button" data-mode="repair-files">
+            إصلاح وإعادة التنزيل
+          </button>
+        </div>
+      </div>
+
+
+      <!-- ⑥ Subscription -->
+      <div class="local-card isHidden" id="subscriptionCard">
+        <h3 class="local-card__title">الاشتراك غير فعال</h3>
+        <p class="local-card__text">يرجى تجديد اشتراكك للمتابعة.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:1rem;">
+          <button class="btn btn--primary btn--lg" id="renewSubscriptionBtn" type="button">
+            تجديد الاشتراك
+          </button>
+          <button class="btn btn--ghost btn--lg" id="renewDemoBtn" type="button">
+            تجديد تجريبي
+          </button>
+        </div>
+      </div>
+
+
+      <!-- ⑦ Ready -->
+      <div class="local-card isHidden" id="readyCard">
+        <h3 class="local-card__title">✓ البيئة المحلية جاهزة</h3>
+        <p class="local-card__text" id="readyDetail">
+          اكتمل الإعداد. يمكنك الآن فتح بصيرة وبدء التحليل.
+        </p>
+        <div class="ready-actions" style="margin-top:1rem;">
+          <button class="btn btn--primary btn--lg" id="launchLocalBtn" type="button">
+            فتح بصيرة المحلي
+          </button>
+          <button class="btn btn--ghost btn--lg" id="renewSubscriptionBtnReady" type="button">
+            تجديد الاشتراك
+          </button>
+        </div>
+      </div>
+
+
+      <div class="note" id="localSetupMessage" role="status" aria-live="polite"></div>
+    </section>
+
+
+    <!-- Side info panel -->
+    <aside class="panel" aria-label="Info panel">
+      <h2 class="sideTitle">كيف يعمل الإعداد؟</h2>
+      <p class="sideText">
+        أول مرة فقط: اختيار مجلد وتنزيل الملفات.
+        بعد ذلك، يفتح بصيرة تلقائياً في كل مرة.
+      </p>
+      <ul class="sideList">
+        <li>فحص الخادم المحلي (launcher.py).</li>
+        <li><strong>أول مرة:</strong> اختيار مجلد حفظ الملفات.</li>
+        <li>تنزيل النماذج والملفات من GitHub تلقائياً.</li>
+        <li>فتح واجهة التحليل مباشرةً.</li>
+      </ul>
+
+      <div class="local-side-box">
+        <div class="local-side-box__label">Cloud Account</div>
+        <div class="local-side-box__value" id="cloudUserLabel">جارٍ القراءة...</div>
+      </div>
+      <div class="local-side-box">
+        <div class="local-side-box__label">Subscription</div>
+        <div class="local-side-box__value" id="subscriptionLabel">جارٍ القراءة...</div>
+      </div>
+      <div class="local-side-box" id="dataDirBox" style="display:none;">
+        <div class="local-side-box__label">مجلد البيانات</div>
+        <div class="local-side-box__value" id="dataDirLabel" style="word-break:break-all;font-size:.8rem;"></div>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<script>
+  // Language toggle
+  const langBtn   = document.getElementById("langBtn");
+  const langLabel = document.getElementById("langLabel");
+  langBtn.addEventListener("click", () => {
+    const html = document.documentElement;
+    const isAr = (html.getAttribute("lang") || "ar") === "ar";
+    if (isAr) {
+      html.setAttribute("lang","en"); html.setAttribute("dir","ltr"); langLabel.textContent="EN";
+    } else {
+      html.setAttribute("lang","ar"); html.setAttribute("dir","rtl"); langLabel.textContent="AR";
+    }
+  });
+</script>
+</body>
 </html>
