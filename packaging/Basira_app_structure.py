@@ -6817,7 +6817,7 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR    = BASE_DIR / "static"
 
 DEFAULT_HOST            = "127.0.0.1"
-DEFAULT_PORT            = 5000
+DEFAULT_PORT            = 5001
 SESSION_TIMEOUT_MINUTES = 20
 
 # ─── App ──────────────────────────────────────────────────────────────────────

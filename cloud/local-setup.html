@@ -1,4 +1,4 @@
-<!-- <!doctype html>
+<!-- <!-- <!-- <!doctype html>
 <html lang="ar" dir="rtl" data-lang="ar">
   <head>
     <meta charset="UTF-8" />
@@ -204,7 +204,7 @@
   </body>
 </html> -->
 
-
+<!-- 
 <!doctype html>
 <html lang="ar" dir="rtl" data-lang="ar">
   <head>
@@ -408,6 +408,233 @@
       const langBtn = document.getElementById("langBtn");
       const langLabel = document.getElementById("langLabel");
 
+      langBtn.addEventListener("click", () => {
+        const html = document.documentElement;
+        const isAr = (html.getAttribute("lang") || "ar") === "ar";
+        if (isAr) {
+          html.setAttribute("lang", "en");
+          html.setAttribute("dir", "ltr");
+          langLabel.textContent = "EN";
+        } else {
+          html.setAttribute("lang", "ar");
+          html.setAttribute("dir", "rtl");
+          langLabel.textContent = "AR";
+        }
+      });
+    </script>
+  </body> -->
+<!-- </html> --> -->
+ -->
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira | تهيئة البيئة المحلية</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="auth-ui.css" />
+    <link rel="stylesheet" href="local-setup.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="local-setup.js" defer></script>
+  </head>
+
+  <body class="auth">
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="./index.html" aria-label="Basira Home">
+          <span class="brand__mark" aria-hidden="true">B</span>
+          <span class="brand__text">Basira</span>
+        </a>
+
+        <div class="actions">
+          <button class="lang" id="langBtn" type="button" aria-label="Toggle language">
+            <span class="lang__dot" aria-hidden="true"></span>
+            <span id="langLabel">AR</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth__main">
+      <div class="container auth__grid local-setup-grid">
+        <section class="panel" aria-label="Local setup panel">
+          <div class="setup-hero">
+            <div class="setup-badge">Local Environment</div>
+            <h1 class="auth__title">تهيئة البيئة المحلية</h1>
+            <p class="auth__subtitle">
+              بعد نجاح تسجيل الدخول، سيقوم بصيرة الآن بتجهيز بيئتك المحلية على هذا الجهاز حتى تعمل النماذج والملفات محليًا بشكل منظم وآمن.
+            </p>
+          </div>
+
+          <!-- Progress steps -->
+          <div class="setup-steps" id="setupSteps">
+            <div class="setup-step isActive">
+              <span class="setup-step__index">1</span>
+              <span class="setup-step__label">فحص الجهاز</span>
+            </div>
+            <div class="setup-step">
+              <span class="setup-step__index">2</span>
+              <span class="setup-step__label">اختيار المسار</span>
+            </div>
+            <div class="setup-step">
+              <span class="setup-step__index">3</span>
+              <span class="setup-step__label">تنزيل الملفات</span>
+            </div>
+            <div class="setup-step">
+              <span class="setup-step__index">4</span>
+              <span class="setup-step__label">تشغيل المحلي</span>
+            </div>
+          </div>
+
+          <!-- Card: checking status -->
+          <div class="local-card" id="startupStatusCard">
+            <h3 class="local-card__title">جارٍ فحص حالة البيئة المحلية...</h3>
+            <p class="local-card__text">
+              نتحقق الآن مما إذا كانت هذه أول مرة على هذا الجهاز أو توجد بيئة محلية مهيأة سابقًا.
+            </p>
+          </div>
+
+          <!-- Card: first-time / new user -->
+          <div class="local-card isHidden" id="newUserCard">
+            <h3 class="local-card__title">تهيئة أولية مطلوبة</h3>
+            <p class="local-card__text">
+              يبدو أن هذا هو أول تشغيل محلي على هذا الجهاز. اختاري مكان حفظ ملفات البيانات ونتائج التشغيل المحلي، ثم ابدئي تجهيز البيئة المحلية.
+            </p>
+
+            <label class="field">
+              <span class="field__label">مكان حفظ الملفات المحلية</span>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <input
+                  class="input"
+                  id="dataDirectory"
+                  type="text"
+                  value="C:\Users\Public\Documents\BasiraData"
+                  placeholder="اختاري المجلد من زر استعراض"
+                  readonly
+                  style="flex:1;"
+                />
+                <button class="btn btn--ghost" id="browseDataDirectoryBtn" type="button">
+                  استعراض
+                </button>
+              </div>
+            </label>
+
+            <button class="btn btn--primary btn--lg" id="startSetupBtn" type="button">
+              بدء التهيئة
+            </button>
+          </div>
+
+          <!-- Card: loading / progress -->
+          <div class="local-card isHidden" id="loadingCard">
+            <h3 class="local-card__title">جارٍ تجهيز البيئة المحلية</h3>
+            <p class="local-card__text">
+              يتم الآن إنشاء المجلدات، تجهيز الملفات الأساسية، والتحقق من الجاهزية قبل تشغيل البيئة المحلية.
+            </p>
+
+            <div class="loading-gif-wrap">
+              <img src="images/loading_B.gif" alt="Loading" class="loading-gif" />
+            </div>
+
+            <div class="progress-block">
+              <div class="progress-bar">
+                <div class="progress-bar__fill" id="progressFill"></div>
+              </div>
+              <p class="progress-text" id="progressText">بدء التهيئة...</p>
+            </div>
+          </div>
+
+          <!-- Card: recovery / repair -->
+          <div class="local-card isHidden" id="recoveryCard">
+            <h3 class="local-card__title">تم اكتشاف خلل جزئي</h3>
+            <p class="local-card__text" id="recoveryText">
+              توجد مشكلة جزئية في البيئة المحلية ويمكن إصلاحها دون إعادة إعداد كامل.
+            </p>
+
+            <label class="field isHidden" id="recoveryPathField">
+              <span class="field__label">اختيار مسار جديد للبيانات</span>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <input
+                  class="input"
+                  id="recoveryDataDirectory"
+                  type="text"
+                  value="C:\Users\Public\Documents\BasiraData"
+                  placeholder="اختاري المجلد من زر استعراض"
+                  readonly
+                  style="flex:1;"
+                />
+                <button class="btn btn--ghost" id="browseRecoveryDirectoryBtn" type="button">
+                  استعراض
+                </button>
+              </div>
+            </label>
+
+            <div class="recovery-actions">
+              <button class="btn btn--primary btn--lg" id="repairPrimaryBtn" type="button">
+                إصلاح الآن
+              </button>
+            </div>
+          </div>
+
+          <!-- Card: ready to launch -->
+          <div class="local-card isHidden" id="readyCard">
+            <h3 class="local-card__title">البيئة المحلية جاهزة</h3>
+            <p class="local-card__text">
+              اكتملت التهيئة المحلية بنجاح. يمكنك الآن تشغيل بصيرة المحلي على هذا الجهاز.
+            </p>
+
+            <div class="ready-actions">
+              <button class="btn btn--primary btn--lg" id="launchLocalBtn" type="button">
+                تشغيل البيئة المحلية
+              </button>
+              <button class="btn btn--ghost btn--lg" id="renewSubscriptionBtn" type="button">
+                تجديد الاشتراك
+              </button>
+            </div>
+          </div>
+
+          <div class="note" id="localSetupMessage" role="status" aria-live="polite"></div>
+        </section>
+
+        <!-- Side info panel -->
+        <aside class="panel" aria-label="Info panel">
+          <h2 class="sideTitle">ما الذي سيحدث الآن؟</h2>
+          <p class="sideText">
+            سيتم تجهيز البيئة المحلية الخاصة بالمستخدم على هذا الجهاز فقط. لن تتكرر هذه الخطوة إلا إذا كانت البيئة ناقصة أو حدث خلل يحتاج إصلاحًا.
+          </p>
+
+          <ul class="sideList">
+            <li>فحص التهيئة السابقة على الجهاز.</li>
+            <li>إنشاء config محلي في AppData.</li>
+            <li>إنشاء data directory حسب اختيار المستخدم.</li>
+            <li>تثبيت الملفات الأساسية المحلية.</li>
+          </ul>
+
+          <div class="local-side-box">
+            <div class="local-side-box__label">Cloud Account</div>
+            <div class="local-side-box__value" id="cloudUserLabel">جارٍ قراءة بيانات المستخدم...</div>
+          </div>
+
+          <div class="local-side-box">
+            <div class="local-side-box__label">Subscription</div>
+            <div class="local-side-box__value" id="subscriptionLabel">جارٍ قراءة حالة الاشتراك...</div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script>
+      // Language toggle
+      const langBtn   = document.getElementById("langBtn");
+      const langLabel = document.getElementById("langLabel");
       langBtn.addEventListener("click", () => {
         const html = document.documentElement;
         const isAr = (html.getAttribute("lang") || "ar") === "ar";
