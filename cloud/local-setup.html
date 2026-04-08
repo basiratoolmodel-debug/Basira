@@ -1472,53 +1472,96 @@
     </div>
 
 
-    <!-- ② Launcher not installed yet -->
+    <!-- ② Not installed yet: A=pick location, B=download -->
     <div class="local-card isHidden" id="notInstalledCard">
-      <h3 class="local-card__title">⚙️ يلزم تثبيت بصيرة أولاً</h3>
-      <p class="local-card__text">
-        لم يتم تثبيت بصيرة على هذا الجهاز بعد.<br/>
-        نزّلي ملف Install_Basira.bat وشغّليه بنقرة مزدوجة — يثبّت كل شيء تلقائياً.
-      </p>
-      <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:12px;">
-        <button class="btn btn--primary btn--lg"
-           id="downloadInstallerBtn"
-           onclick="forceDownloadBat()"
-           style="width:100%;cursor:pointer;">
-          ⬇ تنزيل برنامج بصيرة
-        </button>
-        <p style="font-size:.82rem;color:#64748b;text-align:center;margin:0;">
-          بعد التنزيل: شغّلي الملف بنقرة مزدوجة — يثبّت كل شيء تلقائياً
+
+      <!-- A: Pick location first -->
+      <div id="installStepA">
+        <h3 class="local-card__title">Step 1 — Choose install location</h3>
+        <p class="local-card__text" style="margin-bottom:1rem;">
+          Basira will be installed in a folder called <strong>Basira_app</strong>. Choose where:
         </p>
-        <button class="btn btn--ghost btn--lg" id="retryConnectBtn" type="button">
-          تم التثبيت — إعادة المحاولة
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.4rem;">
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:.9rem;color:#334155;">
+            <input type="radio" name="installLoc" value="documents" checked style="accent-color:#0ea5e9;width:16px;height:16px;flex-shrink:0;"/>
+            <div><strong>Documents</strong> <span style="color:#94a3b8;font-size:.8rem;display:block;">Documents\Basira_app</span></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:.9rem;color:#334155;">
+            <input type="radio" name="installLoc" value="desktop" style="accent-color:#0ea5e9;width:16px;height:16px;flex-shrink:0;"/>
+            <div><strong>Desktop</strong> <span style="color:#94a3b8;font-size:.8rem;display:block;">Desktop\Basira_app</span></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:.9rem;color:#334155;">
+            <input type="radio" name="installLoc" value="c" style="accent-color:#0ea5e9;width:16px;height:16px;flex-shrink:0;"/>
+            <div><strong>C:\ root</strong> <span style="color:#94a3b8;font-size:.8rem;display:block;">C:\Basira_app</span></div>
+          </label>
+        </div>
+        <button onclick="goToDownload()" class="btn btn--primary btn--lg" style="width:100%;">
+          Next: Download Installer
         </button>
+      </div>
+
+      <!-- B: Download installer -->
+      <div id="installStepB" style="display:none;">
+        <h3 class="local-card__title">Step 2 — Download installer</h3>
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-bottom:1rem;">
+          <p style="margin:0;font-size:.87rem;color:#166534;font-weight:600;">
+            Install location: <span id="chosenLocationText" style="font-family:monospace;"></span>
+          </p>
+        </div>
+        <p class="local-card__text" style="margin-bottom:.8rem;">
+          Download and double-click the installer. It will:
+        </p>
+        <ul style="font-size:.83rem;color:#475569;margin:0 0 1.2rem 1.2rem;line-height:2.1;">
+          <li>Create <strong>Basira_app</strong> at your chosen location</li>
+          <li>Download all files from GitHub automatically</li>
+          <li>Install Python packages</li>
+          <li>Create a Desktop shortcut</li>
+          <li>Launch Basira when done</li>
+        </ul>
+        <button class="btn btn--primary btn--lg" id="downloadInstallerBtn"
+                onclick="forceDownloadBat()" style="width:100%;font-size:1rem;">
+          ⬇ Download Basira Installer
+        </button>
+        <p style="font-size:.78rem;color:#94a3b8;text-align:center;margin:.5rem 0 1rem;">
+          File: Install_Basira.bat — double-click after download
+        </p>
+        <div id="afterDownloadMsg" style="display:none;padding-top:1rem;border-top:1px solid #e2e8f0;">
+          <p style="font-size:.88rem;color:#16a34a;font-weight:600;margin:0 0 .6rem;">
+            Downloaded! Double-click Install_Basira.bat to install.
+          </p>
+          <p style="font-size:.82rem;color:#64748b;margin:0 0 .8rem;">
+            After Basira opens, click below:
+          </p>
+          <button class="btn btn--primary btn--lg" id="retryConnectBtn" type="button" style="width:100%;">
+            Basira is installed — Continue
+          </button>
+        </div>
       </div>
     </div>
 
 
-    <!-- ③ First time: pick folder -->
+    <!-- ③ First time after install: pick data folder -->
     <div class="local-card isHidden" id="pickFolderCard">
-      <h3 class="local-card__title">اختيار مجلد حفظ الملفات</h3>
+      <h3 class="local-card__title">Choose data folder</h3>
       <p class="local-card__text">
-        هذه أول مرة على هذا الجهاز.<br/>
-        اختاري المجلد الذي ستُحفظ فيه نماذج بصيرة والملفات والنتائج.
-        <strong>لن تُسألي عن هذا مجدداً.</strong>
+        First time on this device. Choose where Basira saves your analysis files.
+        <strong>You will not be asked again.</strong>
       </p>
       <label class="field" style="margin-top:1rem;">
-        <span class="field__label">مجلد البيانات</span>
+        <span class="field__label">Data folder</span>
         <div style="display:flex;gap:10px;align-items:center;">
           <input class="input" id="dataDirectory" type="text"
                  value="C:\BasiraData"
                  placeholder="C:\BasiraData"
                  style="flex:1;direction:ltr;text-align:left;"/>
           <button class="btn btn--ghost" id="browseBtn" type="button">
-            استعراض
+            Browse
           </button>
         </div>
       </label>
       <button class="btn btn--primary btn--lg" id="startSetupBtn"
               type="button" style="margin-top:1.2rem;width:100%;">
-        ⬇ بدء التنزيل والإعداد
+        Start Setup
       </button>
     </div>
 
@@ -1675,18 +1718,32 @@
   });
 </script>
 <script>
+  // Step A -> Step B: user picked location, show download
+  function goToDownload() {
+    const selected = document.querySelector('input[name="installLoc"]:checked');
+    const val = selected ? selected.value : "documents";
+    const labels = {
+      documents: "Documents\\Basira_app",
+      desktop:   "Desktop\\Basira_app",
+      c:         "C:\\Basira_app"
+    };
+    const locText = document.getElementById("chosenLocationText");
+    if (locText) locText.textContent = labels[val] || "Documents\\Basira_app";
+
+    document.getElementById("installStepA").style.display = "none";
+    document.getElementById("installStepB").style.display = "block";
+  }
+
   async function forceDownloadBat() {
     const btn = document.getElementById("downloadInstallerBtn");
-    btn.textContent = "جارٍ التحضير...";
+    btn.textContent = "Downloading...";
     btn.disabled = true;
 
     try {
-      // Fetch the file as binary blob
-      const url  = "https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Install_Basira.bat";
-      const res  = await fetch(url);
+      const url = "https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Install_Basira.bat";
+      const res = await fetch(url);
       const blob = await res.blob();
 
-      // Create a temporary download link and click it
       const a    = document.createElement("a");
       a.href     = URL.createObjectURL(blob);
       a.download = "Install_Basira.bat";
@@ -1695,12 +1752,16 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
 
-      btn.textContent = "✓ تم التنزيل";
+      btn.textContent = "✓ Downloaded";
       btn.style.background = "#16a34a";
+
+      // Show the "continue after install" section
+      const afterMsg = document.getElementById("afterDownloadMsg");
+      if (afterMsg) afterMsg.style.display = "block";
+
     } catch (err) {
-      btn.textContent = "⬇ تنزيل برنامج بصيرة";
+      btn.textContent = "⬇ Download Basira Installer";
       btn.disabled = false;
-      // Fallback: open directly
       window.open(
         "https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Install_Basira.bat",
         "_blank"
