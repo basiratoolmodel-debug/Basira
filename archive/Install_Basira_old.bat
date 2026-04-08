@@ -1,235 +1,187 @@
 @echo off
 setlocal EnableDelayedExpansion
 title Basira Installer
-chcp 65001 >nul 2>&1
-
-:: ============================================================
-:: Basira Installer
-:: - English only
-:: - Folder always named "Basira_app"
-:: - User picks WHERE to put it (saved for future launches)
-:: - Shows pip progress
-:: - Launches everything automatically after install
-:: ============================================================
 
 set "RAW=https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Basira_local"
 set "APPDATA_DIR=%USERPROFILE%\AppData\Local\Basira"
 set "LOG=%APPDATA_DIR%\install.log"
-set "INSTALL_PATH_FILE=%APPDATA_DIR%\install_path.txt"
 
-:: Create AppData\Basira folder
 if not exist "%APPDATA_DIR%" mkdir "%APPDATA_DIR%"
-echo ===== [%date% %time%] Installation started ===== > "%LOG%"
+echo [%date% %time%] Install started > "%LOG%"
 
 cls
 echo.
-echo  =====================================================
-echo          BASIRA  -  Installation
-echo  =====================================================
+echo =====================================================
+echo       BASIRA - Installation
+echo =====================================================
 echo.
-echo  Basira will be installed in a folder called Basira_app
-echo  You choose WHERE to put that folder.
-echo.
-echo  After installation:
-echo    - Basira starts automatically on every Windows login
-echo    - A shortcut is created on your Desktop
-echo    - Your browser opens automatically
-echo.
-echo  =====================================================
+echo Basira will be installed in a folder called Basira_app
+echo You choose WHERE to put that folder.
 echo.
 
-:: ── STEP 1: Check Python ────────────────────────────────────
-echo  [Step 1/6]  Checking Python...
-echo.
+:: STEP 1: Check Python
+echo [Step 1/6] Checking Python...
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo  [ERROR] Python is not installed on this computer.
     echo.
-    echo  Please:
-    echo    1. Click OK on the Python download page that will open
-    echo    2. Install Python - make sure to CHECK "Add Python to PATH"
-    echo    3. Run this installer again
+    echo [ERROR] Python is not installed.
+    echo.
+    echo Please:
+    echo   1. Install Python from the page that will open
+    echo   2. CHECK the box "Add Python to PATH"
+    echo   3. Run this installer again
     echo.
     start "" "https://www.python.org/ftp/python/3.11.8/python-3.11.8-amd64.exe"
     pause
     exit /b 1
 )
 for /f "tokens=*" %%v in ('python --version 2^>^&1') do set "PY_VER=%%v"
-echo  [OK]  Found: %PY_VER%
+echo [OK] %PY_VER%
 echo.
 
-:: ── STEP 2: Choose install location ─────────────────────────
-echo  [Step 2/6]  Choose where to install Basira_app folder
+:: STEP 2: Pick install location
+echo [Step 2/6] Choose where to install Basira_app folder
 echo.
-echo  The folder "Basira_app" will be created in your chosen location.
-echo  Example: if you choose Documents, it creates:
-echo           C:\Users\%USERNAME%\Documents\Basira_app
+echo   1  Documents (default)
+echo   2  Desktop
+echo   3  C:\ root
+echo   4  Type a custom path
 echo.
-echo  Choose a location:
-echo.
-echo    [1]  Documents    ^(recommended^)
-echo    [2]  Desktop
-echo    [3]  C:\  drive root
-echo    [4]  Type a custom path
-echo.
-set /p "CHOICE=  Your choice (1/2/3/4): "
-echo.
+set "CHOICE=1"
+set /p "CHOICE=Enter 1, 2, 3 or 4 then press Enter: "
 
-if "!CHOICE!"=="1" set "BASE=!USERPROFILE!\Documents"
-if "!CHOICE!"=="2" set "BASE=!USERPROFILE!\Desktop"
-if "!CHOICE!"=="3" set "BASE=C:"
+if "!CHOICE!"=="1" set "BASE=%USERPROFILE%\Documents"
+if "!CHOICE!"=="2" set "BASE=%USERPROFILE%\Desktop"
+if "!CHOICE!"=="3" set "BASE=C:\"
 if "!CHOICE!"=="4" (
-    set /p "BASE=  Enter full folder path (e.g. D:\Work): "
-    :: Remove trailing backslash
+    echo.
+    set "BASE="
+    set /p "BASE=Type full path (example: D:\MyWork) then press Enter: "
+)
+if not defined BASE set "BASE=%USERPROFILE%\Documents"
+if "!BASE!"=="C:\" set "BASE=C:\"
+
+:: Remove trailing backslash unless it is C:\
+if not "!BASE!"=="C:\" (
     if "!BASE:~-1!"=="\" set "BASE=!BASE:~0,-1!"
 )
-if "!BASE!"=="" set "BASE=!USERPROFILE!\Documents"
 
 set "INSTALL_DIR=!BASE!\Basira_app"
 
-echo  Installing to: !INSTALL_DIR!
-echo  (This path is saved and used automatically on every login)
+echo.
+echo [OK] Will install to: !INSTALL_DIR!
 echo.
 echo [%date% %time%] INSTALL_DIR=!INSTALL_DIR! >> "%LOG%"
 
-:: Save install path permanently to AppData
-echo !INSTALL_DIR! > "!INSTALL_PATH_FILE!"
+:: Save install path for launcher to find on every startup
+echo !INSTALL_DIR!> "%APPDATA_DIR%\install_path.txt"
 
-:: Create Basira_app and templates folders
+:: Create folders
 if not exist "!INSTALL_DIR!" mkdir "!INSTALL_DIR!"
 if not exist "!INSTALL_DIR!\templates" mkdir "!INSTALL_DIR!\templates"
-echo  [OK]  Folder Basira_app created at: !INSTALL_DIR!
+echo [OK] Folders created
 echo.
 
-:: ── STEP 3: Download files from GitHub ──────────────────────
-echo  [Step 3/6]  Downloading files from GitHub...
+:: STEP 3: Download files from GitHub
+echo [Step 3/6] Downloading files from GitHub...
+echo (This may take 1-2 minutes)
 echo.
 
-set "FILES=launcher.py basira_local_bootstrap.py Basira_app_structure.py basira_paths.py basira_session.py"
-
-for %%F in (%FILES%) do (
-    echo    Downloading %%F ...
-    powershell -Command "Invoke-WebRequest -Uri '!RAW!/%%F' -OutFile '!INSTALL_DIR!\%%F' -UseBasicParsing" >> "%LOG%" 2>&1
+for %%F in (launcher.py basira_local_bootstrap.py Basira_app_structure.py basira_paths.py basira_session.py) do (
+    echo   Downloading %%F ...
+    powershell -Command "Invoke-WebRequest -Uri '!RAW!/%%F' -OutFile '!INSTALL_DIR!\%%F' -UseBasicParsing" 2>>"%LOG%"
     if not exist "!INSTALL_DIR!\%%F" (
         echo.
-        echo  [ERROR] Failed to download %%F
-        echo  Check your internet connection and try again.
+        echo [ERROR] Failed to download %%F
+        echo Check your internet and try again.
         pause
         exit /b 1
     )
-    echo    [OK]  %%F
+    echo   [OK] %%F
 )
 
-:: Write requirements.txt directly — no download needed
-(
-    echo flask
-    echo flask-cors
-    echo requests
-) > "!INSTALL_DIR!\requirements.txt"
-echo    [OK]  requirements.txt
+:: Write requirements.txt directly
+echo flask> "!INSTALL_DIR!\requirements.txt"
+echo flask-cors>> "!INSTALL_DIR!\requirements.txt"
+echo requests>> "!INSTALL_DIR!\requirements.txt"
+echo   [OK] requirements.txt
 
 :: Download basira_app.html
-echo    Downloading basira_app.html ...
-powershell -Command "Invoke-WebRequest -Uri '!RAW!/templates/basira_app.html' -OutFile '!INSTALL_DIR!\templates\basira_app.html' -UseBasicParsing" >> "%LOG%" 2>&1
+echo   Downloading basira_app.html ...
+powershell -Command "Invoke-WebRequest -Uri '!RAW!/templates/basira_app.html' -OutFile '!INSTALL_DIR!\templates\basira_app.html' -UseBasicParsing" 2>>"%LOG%"
 if not exist "!INSTALL_DIR!\templates\basira_app.html" (
     echo.
-    echo  [ERROR] basira_app.html not found.
-    echo  Make sure Basira_local/templates/basira_app.html exists in your GitHub repo.
+    echo [ERROR] Failed to download basira_app.html
+    echo Make sure Basira_local/templates/basira_app.html is in your GitHub repo.
     pause
     exit /b 1
 )
-echo    [OK]  templates\basira_app.html
-
+echo   [OK] basira_app.html
 echo.
-echo  [OK]  All files downloaded successfully
-echo.
-
-:: ── STEP 4: Install Python packages ─────────────────────────
-echo  [Step 4/6]  Installing Python packages...
-echo              (flask, flask-cors, requests)
-echo              Please wait - showing progress below:
+echo [OK] All files downloaded
 echo.
 
+:: STEP 4: Install Python packages
+echo [Step 4/6] Installing Python packages...
+echo.
 cd /d "!INSTALL_DIR!"
-
-:: Upgrade pip silently
-python -m pip install --upgrade pip --quiet >> "%LOG%" 2>&1
-
-:: Install packages WITH progress visible to user
-python -m pip install flask flask-cors requests --no-warn-script-location
-
-if %errorlevel% neq 0 (
-    echo.
-    echo  [WARNING] Some packages may have issues.
-    echo  Trying alternative install...
-    python -m pip install flask flask-cors requests --user
-)
-
+python -m pip install --upgrade pip -q >>"%LOG%" 2>&1
+python -m pip install flask flask-cors requests
 echo.
-echo  [OK]  Python packages installed
+echo [OK] Packages installed
 echo.
 
-:: ── STEP 5: Save install path to config ─────────────────────
-echo  [Step 5/6]  Saving configuration...
+:: STEP 5: Register in Windows startup
+echo [Step 5/6] Registering Basira in Windows startup...
 
-:: Write install path into AppData so launcher always knows where Basira_app is
-echo !INSTALL_DIR! > "!INSTALL_PATH_FILE!"
-echo [%date% %time%] Saved install path to %INSTALL_PATH_FILE% >> "%LOG%"
-echo  [OK]  Install path saved: !INSTALL_DIR!
-
-:: Register in Windows startup so Basira opens automatically on login
 where pythonw >nul 2>&1
-if %errorlevel% equ 0 ( set "PY_RUN=pythonw" ) else ( set "PY_RUN=python" )
+if %errorlevel% equ 0 ( set "PYW=pythonw" ) else ( set "PYW=python" )
 
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" ^
-    /v "Basira" /t REG_SZ ^
-    /d "!PY_RUN! \"!INSTALL_DIR!\launcher.py\" --background" ^
-    /f >> "%LOG%" 2>&1
-
-echo  [OK]  Basira registered in Windows startup
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Basira" /t REG_SZ /d "!PYW! \"!INSTALL_DIR!\launcher.py\" --background" /f >>"%LOG%" 2>&1
+echo [OK] Basira will auto-start on Windows login
 echo.
 
-:: ── STEP 6: Desktop shortcut ─────────────────────────────────
-echo  [Step 6/6]  Creating Desktop shortcut...
+:: STEP 6: Desktop shortcut
+echo [Step 6/6] Creating Desktop shortcut...
 
 set "VBS=%TEMP%\basira_sc.vbs"
-(
-    echo Set oWS = WScript.CreateObject^("WScript.Shell"^)
-    echo Set oLink = oWS.CreateShortcut^("%USERPROFILE%\Desktop\Basira.lnk"^)
-    echo oLink.TargetPath = "!PY_RUN!"
-    echo oLink.Arguments = """!INSTALL_DIR!\launcher.py"""
-    echo oLink.WorkingDirectory = "!INSTALL_DIR!"
-    echo oLink.Description = "Basira Local Intelligence"
-    echo oLink.Save
-) > "%VBS%"
-cscript //nologo "%VBS%" >> "%LOG%" 2>&1
+echo Set oWS = WScript.CreateObject("WScript.Shell") > "%VBS%"
+echo Set oLink = oWS.CreateShortcut("%USERPROFILE%\Desktop\Basira.lnk") >> "%VBS%"
+echo oLink.TargetPath = "!PYW!" >> "%VBS%"
+echo oLink.IconLocation = "!PYTHON_FULL!" >> "%VBS%"
+echo oLink.Arguments = Chr(34) & "!INSTALL_DIR!\launcher.py" & Chr(34) >> "%VBS%"
+echo oLink.WorkingDirectory = "!INSTALL_DIR!" >> "%VBS%"
+echo oLink.Description = "Basira Local Intelligence" >> "%VBS%"
+echo oLink.Save >> "%VBS%"
+cscript //nologo "%VBS%" >>"%LOG%" 2>&1
 del "%VBS%" 2>nul
-
-echo  [OK]  Basira shortcut created on Desktop
+echo [OK] Desktop shortcut created
 echo.
 
-:: ── DONE: Launch Basira ───────────────────────────────────────
-echo  =====================================================
-echo    [DONE]  Installation Complete!
+:: LAUNCH
+echo =====================================================
+echo   DONE! Installation complete.
+echo   Location: !INSTALL_DIR!
+echo   Launching Basira now...
+echo =====================================================
 echo.
-echo    Installed at: !INSTALL_DIR!
-echo    Desktop shortcut: Basira.lnk
-echo.
-echo    Starting Basira now...
-echo    Your browser will open automatically.
-echo  =====================================================
-echo.
-echo [%date% %time%] Installation complete. Launching. >> "%LOG%"
+echo [%date% %time%] Complete. Launching. >> "%LOG%"
 
-:: Launch launcher.py — this starts both Flask servers and opens browser
-start "" !PY_RUN! "!INSTALL_DIR!\launcher.py"
+start "" "!PYW!" "!INSTALL_DIR!\launcher.py"
 
-echo  Basira is starting up...
-echo  Your browser will open in about 10-15 seconds.
+:: Wait for launcher to start both servers
+timeout /t 12 /nobreak >nul
+
+:: Open the cloud setup page so session gets properly linked
+:: This is where user picks data folder and everything is configured
+start "" "https://basira.basira-toolmodel.workers.dev/local-setup.html"
+
 echo.
-echo  If nothing opens, double-click the Basira shortcut on your Desktop.
+echo Basira is running.
+echo The setup page is opening in your browser.
+echo Follow the steps on screen to complete setup.
 echo.
-echo  You can close this window now.
+echo You can close this window now.
 echo.
-timeout /t 10 /nobreak
+timeout /t 5 /nobreak >nul
 exit /b 0
