@@ -1480,12 +1480,12 @@
         نزّلي ملف Install_Basira.bat وشغّليه بنقرة مزدوجة — يثبّت كل شيء تلقائياً.
       </p>
       <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:12px;">
-        <a class="btn btn--primary btn--lg"
-           href="https://basira.basira-toolmodel.workers.dev/download/Install_Basira.bat"
+        <button class="btn btn--primary btn--lg"
            id="downloadInstallerBtn"
-           style="text-align:center;text-decoration:none;">
+           onclick="forceDownloadBat()"
+           style="width:100%;cursor:pointer;">
           ⬇ تنزيل برنامج بصيرة
-        </a>
+        </button>
         <p style="font-size:.82rem;color:#64748b;text-align:center;margin:0;">
           بعد التنزيل: شغّلي الملف بنقرة مزدوجة — يثبّت كل شيء تلقائياً
         </p>
@@ -1673,6 +1673,40 @@
     h.setAttribute("dir", ar?"ltr":"rtl");
     document.getElementById("langLabel").textContent = ar?"EN":"AR";
   });
+</script>
+<script>
+  async function forceDownloadBat() {
+    const btn = document.getElementById("downloadInstallerBtn");
+    btn.textContent = "جارٍ التحضير...";
+    btn.disabled = true;
+
+    try {
+      // Fetch the file as binary blob
+      const url  = "https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Install_Basira.bat";
+      const res  = await fetch(url);
+      const blob = await res.blob();
+
+      // Create a temporary download link and click it
+      const a    = document.createElement("a");
+      a.href     = URL.createObjectURL(blob);
+      a.download = "Install_Basira.bat";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+
+      btn.textContent = "✓ تم التنزيل";
+      btn.style.background = "#16a34a";
+    } catch (err) {
+      btn.textContent = "⬇ تنزيل برنامج بصيرة";
+      btn.disabled = false;
+      // Fallback: open directly
+      window.open(
+        "https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Install_Basira.bat",
+        "_blank"
+      );
+    }
+  }
 </script>
 </body>
 </html>
