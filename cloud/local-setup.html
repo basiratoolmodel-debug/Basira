@@ -883,6 +883,399 @@
     </script>
   </body>
 </html> -->
+<!-- <!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Basira | إعداد البيئة المحلية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="auth-ui.css"/>
+  <link rel="stylesheet" href="local-setup.css"/>
+
+  <style>
+    /* ── Download animation ── */
+    .dl-animation {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      padding: 28px 0 10px;
+    }
+    .dl-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#0ea5e9,#6366f1);
+      display: flex; align-items: center; justify-content: center;
+      animation: dlPulse 1.8s ease-in-out infinite;
+    }
+    .dl-icon svg { width:32px; height:32px; fill:white; }
+    @keyframes dlPulse {
+      0%,100% { transform:scale(1);   box-shadow:0 0 0 0 rgba(14,165,233,.4); }
+      50%      { transform:scale(1.08);box-shadow:0 0 0 14px rgba(14,165,233,0); }
+    }
+    .dl-bars {
+      display: flex; gap: 6px; align-items: flex-end; height: 36px;
+    }
+    .dl-bar {
+      width: 8px; border-radius: 4px;
+      background: linear-gradient(to top,#0ea5e9,#6366f1);
+      animation: dlBar 1.2s ease-in-out infinite;
+    }
+    .dl-bar:nth-child(1){height:50%; animation-delay:0s;}
+    .dl-bar:nth-child(2){height:80%; animation-delay:.15s;}
+    .dl-bar:nth-child(3){height:100%;animation-delay:.3s;}
+    .dl-bar:nth-child(4){height:65%; animation-delay:.45s;}
+    .dl-bar:nth-child(5){height:40%; animation-delay:.6s;}
+    @keyframes dlBar {
+      0%,100%{opacity:.4;transform:scaleY(.6);}
+      50%    {opacity:1; transform:scaleY(1);}
+    }
+    .dl-status {
+      font-size:.88rem; color:#475569; text-align:center;
+      line-height:1.7; min-height:2.5rem;
+    }
+    .dl-speed {
+      font-size:.78rem; color:#94a3b8; font-family:'JetBrains Mono',monospace;
+    }
+
+    /* ── Progress bar ── */
+    .progress-block { width:100%; margin-top:.5rem; }
+    .progress-bar {
+      width:100%; height:8px; background:#e2e8f0;
+      border-radius:99px; overflow:hidden;
+    }
+    .progress-bar__fill {
+      height:100%; width:0%;
+      background:linear-gradient(90deg,#0ea5e9,#6366f1);
+      border-radius:99px;
+      transition: width .4s ease;
+    }
+    .progress-text {
+      margin-top:8px; font-size:.82rem; color:#64748b; text-align:center;
+    }
+    .progress-pct {
+      font-weight:700; color:#0ea5e9;
+    }
+
+    /* ── Checking spinner ── */
+    .checking-spinner {
+      display:flex; align-items:center; gap:12px; padding:8px 0;
+    }
+    .spinner-ring {
+      width:24px; height:24px;
+      border:3px solid #e2e8f0;
+      border-top-color:#0ea5e9;
+      border-radius:50%;
+      animation:spin .8s linear infinite;
+      flex-shrink:0;
+    }
+    @keyframes spin { to{transform:rotate(360deg);} }
+
+    /* ── Success checkmark ── */
+    .success-check {
+      display:flex; flex-direction:column; align-items:center;
+      gap:14px; padding:20px 0;
+    }
+    .check-circle {
+      width:72px; height:72px; border-radius:50%;
+      background:linear-gradient(135deg,#22c55e,#16a34a);
+      display:flex; align-items:center; justify-content:center;
+      animation:popIn .5s cubic-bezier(.175,.885,.32,1.275) both;
+    }
+    .check-circle svg { width:36px; height:36px; stroke:white; fill:none;
+      stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+    @keyframes popIn {
+      from{transform:scale(0);opacity:0;}
+      to  {transform:scale(1);opacity:1;}
+    }
+    .success-title {
+      font-size:1.15rem; font-weight:700; color:#16a34a; text-align:center;
+    }
+    .success-sub {
+      font-size:.88rem; color:#475569; text-align:center; max-width:320px;
+    }
+
+    /* ── Folder path display ── */
+    .folder-display {
+      background:#f8fafc; border:1px solid #e2e8f0;
+      border-radius:10px; padding:10px 14px;
+      font-size:.82rem; color:#334155;
+      word-break:break-all; margin-top:.5rem;
+      font-family:'JetBrains Mono',monospace;
+    }
+    .folder-display::before {
+      content:'📁 '; font-style:normal;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="local-setup.js" defer></script>
+</head>
+
+<body class="auth">
+<header class="topbar">
+  <div class="container topbar__inner">
+    <a class="brand" href="./index.html" aria-label="Basira Home">
+      <span class="brand__mark" aria-hidden="true">B</span>
+      <span class="brand__text">Basira</span>
+    </a>
+    <div class="actions">
+      <button class="lang" id="langBtn" type="button">
+        <span class="lang__dot" aria-hidden="true"></span>
+        <span id="langLabel">AR</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="auth__main">
+<div class="container auth__grid local-setup-grid">
+
+  <section class="panel" aria-label="Local setup panel">
+
+    <div class="setup-hero">
+      <div class="setup-badge">Local Environment</div>
+      <h1 class="auth__title">إعداد بصيرة المحلي</h1>
+      <p class="auth__subtitle">
+        أول مرة: اختاري مجلد لحفظ ملفاتك ثم يتم التنزيل والإعداد تلقائياً.
+        في المرات القادمة يفتح بصيرة مباشرةً.
+      </p>
+    </div>
+
+    <div class="setup-steps" id="setupSteps">
+      <div class="setup-step isActive">
+        <span class="setup-step__index">1</span>
+        <span class="setup-step__label">فحص الجهاز</span>
+      </div>
+      <div class="setup-step">
+        <span class="setup-step__index">2</span>
+        <span class="setup-step__label">اختيار المجلد</span>
+      </div>
+      <div class="setup-step">
+        <span class="setup-step__index">3</span>
+        <span class="setup-step__label">تنزيل الملفات</span>
+      </div>
+      <div class="setup-step">
+        <span class="setup-step__index">4</span>
+        <span class="setup-step__label">تشغيل بصيرة</span>
+      </div>
+    </div>
+
+
+    <div class="local-card" id="checkingCard">
+      <div class="checking-spinner">
+        <div class="spinner-ring"></div>
+        <div>
+          <div style="font-weight:600;color:#1e293b;">جارٍ التحقق من البيئة...</div>
+          <div style="font-size:.83rem;color:#64748b;">نفحص الخادم المحلي على هذا الجهاز</div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="local-card isHidden" id="notInstalledCard">
+      <h3 class="local-card__title">⚙️ يلزم تثبيت بصيرة أولاً</h3>
+      <p class="local-card__text">
+        لم يتم تثبيت بصيرة على هذا الجهاز بعد.<br/>
+        قومي بتنزيل ملف التثبيت وتشغيله مرة واحدة فقط.
+      </p>
+      <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:12px;">
+        <a class="btn btn--primary btn--lg"
+           href="https://basira.basira-toolmodel.workers.dev/download/Basira_Setup.zip"
+           id="downloadInstallerBtn"
+           style="text-align:center;text-decoration:none;">
+          ⬇ تنزيل برنامج بصيرة
+        </a>
+        <p style="font-size:.82rem;color:#64748b;text-align:center;margin:0;">
+          بعد التنزيل: افتح الملف المضغوط ← شغّل <code style="background:#f1f5f9;padding:1px 6px;border-radius:4px;">Install_Basira.bat</code>
+        </p>
+        <button class="btn btn--ghost btn--lg" id="retryConnectBtn" type="button">
+          تم التثبيت — إعادة المحاولة
+        </button>
+      </div>
+    </div>
+
+
+    <div class="local-card isHidden" id="pickFolderCard">
+      <h3 class="local-card__title">اختيار مجلد حفظ الملفات</h3>
+      <p class="local-card__text">
+        هذه أول مرة على هذا الجهاز.<br/>
+        اختاري المجلد الذي ستُحفظ فيه نماذج بصيرة والملفات والنتائج.
+        <strong>لن تُسألي عن هذا مجدداً.</strong>
+      </p>
+      <label class="field" style="margin-top:1rem;">
+        <span class="field__label">مجلد البيانات</span>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input class="input" id="dataDirectory" type="text"
+                 value="C:\BasiraData"
+                 placeholder="C:\BasiraData"
+                 style="flex:1;direction:ltr;text-align:left;"/>
+          <button class="btn btn--ghost" id="browseBtn" type="button">
+            استعراض
+          </button>
+        </div>
+      </label>
+      <button class="btn btn--primary btn--lg" id="startSetupBtn"
+              type="button" style="margin-top:1.2rem;width:100%;">
+        ⬇ بدء التنزيل والإعداد
+      </button>
+    </div>
+
+
+    <div class="local-card isHidden" id="downloadingCard">
+      <h3 class="local-card__title" style="text-align:center;">
+        جارٍ تنزيل ملفات بصيرة...
+      </h3>
+
+      <div class="dl-animation">
+        <div class="dl-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2v13M6 9l6 6 6-6M4 20h16"/>
+          </svg>
+        </div>
+        <div class="dl-bars">
+          <div class="dl-bar"></div>
+          <div class="dl-bar"></div>
+          <div class="dl-bar"></div>
+          <div class="dl-bar"></div>
+          <div class="dl-bar"></div>
+        </div>
+        <div class="dl-status" id="dlStatus">جارٍ الإعداد...</div>
+        <div class="dl-speed" id="dlSpeed"></div>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-bar">
+          <div class="progress-bar__fill" id="progressFill"></div>
+        </div>
+        <p class="progress-text">
+          <span class="progress-pct" id="progressPct">0%</span>
+          &nbsp;—&nbsp;
+          <span id="progressText">بدء الإعداد...</span>
+        </p>
+      </div>
+
+      <div class="folder-display isHidden" id="chosenFolderDisplay"></div>
+    </div>
+
+
+    <div class="local-card isHidden" id="recoveryCard">
+      <h3 class="local-card__title">تم اكتشاف خلل</h3>
+      <p class="local-card__text" id="recoveryText">
+        توجد مشكلة في البيئة المحلية.
+      </p>
+      <div class="isHidden" id="recoveryPathField" style="margin:.8rem 0;">
+        <label class="field">
+          <span class="field__label">اختيار مسار جديد</span>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <input class="input" id="recoveryDir" type="text"
+                   value="C:\BasiraData" style="flex:1;direction:ltr;text-align:left;"/>
+            <button class="btn btn--ghost" id="browseRecoveryBtn" type="button">
+              استعراض
+            </button>
+          </div>
+        </label>
+      </div>
+      <button class="btn btn--primary btn--lg" id="repairBtn"
+              type="button" data-mode="repair-files" style="margin-top:.8rem;width:100%;">
+        إعادة التنزيل والإصلاح
+      </button>
+    </div>
+
+
+    <div class="local-card isHidden" id="subscriptionCard">
+      <h3 class="local-card__title">الاشتراك غير فعال</h3>
+      <p class="local-card__text">يرجى تجديد اشتراكك للمتابعة.</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:1rem;">
+        <button class="btn btn--primary btn--lg" id="renewSubBtn" type="button">
+          تجديد الاشتراك
+        </button>
+        <button class="btn btn--ghost btn--lg" id="renewDemoBtn" type="button">
+          تجديد تجريبي
+        </button>
+      </div>
+    </div>
+
+
+    <div class="local-card isHidden" id="readyCard">
+      <div class="success-check">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="success-title" id="readyTitle">بصيرة جاهزة!</div>
+        <div class="success-sub" id="readySub">
+          تم الإعداد بنجاح. يمكنك الآن فتح بصيرة وبدء التحليل.
+        </div>
+        <div class="folder-display isHidden" id="readyFolderDisplay"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:.5rem;">
+        <button class="btn btn--primary btn--lg" id="launchBtn" type="button">
+          🚀 فتح بصيرة الآن
+        </button>
+        <button class="btn btn--ghost" id="renewSubBtnReady" type="button">
+          تجديد الاشتراك
+        </button>
+      </div>
+    </div>
+
+
+    <div class="note" id="setupNote" role="status" aria-live="polite"></div>
+  </section>
+
+
+  <aside class="panel">
+    <h2 class="sideTitle">كيف يعمل الإعداد؟</h2>
+    <p class="sideText">
+      أول مرة فقط: اختيار مجلد وتنزيل الملفات من GitHub.
+      في كل مرة بعدها يفتح بصيرة تلقائياً بدون أي خطوات.
+    </p>
+    <ul class="sideList">
+      <li>✓ فحص تثبيت بصيرة على الجهاز.</li>
+      <li>✓ <strong>أول مرة فقط:</strong> اختيار مجلد حفظ الملفات.</li>
+      <li>✓ تنزيل النماذج والملفات من GitHub تلقائياً.</li>
+      <li>✓ فتح واجهة التحليل مباشرةً.</li>
+    </ul>
+
+    <div class="local-side-box">
+      <div class="local-side-box__label">Cloud Account</div>
+      <div class="local-side-box__value" id="cloudUserLabel">جارٍ القراءة...</div>
+    </div>
+    <div class="local-side-box">
+      <div class="local-side-box__label">Subscription</div>
+      <div class="local-side-box__value" id="subscriptionLabel">جارٍ القراءة...</div>
+    </div>
+    <div class="local-side-box" id="savedFolderBox" style="display:none;">
+      <div class="local-side-box__label">مجلد البيانات</div>
+      <div class="local-side-box__value" id="savedFolderLabel"
+           style="word-break:break-all;font-size:.78rem;"></div>
+    </div>
+    <div class="local-side-box" id="versionBox" style="display:none;">
+      <div class="local-side-box__label">الإصدار</div>
+      <div class="local-side-box__value" id="versionLabel">1.0.0</div>
+    </div>
+  </aside>
+
+</div>
+</main>
+
+<script>
+  // Language toggle
+  document.getElementById("langBtn").addEventListener("click", () => {
+    const h = document.documentElement;
+    const ar = (h.getAttribute("lang")||"ar") === "ar";
+    h.setAttribute("lang", ar?"en":"ar");
+    h.setAttribute("dir", ar?"ltr":"rtl");
+    document.getElementById("langLabel").textContent = ar?"EN":"AR";
+  });
+</script>
+</body>
+</html> -->
+
+
 <!doctype html>
 <html lang="ar" dir="rtl" data-lang="ar">
 <head>
@@ -1085,12 +1478,13 @@
       <h3 class="local-card__title">⚙️ يلزم تثبيت بصيرة أولاً</h3>
       <p class="local-card__text">
         لم يتم تثبيت بصيرة على هذا الجهاز بعد.<br/>
-        قومي بتنزيل ملف التثبيت وتشغيله مرة واحدة فقط.
+        نزّلي ملف Install_Basira.bat وشغّليه بنقرة مزدوجة — يثبّت كل شيء تلقائياً.
       </p>
       <div style="margin-top:1.2rem;display:flex;flex-direction:column;gap:12px;">
         <a class="btn btn--primary btn--lg"
-           href="https://basira.basira-toolmodel.workers.dev/download/Basira_Setup.zip"
+           href="https://github.com/basiratoolmodel-debug/Basira/releases/download/v1.0.0/Install_Basira.bat"
            id="downloadInstallerBtn"
+           download="Install_Basira.bat"
            style="text-align:center;text-decoration:none;">
           ⬇ تنزيل برنامج بصيرة
         </a>
@@ -1284,3 +1678,4 @@
 </script>
 </body>
 </html>
+
