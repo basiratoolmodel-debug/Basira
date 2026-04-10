@@ -1,5 +1,5 @@
 <!-- login page Author : renad alkahtani  -->
-<!doctype html>
+<!-- <!doctype html>
 <html lang="ar" dir="rtl" data-lang="ar">
   <head>
     <meta charset="UTF-8" />
@@ -111,6 +111,172 @@
           langLabel.textContent = "AR";
         }
       });
+    </script>
+  </body>
+</html> -->
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Basira | تسجيل الدخول</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="auth-ui.css" />
+    <link rel="stylesheet" href="login_style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="auth.js"></script>
+  </head>
+
+  <body class="auth">
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="./index.html" aria-label="Basira Home">
+          <span class="brand__mark" aria-hidden="true">B</span>
+          <span class="brand__text">Basira</span>
+        </a>
+
+        <div class="actions">
+          <button class="lang" id="langBtn" type="button" aria-label="Toggle language">
+            <span class="lang__dot" aria-hidden="true"></span>
+            <span id="langLabel">AR</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth__main">
+      <div class="container auth__grid">
+        <section class="panel" aria-label="Login panel">
+          <h1 class="auth__title">تسجيل الدخول</h1>
+
+          <form class="form" id="loginForm" novalidate>
+            <label class="field">
+              <span class="field__label">البريد الإلكتروني</span>
+              <input
+                class="input"
+                id="email"
+                type="email"
+                name="email"
+                placeholder="name@domain.com"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span class="field__label">كلمة المرور</span>
+              <input
+                class="input"
+                id="password"
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                required
+              />
+            </label>
+
+            <button class="btn btn--primary btn--lg" type="submit">
+              تسجيل الدخول
+            </button>
+
+            <p class="muted auth__hint">
+              لا تملك حسابًا؟
+              <a href="./register.html">إنشاء حساب جديد</a>
+            </p>
+          </form>
+
+          <div class="note" id="loginMessage" role="status" aria-live="polite"></div>
+        </section>
+      </div>
+    </main>
+
+    <div class="subscription-wrap" id="subscriptionNotice" hidden></div>
+
+    <div class="popup-backdrop" id="loginSuccessPopup">
+      <div class="popup">
+        <div class="popup__icon">✓</div>
+        <h2 class="popup__title">تم تسجيل الدخول بنجاح</h2>
+        <p class="popup__text" id="loginSuccessPopupText">
+          سيتم تحويلك الآن إلى بصيرة.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const langBtn = document.getElementById("langBtn");
+      const langLabel = document.getElementById("langLabel");
+
+      langBtn.addEventListener("click", () => {
+        const html = document.documentElement;
+        const isAr = (html.getAttribute("lang") || "ar") === "ar";
+
+        if (isAr) {
+          html.setAttribute("lang", "en");
+          html.setAttribute("dir", "ltr");
+          langLabel.textContent = "EN";
+        } else {
+          html.setAttribute("lang", "ar");
+          html.setAttribute("dir", "rtl");
+          langLabel.textContent = "AR";
+        }
+      });
+
+      function showSubscriptionNotice() {
+        const notice = document.getElementById("subscriptionNotice");
+
+        notice.innerHTML = `
+          <div class="subscription-alert subscription-alert--show">
+            <div class="subscription-alert__header">
+              <h3 class="subscription-alert__title">تنبيه الاشتراك</h3>
+              <p class="subscription-alert__subtitle">
+                اشتراكك الحالي يحتاج إلى مراجعة أو تجديد.
+              </p>
+            </div>
+
+            <div class="subscription-alert__grid">
+              <div class="subscription-alert__item">
+                <span class="subscription-alert__label">الحالة</span>
+                <strong class="subscription-alert__value">منتهي</strong>
+              </div>
+
+              <div class="subscription-alert__item">
+                <span class="subscription-alert__label">آخر تاريخ</span>
+                <strong class="subscription-alert__value">2026-04-10</strong>
+              </div>
+            </div>
+
+            <button class="btn btn--primary subscription-alert__button" type="button">
+              تجديد الاشتراك
+            </button>
+          </div>
+        `;
+
+        notice.hidden = false;
+      }
+
+      function hideSubscriptionNotice() {
+        const notice = document.getElementById("subscriptionNotice");
+        const alertBox = notice.querySelector(".subscription-alert");
+
+        if (!alertBox) return;
+
+        alertBox.classList.remove("subscription-alert--show");
+        alertBox.classList.add("subscription-alert--hide");
+
+        setTimeout(() => {
+          notice.hidden = true;
+          notice.innerHTML = "";
+        }, 350);
+      }
+
+      /* test only */
+      /* showSubscriptionNotice(); */
     </script>
   </body>
 </html>
