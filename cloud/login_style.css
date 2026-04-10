@@ -1,0 +1,122 @@
+/* .subscription-wrap {
+        margin-top: 18px;
+      }
+
+      .subscription-alert {
+        border: 1px solid rgba(220, 38, 38, 0.16);
+        background: #fff7f7;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      }
+
+      .subscription-alert__header {
+        margin-bottom: 14px;
+      }
+
+      .subscription-alert__title {
+        margin: 0 0 6px;
+        font-size: 1rem;
+        color: #991b1b;
+      }
+
+      .subscription-alert__subtitle {
+        margin: 0;
+        color: #7f1d1d;
+        line-height: 1.8;
+        font-size: 0.95rem;
+      }
+
+      .subscription-alert__grid {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .subscription-alert__item {
+        background: #ffffff;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+
+      .subscription-alert__label {
+        display: block;
+        font-size: 0.82rem;
+        color: #64748b;
+        margin-bottom: 4px;
+      }
+
+      .subscription-alert__value {
+        color: #0f172a;
+        font-size: 0.96rem;
+      }
+
+      .subscription-alert__button {
+        width: 100%;
+      } */
+
+      .subscription-wrap {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 16px;
+}
+
+.subscription-alert {
+  border: 1px solid rgba(220, 38, 38, 0.16);
+  background: #fff7f7;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.subscription-alert__header {
+  margin-bottom: 14px;
+}
+
+.subscription-alert__title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  color: #991b1b;
+}
+
+.subscription-alert__subtitle {
+  margin: 0;
+  color: #7f1d1d;
+  line-height: 1.8;
+  font-size: 0.95rem;
+}
+
+.subscription-alert__grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.subscription-alert__item {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.subscription-alert__label {
+  display: block;
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.subscription-alert__value {
+  color: #0f172a;
+  font-size: 0.96rem;
+}
+
+.subscription-alert__button {
+  width: 100%;
+}
