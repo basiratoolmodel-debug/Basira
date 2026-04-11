@@ -1,0 +1,63 @@
+<!-- ╔═══════════════════════════════════════════════════════════════╗
+     ║  header_web.html — Basira Shared Header Fragment              ║
+     ║  Injected by shared.js into every page.                       ║
+     ║  Supports: Arabic (RTL) ↔ English (LTR), Dark ↔ Light theme. ║
+     ╚═══════════════════════════════════════════════════════════════╝ -->
+
+<header class="site-header" id="siteHeader" role="banner">
+  <div class="container site-header__inner">
+
+    <!-- ── Brand ── -->
+    <a class="nav-brand" href="./index.html" aria-label="Basira Home">
+      <span class="nav-brand__mark" aria-hidden="true">B</span>
+      <span class="nav-brand__text" id="navBrandText">بصيرة</span>
+    </a>
+
+    <!-- ── Nav links (desktop) ── -->
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a class="nav-links__item" href="./index.html#what"     data-i18n="nav.what">ما هي بصيرة</a>
+      <a class="nav-links__item" href="./index.html#features" data-i18n="nav.features">المميزات</a>
+      <a class="nav-links__item" href="./index.html#start"    data-i18n="nav.start">كيف تبدأ</a>
+      <a class="nav-links__item" href="./documentation.html"  data-i18n="nav.docs">التوثيق</a>
+    </nav>
+
+    <!-- ── Actions ── -->
+    <div class="nav-actions">
+      <!-- Theme toggle -->
+      <button class="theme-btn" id="themeToggleBtn" type="button"
+              aria-label="Toggle dark/light mode" title="Toggle theme">
+        <span id="themeIcon">🌙</span>
+      </button>
+
+      <!-- Language toggle -->
+      <button class="lang-btn" id="langToggleBtn" type="button"
+              aria-label="Switch language">
+        <span class="lang-btn__dot" aria-hidden="true"></span>
+        <span id="langLabel">EN</span>
+      </button>
+
+      <!-- Auth buttons -->
+      <a class="btn btn--ghost" href="./login.html" data-i18n="nav.login">تسجيل الدخول</a>
+      <a class="btn btn--primary" href="./register.html" data-i18n="nav.register">إنشاء حساب</a>
+
+      <!-- Mobile hamburger -->
+      <button class="menu-toggle" id="menuToggleBtn" type="button"
+              aria-label="Open navigation menu" aria-expanded="false">
+        ☰
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ── Mobile drawer ── -->
+<nav class="nav-drawer" id="navDrawer" aria-label="Mobile navigation">
+  <a class="nav-links__item" href="./index.html#what"     data-i18n="nav.what">ما هي بصيرة</a>
+  <a class="nav-links__item" href="./index.html#features" data-i18n="nav.features">المميزات</a>
+  <a class="nav-links__item" href="./index.html#start"    data-i18n="nav.start">كيف تبدأ</a>
+  <a class="nav-links__item" href="./documentation.html"  data-i18n="nav.docs">التوثيق</a>
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--stroke);display:flex;flex-direction:column;gap:8px;">
+    <a class="btn btn--ghost" href="./login.html"    data-i18n="nav.login"    style="justify-content:flex-start;">تسجيل الدخول</a>
+    <a class="btn btn--primary" href="./register.html" data-i18n="nav.register" style="justify-content:flex-start;">إنشاء حساب</a>
+  </div>
+</nav>
+<div class="nav-overlay" id="navOverlay"></div>
