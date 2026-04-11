@@ -1,0 +1,322 @@
+<!-- register page — Basira -->
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Basira | إنشاء حساب</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Design system -->
+  <link rel="stylesheet" href="shared.css"/>
+  <link rel="stylesheet" href="auth-ui.css"/>
+
+  <!-- Apply saved theme before first paint -->
+  <script>
+    (function () {
+      const t = localStorage.getItem("basira_theme") || "light";
+      const l = localStorage.getItem("basira_lang")  || "ar";
+      document.documentElement.setAttribute("data-theme", t);
+      document.documentElement.setAttribute("lang",       l);
+      document.documentElement.setAttribute("dir",        l === "ar" ? "rtl" : "ltr");
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js" defer></script>
+</head>
+
+<body class="auth">
+
+  <!-- ── Auth topbar ──────────────────────────────────────── -->
+  <header class="topbar" id="authHeader">
+    <div class="container topbar__inner">
+
+      <a class="brand" href="./index.html" aria-label="Basira Home">
+        <span class="brand__mark" aria-hidden="true">B</span>
+        <span class="brand__text" id="authBrandText">بصيرة</span>
+      </a>
+
+      <div class="actions" style="display:flex;align-items:center;gap:10px;">
+
+        <!-- Theme toggle switch -->
+        <label class="theme-switch" aria-label="Toggle dark/light mode" title="Toggle theme">
+          <input type="checkbox" id="authThemeToggle" class="theme-switch__input"
+                 role="switch" aria-label="Dark mode"/>
+          <span class="theme-switch__track">
+            <span class="theme-switch__icon theme-switch__icon--sun"  aria-hidden="true">☀️</span>
+            <span class="theme-switch__icon theme-switch__icon--moon" aria-hidden="true">🌙</span>
+            <span class="theme-switch__thumb"></span>
+          </span>
+        </label>
+
+        <!-- Language toggle -->
+        <button class="lang" id="langBtn" type="button" aria-label="Switch language">
+          <span class="lang__dot" aria-hidden="true"></span>
+          <span id="langLabel">EN</span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Register form ────────────────────────────────────── -->
+  <main class="auth__main">
+    <div class="container auth__grid">
+
+      <!-- Main panel -->
+      <section class="panel" aria-label="Register panel">
+
+        <h1 class="auth__title" id="regTitle">إنشاء حساب</h1>
+        <p class="auth__subtitle" id="regSubtitle">
+          أنشئ حسابًا جديدًا للوصول إلى بصيرة، ثم اختر الخطة المناسبة لطبيعة استخدامك.
+        </p>
+
+        <form class="form" id="registerForm" novalidate>
+
+          <div class="row2">
+            <label class="field">
+              <span class="field__label" id="nameLabel">الاسم الكامل</span>
+              <input class="input" id="fullName" type="text" name="name"
+                     placeholder="الاسم الكامل" required/>
+            </label>
+
+            <label class="field">
+              <span class="field__label" id="planLabel">الخطة</span>
+              <select class="input" id="selectedPlan" name="plan" required>
+                <option value="" selected disabled id="planPlaceholder">اختيار الخطة</option>
+                <option value="starter">Starter</option>
+                <option value="professional">Professional</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="plan-card" id="planDetails">
+            <h3 class="plan-card__title" id="planTitle">تفاصيل الخطة</h3>
+            <p class="plan-card__text" id="planText"></p>
+            <ul class="plan-card__list" id="planList"></ul>
+          </div>
+
+          <label class="field">
+            <span class="field__label" id="emailLabel">البريد الإلكتروني</span>
+            <input class="input" id="registerEmail" type="email" name="email"
+                   placeholder="name@domain.com" required/>
+          </label>
+
+          <label class="field">
+            <span class="field__label" id="passLabel">كلمة المرور</span>
+            <input class="input" id="registerPassword" type="password" name="password"
+                   placeholder="••••••••" minlength="8" required/>
+          </label>
+
+          <div class="password-meter">
+            <div class="password-bar">
+              <div class="password-bar__fill" id="passwordBar"></div>
+            </div>
+            <div class="password-meta">
+              <span class="password-level" id="passwordLevel">مستوى كلمة المرور: غير محدد</span>
+              <span class="help" id="passHelp">يفضل استخدام أحرف كبيرة وصغيرة وأرقام ورمز خاص.</span>
+            </div>
+            <div class="password-rules">
+              <div class="rule" id="ruleLength">8 أحرف على الأقل</div>
+              <div class="rule" id="ruleUpper">حرف كبير واحد على الأقل</div>
+              <div class="rule" id="ruleLower">حرف صغير واحد على الأقل</div>
+              <div class="rule" id="ruleNumber">رقم واحد على الأقل</div>
+              <div class="rule" id="ruleSpecial">رمز خاص واحد على الأقل</div>
+            </div>
+          </div>
+
+          <button class="btn btn--primary btn--lg" type="submit" id="regSubmitBtn">
+            إنشاء الحساب
+          </button>
+
+          <p class="muted auth__hint" id="regHint">
+            لديك حساب بالفعل؟
+            <a href="./login.html" id="regHintLink">تسجيل الدخول</a>
+          </p>
+
+        </form>
+
+        <div class="note" id="registerMessage" role="status" aria-live="polite"></div>
+      </section>
+
+      <!-- Side info panel -->
+      <aside class="panel" aria-label="Info panel">
+        <h2 class="sideTitle" id="sideTitle">ما الذي ستحصل عليه بعد إنشاء الحساب؟</h2>
+        <p class="sideText" id="sideText">
+          بعد نجاح التسجيل يمكنك الوصول إلى مسار العمل داخل بصيرة، وبدء رفع البيانات، فحص الجودة، تطبيق التحسينات، ثم إنتاج التقارير واللوحات التفاعلية.
+        </p>
+        <ul class="sideList" id="sideList">
+          <li>واجهة واضحة لإدارة الحساب والخطة.</li>
+          <li>تجربة استخدام منظمة قبل تشغيل بصيرة المحلية.</li>
+          <li>تحقق من الاشتراك قبل الانتقال إلى بيئة العمل.</li>
+        </ul>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ── Success popup ─────────────────────────────────────── -->
+  <div class="popup-backdrop" id="successPopup">
+    <div class="popup">
+      <div class="popup__icon">✓</div>
+      <h2 class="popup__title" id="popupTitle">تم إنشاء الحساب بنجاح</h2>
+      <p class="popup__text" id="successPopupText">سيتم تحويلك الآن إلى الصفحة الرئيسية.</p>
+    </div>
+  </div>
+
+  <!-- Shared JS (theme, lang, progress bar) -->
+  <script src="shared.js"></script>
+
+  <script>
+    /* ── Plan data (bilingual) ── */
+    const PLAN_DATA = {
+      ar: {
+        starter:      { title:"Starter",      text:"خطة مناسبة للاستخدام الأساسي، وتوفر لك بداية واضحة مع المزايا الأساسية داخل بصيرة.",         items:["تحليل تلقائي للبيانات","لوحة مؤشرات أساسية","Web Scraping","مخرجات أولية قابلة للمراجعة"] },
+        professional: { title:"Professional", text:"خطة موجهة للمستخدم الذي يحتاج مخرجات أعمق وتقارير أوضح للاستخدام المهني.",                   items:["كل مزايا Starter","تقارير أكثر احترافية","نماذج تحليل أكثر","توصيات تفسيرية أوضح"] },
+        enterprise:   { title:"Enterprise",   text:"خطة مخصصة للجهات التي تحتاج تشغيلًا مؤسسيًا مرنًا وتجهيزًا أعلى حسب طبيعة البيئة.",           items:["كل مزايا Professional","إعدادات مخصصة","جاهزية أعلى للبيئات المؤسسية","مرونة في التوسع لاحقًا"] },
+      },
+      en: {
+        starter:      { title:"Starter",      text:"A plan suited for basic usage with clear access to Basira's core features.",                          items:["Automated data analysis","Basic KPI dashboard","Web Scraping","Preliminary reviewable outputs"] },
+        professional: { title:"Professional", text:"For users who need deeper outputs and clearer reports for professional use.",                            items:["Everything in Starter","More professional reports","Additional analysis models","Clearer interpretive recommendations"] },
+        enterprise:   { title:"Enterprise",   text:"For organisations needing flexible enterprise-grade operation tailored to their environment.",            items:["Everything in Professional","Custom configuration","Higher readiness for enterprise environments","Scalability for future growth"] },
+      }
+    };
+
+    function getLang() { return document.documentElement.getAttribute("lang") || "ar"; }
+
+    function updatePlanCard(value) {
+      const lang  = getLang();
+      const plans = PLAN_DATA[lang] || PLAN_DATA.ar;
+      const box   = document.getElementById("planDetails");
+      const title = document.getElementById("planTitle");
+      const text  = document.getElementById("planText");
+      const list  = document.getElementById("planList");
+
+      if (!value || !plans[value]) {
+        box.classList.remove("isVisible");
+        title.textContent = lang === "ar" ? "تفاصيل الخطة" : "Plan details";
+        text.textContent  = "";
+        list.innerHTML    = "";
+        return;
+      }
+
+      const plan = plans[value];
+      box.classList.add("isVisible");
+      title.textContent = plan.title;
+      text.textContent  = plan.text;
+      list.innerHTML    = plan.items.map(i => `<li>${i}</li>`).join("");
+    }
+
+    function scorePassword(pw) {
+      return {
+        score:      [pw.length >= 8, /[A-Z]/.test(pw), /[a-z]/.test(pw), /[0-9]/.test(pw), /[^A-Za-z0-9]/.test(pw)].filter(Boolean).length,
+        hasLength:  pw.length >= 8,
+        hasUpper:   /[A-Z]/.test(pw),
+        hasLower:   /[a-z]/.test(pw),
+        hasNumber:  /[0-9]/.test(pw),
+        hasSpecial: /[^A-Za-z0-9]/.test(pw),
+      };
+    }
+
+    function updatePasswordMeter(value) {
+      const lang  = getLang();
+      const isAr  = lang === "ar";
+      const info  = scorePassword(value);
+      const bar   = document.getElementById("passwordBar");
+      const label = document.getElementById("passwordLevel");
+
+      const rule = (id, ok) => document.getElementById(id)?.classList.toggle("ok", ok);
+      rule("ruleLength",  info.hasLength);
+      rule("ruleUpper",   info.hasUpper);
+      rule("ruleLower",   info.hasLower);
+      rule("ruleNumber",  info.hasNumber);
+      rule("ruleSpecial", info.hasSpecial);
+
+      bar.style.width = ((info.score / 5) * 100) + "%";
+
+      if (info.score <= 1) {
+        bar.style.background = "#DC2626";
+        label.textContent    = isAr ? "مستوى كلمة المرور: ضعيف" : "Password strength: Weak";
+        label.style.color    = "#DC2626";
+      } else if (info.score <= 3) {
+        bar.style.background = "#F59E0B";
+        label.textContent    = isAr ? "مستوى كلمة المرور: متوسط" : "Password strength: Fair";
+        label.style.color    = "#F59E0B";
+      } else {
+        bar.style.background = "#16A34A";
+        label.textContent    = isAr ? "مستوى كلمة المرور: قوي" : "Password strength: Strong";
+        label.style.color    = "#16A34A";
+      }
+    }
+
+    document.getElementById("selectedPlan").addEventListener("change", e => updatePlanCard(e.target.value));
+    document.getElementById("registerPassword").addEventListener("input", e => updatePasswordMeter(e.target.value));
+
+    /* ── Page i18n hook ── */
+    window.__basiraApplyPageI18n = function (lang) {
+      const isAr = lang === "ar";
+      const t = (ar, en) => isAr ? ar : en;
+
+      const brand = document.getElementById("authBrandText");
+      if (brand) brand.textContent = isAr ? "بصيرة" : "BASIRA";
+
+      const map = [
+        ["regTitle",      "إنشاء حساب",             "Create account"],
+        ["regSubtitle",   "أنشئ حسابًا جديدًا للوصول إلى بصيرة، ثم اختر الخطة المناسبة.", "Create a new account to access Basira, then choose the plan that suits your needs."],
+        ["nameLabel",     "الاسم الكامل",             "Full name"],
+        ["planLabel",     "الخطة",                   "Plan"],
+        ["planPlaceholder","اختيار الخطة",            "Choose a plan"],
+        ["emailLabel",    "البريد الإلكتروني",        "Email address"],
+        ["passLabel",     "كلمة المرور",              "Password"],
+        ["passHelp",      "يفضل استخدام أحرف كبيرة وصغيرة وأرقام ورمز خاص.", "Use uppercase, lowercase, numbers and a special character."],
+        ["ruleLength",    "8 أحرف على الأقل",         "At least 8 characters"],
+        ["ruleUpper",     "حرف كبير واحد على الأقل",  "At least one uppercase letter"],
+        ["ruleLower",     "حرف صغير واحد على الأقل",  "At least one lowercase letter"],
+        ["ruleNumber",    "رقم واحد على الأقل",       "At least one number"],
+        ["ruleSpecial",   "رمز خاص واحد على الأقل",   "At least one special character"],
+        ["regSubmitBtn",  "إنشاء الحساب",             "Create account"],
+        ["sideTitle",     "ما الذي ستحصل عليه بعد إنشاء الحساب؟", "What you get after registering"],
+        ["sideText",      "بعد نجاح التسجيل يمكنك الوصول إلى مسار العمل داخل بصيرة، وبدء رفع البيانات، فحص الجودة، تطبيق التحسينات، ثم إنتاج التقارير واللوحات التفاعلية.", "After registration you can access Basira's full workflow — upload data, run quality checks, apply improvements, and produce reports and dashboards."],
+        ["popupTitle",    "تم إنشاء الحساب بنجاح",    "Account created successfully"],
+        ["successPopupText","سيتم تحويلك الآن إلى الصفحة الرئيسية.", "Redirecting you now..."],
+      ];
+
+      map.forEach(([id, ar, en]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = t(ar, en);
+      });
+
+      /* Side list */
+      const sl = document.getElementById("sideList");
+      if (sl) sl.innerHTML = isAr
+        ? "<li>واجهة واضحة لإدارة الحساب والخطة.</li><li>تجربة استخدام منظمة قبل تشغيل بصيرة المحلية.</li><li>تحقق من الاشتراك قبل الانتقال إلى بيئة العمل.</li>"
+        : "<li>A clear interface for managing your account and plan.</li><li>A structured experience before launching Basira locally.</li><li>Subscription verification before entering the workspace.</li>";
+
+      /* Hint with link */
+      const hint     = document.getElementById("regHint");
+      const hintLink = document.getElementById("regHintLink");
+      if (hint && hintLink) {
+        const href = hintLink.href;
+        hint.innerHTML = isAr
+          ? `لديك حساب بالفعل؟ <a href="${href}" id="regHintLink">تسجيل الدخول</a>`
+          : `Already have an account? <a href="${href}" id="regHintLink">Sign in</a>`;
+      }
+
+      /* Re-render plan card in new language if one is selected */
+      const sel = document.getElementById("selectedPlan");
+      if (sel?.value) updatePlanCard(sel.value);
+
+      /* Email placeholder stays LTR */
+      const emailInput = document.getElementById("registerEmail");
+      if (emailInput) emailInput.setAttribute("dir", "ltr");
+    };
+  </script>
+
+</body>
+</html>

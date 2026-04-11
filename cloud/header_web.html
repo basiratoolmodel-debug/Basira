@@ -1,0 +1,66 @@
+<!-- header_web.html — Basira Shared Header Fragment  v2
+     Injected by shared.js into #header-placeholder on every page.
+     Changes: emoji button → CSS toggle switch | "Docs" → "Resources" -->
+
+<header class="site-header" id="siteHeader" role="banner">
+  <div class="container site-header__inner">
+
+    <!-- Brand -->
+    <a class="nav-brand" href="./index.html" aria-label="Basira Home">
+      <span class="nav-brand__mark" aria-hidden="true">B</span>
+      <span class="nav-brand__text" id="navBrandText">بصيرة</span>
+    </a>
+
+    <!-- Nav links (desktop — hidden on mobile via CSS) -->
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a class="nav-links__item" href="./index.html#what"     data-i18n="nav.what">ما هي بصيرة</a>
+      <a class="nav-links__item" href="./index.html#features" data-i18n="nav.features">المميزات</a>
+      <a class="nav-links__item" href="./index.html#start"    data-i18n="nav.start">كيف تبدأ</a>
+      <a class="nav-links__item" href="./documentation.html"  data-i18n="nav.docs">المصادر</a>
+    </nav>
+
+    <!-- Actions -->
+    <div class="nav-actions">
+
+      <!-- Theme toggle switch (checkbox-based, no emoji button) -->
+      <label class="theme-switch" aria-label="Toggle dark/light mode" title="Toggle theme">
+        <input type="checkbox" id="themeToggleInput" class="theme-switch__input"
+               role="switch" aria-label="Dark mode"/>
+        <span class="theme-switch__track">
+          <span class="theme-switch__icon theme-switch__icon--sun"  aria-hidden="true">☀️</span>
+          <span class="theme-switch__icon theme-switch__icon--moon" aria-hidden="true">🌙</span>
+          <span class="theme-switch__thumb"></span>
+        </span>
+      </label>
+
+      <!-- Language toggle -->
+      <button class="lang-btn" id="langToggleBtn" type="button" aria-label="Switch language">
+        <span class="lang-btn__dot" aria-hidden="true"></span>
+        <span id="langLabel">EN</span>
+      </button>
+
+      <!-- Auth buttons -->
+      <a class="btn btn--ghost"   href="./login.html"    data-i18n="nav.login">تسجيل الدخول</a>
+      <a class="btn btn--primary" href="./register.html" data-i18n="nav.register">إنشاء حساب</a>
+
+      <!-- Hamburger (mobile only — shown via CSS media query) -->
+      <button class="menu-toggle" id="menuToggleBtn" type="button"
+              aria-label="Open menu" aria-expanded="false">☰</button>
+    </div>
+
+  </div>
+</header>
+
+<!-- Mobile drawer (hidden by default via CSS display:none) -->
+<nav class="nav-drawer" id="navDrawer" aria-label="Mobile navigation" aria-hidden="true">
+  <a class="nav-links__item" href="./index.html#what"     data-i18n="nav.what">ما هي بصيرة</a>
+  <a class="nav-links__item" href="./index.html#features" data-i18n="nav.features">المميزات</a>
+  <a class="nav-links__item" href="./index.html#start"    data-i18n="nav.start">كيف تبدأ</a>
+  <a class="nav-links__item" href="./documentation.html"  data-i18n="nav.docs">المصادر</a>
+  <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--stroke);
+              display:flex;flex-direction:column;gap:8px;">
+    <a class="btn btn--ghost"   href="./login.html"    data-i18n="nav.login">تسجيل الدخول</a>
+    <a class="btn btn--primary" href="./register.html" data-i18n="nav.register">إنشاء حساب</a>
+  </div>
+</nav>
+<div class="nav-overlay" id="navOverlay"></div>

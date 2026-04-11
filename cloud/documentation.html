@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Basira Documentation | وثائق بصيرة</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Shared design system -->
+  <link rel="stylesheet" href="shared.css"/>
+
+  <style>
+    /* ════════════════════════════════════════
+       DOCUMENTATION PAGE STYLES
+       ════════════════════════════════════════ */
+
+    /* ── Shell layout ── */
+    .docs-shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+      padding: 28px 0 60px;
+      align-items: start;
+    }
+
+    /* ── Sidebar ── */
+    .docs-sidebar {
+      position: sticky;
+      top: calc(var(--topbar-height) + 20px);
+      height: calc(100vh - var(--topbar-height) - 40px);
+      background: var(--bg-surface);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background .3s, border-color .3s;
+    }
+
+    .docs-sidebar__top {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--stroke);
+    }
+
+    .docs-sidebar__title { font-weight: 800; font-size: 1rem; color: var(--text-main); }
+    .docs-sidebar__sub   { color: var(--text-muted); font-size: .82rem; margin-top: 3px; }
+
+    .docs-search { margin-top: 12px; }
+
+    .docs-search__input {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: var(--r-md);
+      border: 1px solid var(--stroke);
+      background: var(--bg-body);
+      font-family: var(--font-body);
+      font-size: .88rem;
+      color: var(--text-main);
+      transition: border .2s, background .2s;
+    }
+
+    .docs-search__input:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+      background: var(--bg-surface);
+    }
+
+    .docs-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .docs-nav::-webkit-scrollbar { width: 5px; }
+    .docs-nav::-webkit-scrollbar-thumb { background: var(--stroke); border-radius: 10px; }
+
+    .nav-group { margin-bottom: 14px; }
+
+    .nav-group__btn {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: transparent;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: .88rem;
+      padding: 7px 8px;
+      cursor: pointer;
+      border: none;
+      font-family: var(--font-body);
+      border-radius: var(--r-sm);
+      transition: background .2s;
+    }
+
+    .nav-group__btn:hover { background: var(--bg-subtle); }
+
+    .nav-items { display: flex; flex-direction: column; gap: 3px; margin-top: 3px; }
+
+    .nav-item {
+      padding: 8px 12px;
+      border-radius: var(--r-md);
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: .88rem;
+      transition: background .2s, color .2s;
+      cursor: pointer;
+      border-inline-end: 3px solid transparent;
+      text-decoration: none;
+      display: block;
+    }
+
+    .nav-item:hover { background: var(--bg-subtle); color: var(--text-main); }
+
+    .nav-item.isActive {
+      background: var(--brand-light);
+      color: var(--brand-primary);
+      font-weight: 600;
+      border-inline-end-color: var(--brand-primary);
+    }
+
+    /* ── Content area ── */
+    .docs-content {
+      background: var(--bg-surface);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-sm);
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background .3s, border-color .3s;
+    }
+
+    .docs-top {
+      padding: 28px 36px 22px;
+      border-bottom: 1px solid var(--stroke);
+    }
+
+    .docs-breadcrumb {
+      color: var(--text-muted);
+      font-size: .86rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .docs-heading { font-size: 1.9rem; font-weight: 800; color: var(--text-main); line-height: 1.2; }
+
+    .docs-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .badges { display: flex; gap: 7px; flex-wrap: wrap; }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: var(--r-full);
+      font-size: .78rem;
+      font-weight: 600;
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--stroke);
+    }
+
+    .badge.info { background: var(--brand-light); color: var(--brand-primary); border-color: rgba(37,99,235,.18); }
+    .badge.ok   { background: #DCFCE7; color: #16A34A; border-color: rgba(22,163,74,.2); }
+    .badge.warn { background: #FEF3C7; color: #B45309; border-color: rgba(245,158,11,.2); }
+
+    .mini-link {
+      font-size: .82rem;
+      color: var(--brand-primary);
+      font-weight: 600;
+      cursor: pointer;
+      padding: 5px 12px;
+      border-radius: var(--r-md);
+      background: var(--brand-light);
+      border: none;
+      font-family: var(--font-body);
+      transition: filter .2s;
+    }
+
+    .mini-link:hover { filter: brightness(.92); }
+
+    /* ── Article typography ── */
+    .docs-article { padding: 32px 36px; flex: 1; }
+
+    .docs-article p     { margin-bottom: 16px; font-size: 1rem; color: var(--text-body); line-height: 1.85; }
+    .docs-article h2    { margin: 28px 0 14px; font-size: 1.35rem; font-weight: 700; color: var(--text-main); padding-bottom: 8px; border-bottom: 1px solid var(--stroke); }
+    .docs-article h3    { margin: 20px 0 10px; font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+    .docs-article ul    { margin: 0 0 20px 0; padding-inline-start: 20px; color: var(--text-body); }
+    .docs-article li    { margin-bottom: 7px; line-height: 1.75; }
+
+    .callout {
+      padding: 14px 18px;
+      border-radius: var(--r-md);
+      margin: 20px 0;
+      background: var(--bg-subtle);
+      border-inline-start: 4px solid var(--stroke);
+      font-size: .94rem;
+      line-height: 1.7;
+    }
+
+    .callout.info { background: var(--brand-light); border-color: var(--brand-primary); color: #1E3A8A; }
+    .callout.ok   { background: #DCFCE7; border-color: #16A34A; color: #14532D; }
+    .callout.warn { background: #FEF3C7; border-color: #F59E0B; color: #78350F; }
+
+    [data-theme="dark"] .callout.info { color: #93C5FD; }
+    [data-theme="dark"] .callout.ok   { background: rgba(22,163,74,.12); color: #4ADE80; }
+    [data-theme="dark"] .callout.warn { background: rgba(245,158,11,.12); color: #FCD34D; }
+
+    /* ── Code blocks ── */
+    .code-container { position: relative; margin: 20px 0; }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      inset-inline-start: 10px;
+      background: rgba(255,255,255,.1);
+      color: #E2E8F0;
+      border: 1px solid rgba(255,255,255,.18);
+      padding: 3px 10px;
+      border-radius: var(--r-sm);
+      font-size: .78rem;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: background .2s;
+    }
+
+    .copy-btn:hover { background: rgba(255,255,255,.2); }
+
+    pre {
+      background: #0F172A;
+      padding: 18px 18px 18px 60px;
+      border-radius: var(--r-md);
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 0;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      color: #E2E8F0;
+      font-size: .87rem;
+    }
+
+    p code, li code {
+      background: var(--bg-subtle);
+      color: #DC2626;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--stroke);
+      font-size: .83em;
+    }
+
+    [data-theme="dark"] p code, [data-theme="dark"] li code {
+      color: #F87171;
+    }
+
+    /* ── Pager ── */
+    .docs-pager {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px 36px;
+      border-top: 1px solid var(--stroke);
+      background: var(--bg-subtle);
+      gap: 12px;
+    }
+
+    /* ── Mobile sidebar overlay ── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: var(--topbar-height) 0 0;
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(3px);
+      z-index: 997;
+    }
+
+    .sidebar-overlay.active { display: block; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .docs-shell { grid-template-columns: 240px 1fr; gap: 18px; }
+      .docs-article, .docs-top, .docs-pager { padding-inline: 22px; }
+    }
+
+    @media (max-width: 768px) {
+      .docs-shell { grid-template-columns: 1fr; }
+
+      .docs-sidebar {
+        position: fixed;
+        top: var(--topbar-height);
+        inset-inline-end: -100%;
+        width: 280px;
+        height: calc(100vh - var(--topbar-height));
+        z-index: 998;
+        border-radius: 0;
+        border: none;
+        border-inline-start: 1px solid var(--stroke);
+        transition: inset-inline-end .3s ease;
+      }
+
+      [dir="ltr"] .docs-sidebar { right: -100%; }
+      [dir="rtl"] .docs-sidebar { left: -100%; }
+
+      .docs-sidebar.open {
+        inset-inline-end: 0;
+      }
+
+      [dir="ltr"] .docs-sidebar.open { right: 0; }
+      [dir="rtl"] .docs-sidebar.open { left: 0; }
+
+      .docs-heading { font-size: 1.4rem; }
+      .docs-article, .docs-top { padding-inline: 18px; }
+      .docs-pager { padding-inline: 18px; }
+    }
+  </style>
+
+  <!-- Shared UI: language, theme, header/footer injection -->
+  <script src="shared.js"></script>
+</head>
+
+<body>
+
+  <!-- Shared header injected by shared.js -->
+  <div id="header-placeholder"></div>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT
+       ══════════════════════════════════════ -->
+  <main>
+    <div class="container docs-shell">
+
+      <!-- ── Sidebar ── -->
+      <aside class="docs-sidebar" id="docsSidebar" aria-label="Documentation sidebar">
+        <div class="docs-sidebar__top">
+          <div class="docs-sidebar__title" id="sidebarTitle">Basira Documentation</div>
+          <div class="docs-sidebar__sub" id="sidebarSub">دليل الاستخدام والتشغيل المحلي</div>
+          <div class="docs-search">
+            <input id="docsSearch" class="docs-search__input" type="search"
+                   placeholder="ابحث في الوثائق..." autocomplete="off"/>
+          </div>
+        </div>
+        <div class="docs-nav" id="docsNav"></div>
+      </aside>
+
+      <!-- ── Content ── -->
+      <section class="docs-content" aria-label="Documentation content">
+        <div class="docs-top">
+          <div class="docs-breadcrumb">
+            <span id="crumbRoot">الوثائق</span>
+            <span>›</span>
+            <span id="crumbGroup">البداية</span>
+            <span>›</span>
+            <span id="crumbPage">نظرة عامة</span>
+          </div>
+          <h1 class="docs-heading" id="docTitle">نظرة عامة على بصيرة</h1>
+          <div class="docs-meta">
+            <div class="badges">
+              <span class="badge info" id="docTag">أساسيات</span>
+              <span class="badge"      id="docReading">5 دقائق</span>
+              <span class="badge ok"   id="docUpdated">2026-02-17</span>
+            </div>
+            <button class="mini-link" id="copyLink" type="button">نسخ رابط القسم</button>
+          </div>
+        </div>
+
+        <article class="docs-article" id="docsArticle"></article>
+
+        <div class="docs-pager">
+          <button class="btn btn--ghost"   id="prevDoc" type="button">السابق</button>
+          <button class="btn btn--primary" id="nextDoc" type="button">التالي</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Shared footer injected by shared.js -->
+  <div id="footer-placeholder"></div>
+
+  <script>
+    /* ════════════════════════════════════════════════
+       DOCUMENTATION DATA
+       ════════════════════════════════════════════════ */
+    const DOCS_AR = [
+      {
+        groupId: "getting-started", groupTitle: "البداية",
+        items: [
+          {
+            id: "overview", title: "نظرة عامة على بصيرة", tag: "أساسيات", reading: "5 دقائق", updated: "2026-02-17",
+            body: `
+              <p>بصيرة منصة ويب سعودية لتحليل البيانات وتشغيل الأتمتة محليًا داخل بيئة المستخدم. هدفها تحويل البيانات الخام إلى <strong>قرار تنفيذي واضح</strong> عبر رحلة منظمة تشمل فحص الجودة، التنظيف، التحليل، ثم إخراج تقرير ولوحة مؤشرات.</p>
+              <div class="callout info"><strong>الفكرة الأساسية:</strong> بدل إرسال البيانات إلى خدمات خارجية، تعمل بصيرة داخل بيئة المستخدم أو شبكة المؤسسة (On-Premises) لدعم الخصوصية وحوكمة البيانات.</div>
+              <h2>ماذا تقدم بصيرة؟</h2>
+              <ul>
+                <li><strong>فحص جودة البيانات:</strong> اكتشاف القيم المفقودة، التكرار، وعدم الاتساق.</li>
+                <li><strong>تنظيف وتحسين:</strong> تطبيق سياسات إصلاح واضحة مع قياس الأثر قبل وبعد.</li>
+                <li><strong>تحليل وInsights:</strong> استخراج مؤشرات وتفسيرات مرتبطة بسياق العمل.</li>
+                <li><strong>مخرجات جاهزة:</strong> تقرير تنفيذي ولوحات KPI قابلة للمراجعة والمشاركة.</li>
+              </ul>`
+          },
+          {
+            id: "quickstart", title: "بدء سريع خلال 10 دقائق", tag: "أساسيات", reading: "6 دقائق", updated: "2026-02-17",
+            body: `
+              <p>هذا الدليل يوضح طريقة البدء السريع على ملف <code>CSV</code> أو <code>Excel</code>.</p>
+              <h2>الخطوة 1: تجهيز ملف البيانات</h2>
+              <ul>
+                <li>تأكدي من وجود عناوين الأعمدة في الصف الأول.</li>
+                <li>راجعي ترميز النصوص العربية (يفضل UTF-8).</li>
+              </ul>
+              <div class="callout ok"><strong>أفضل ممارسة:</strong> ابدئي بتطبيق إصلاح واحد في كل مرة، ثم راقبي الفرق في المؤشرات قبل تطبيق إصلاحات إضافية.</div>`
+          }
+        ]
+      },
+      {
+        groupId: "data-quality", groupTitle: "معالجة البيانات",
+        items: [
+          {
+            id: "missing-values", title: "القيم المفقودة", tag: "متقدم", reading: "8 دقائق", updated: "2026-02-17",
+            body: `
+              <p>القيم المفقودة تؤثر على دقة التحليل. بصيرة تعرض نسبة الفقد وتقترح خيارات قابلة للتطبيق.</p>
+              <h2>مثال: سياسة تعويض عبر الكود</h2>
+<pre><code>// سياسة تعويض القيم المفقودة
+if (column.isNumeric) {
+  fillMissingWith(Median);
+} else {
+  fillMissingWith(Mode);
+}</code></pre>
+              <div class="callout warn"><strong>تحذير:</strong> التعويض غير المدروس قد يسبب انحيازًا في التحليل النهائي.</div>`
+          }
+        ]
+      }
+    ];
+
+    const DOCS_EN = [
+      {
+        groupId: "getting-started", groupTitle: "Getting Started",
+        items: [
+          {
+            id: "overview", title: "Basira Overview", tag: "Basics", reading: "5 min", updated: "2026-02-17",
+            body: `
+              <p>Basira is a Saudi web platform for data analytics that runs automation locally inside the user's environment. Its goal is to transform raw data into <strong>clear executive decisions</strong> through a structured journey: quality inspection, cleaning, analysis, then reporting and KPI dashboards.</p>
+              <div class="callout info"><strong>Core idea:</strong> Instead of sending data to external services, Basira operates inside the user's environment or organisation's network (On-Premises), supporting privacy and data governance.</div>
+              <h2>What does Basira offer?</h2>
+              <ul>
+                <li><strong>Data quality inspection:</strong> Detect missing values, duplicates, and inconsistencies.</li>
+                <li><strong>Cleaning & improvement:</strong> Apply clear fix policies and measure the before/after impact.</li>
+                <li><strong>Analysis & insights:</strong> Extract indicators and interpretations tied to business context.</li>
+                <li><strong>Ready outputs:</strong> Executive reports and KPI dashboards ready for review and sharing.</li>
+              </ul>`
+          },
+          {
+            id: "quickstart", title: "Quick Start in 10 Minutes", tag: "Basics", reading: "6 min", updated: "2026-02-17",
+            body: `
+              <p>This guide explains how to get started quickly with a <code>CSV</code> or <code>Excel</code> file.</p>
+              <h2>Step 1: Prepare your data file</h2>
+              <ul>
+                <li>Make sure column headers are in the first row.</li>
+                <li>Check that Arabic text is encoded correctly (UTF-8 preferred).</li>
+              </ul>
+              <div class="callout ok"><strong>Best practice:</strong> Start by applying one fix at a time, then monitor the change in indicators before applying additional fixes.</div>`
+          }
+        ]
+      },
+      {
+        groupId: "data-quality", groupTitle: "Data Processing",
+        items: [
+          {
+            id: "missing-values", title: "Missing Values", tag: "Advanced", reading: "8 min", updated: "2026-02-17",
+            body: `
+              <p>Missing values affect the accuracy of analysis. Basira shows the missing rate and suggests actionable options.</p>
+              <h2>Example: fill policy via code</h2>
+<pre><code>// Missing value fill policy
+if (column.isNumeric) {
+  fillMissingWith(Median);
+} else {
+  fillMissingWith(Mode);
+}</code></pre>
+              <div class="callout warn"><strong>Warning:</strong> Careless imputation may introduce bias into the final analysis.</div>`
+          }
+        ]
+      }
+    ];
+
+    /* ════════════════════════════════════════════════
+       APP LOGIC
+       ════════════════════════════════════════════════ */
+    const state = {
+      query:   "",
+      current: { groupId: "getting-started", id: "overview" },
+      flat:    [],
+      lang:    document.documentElement.getAttribute("lang") || "ar"
+    };
+
+    const $d = (id) => document.getElementById(id);
+
+    function getDocs() {
+      return state.lang === "en" ? DOCS_EN : DOCS_AR;
+    }
+
+    function flattenDocs() {
+      const out = [];
+      for (const g of getDocs()) {
+        for (const it of g.items) out.push({ ...it, groupId: g.groupId, groupTitle: g.groupTitle });
+      }
+      return out;
+    }
+
+    function buildNav() {
+      const nav = $d("docsNav");
+      nav.innerHTML = "";
+      const q = state.query.toLowerCase();
+
+      for (const g of getDocs()) {
+        const groupItems = g.items.filter(it =>
+          (it.title + " " + g.groupTitle + " " + it.body).toLowerCase().includes(q)
+        );
+        if (groupItems.length === 0) continue;
+
+        const group = document.createElement("div");
+        group.className = "nav-group";
+
+        const btn = document.createElement("button");
+        btn.className = "nav-group__btn";
+        btn.innerHTML = `<span>${g.groupTitle}</span><span>▾</span>`;
+
+        const itemsDiv = document.createElement("div");
+        itemsDiv.className = "nav-items";
+
+        for (const it of groupItems) {
+          const a = document.createElement("a");
+          a.href = `#${it.groupId}/${it.id}`;
+          a.className = `nav-item ${state.current.id === it.id ? "isActive" : ""}`;
+          a.textContent = it.title;
+          a.onclick = (e) => {
+            e.preventDefault();
+            navigateTo(it.groupId, it.id, true);
+            closeSidebar();
+          };
+          itemsDiv.appendChild(a);
+        }
+
+        btn.onclick = () => {
+          itemsDiv.style.display = itemsDiv.style.display === "none" ? "flex" : "none";
+        };
+
+        group.appendChild(btn);
+        group.appendChild(itemsDiv);
+        nav.appendChild(group);
+      }
+    }
+
+    function renderContent(it) {
+      const isAr = state.lang === "ar";
+
+      $d("crumbRoot").textContent  = isAr ? "الوثائق" : "Docs";
+      $d("crumbGroup").textContent = it.groupTitle;
+      $d("crumbPage").textContent  = it.title;
+      $d("docTitle").textContent   = it.title;
+      $d("docTag").textContent     = it.tag;
+      $d("docTag").className       = `badge ${(it.tag === "متقدم" || it.tag === "Advanced") ? "warn" : "info"}`;
+      $d("docReading").textContent = it.reading;
+      $d("docUpdated").textContent = it.updated;
+      $d("copyLink").textContent   = isAr ? "نسخ رابط القسم" : "Copy link";
+      $d("prevDoc").textContent    = isAr ? "السابق" : "Previous";
+      $d("nextDoc").textContent    = isAr ? "التالي" : "Next";
+
+      // Add copy buttons to code blocks
+      let htmlBody = it.body.replace(/<pre><code>([\s\S]*?)<\/code><\/pre>/g, (match, code) => {
+        return `<div class="code-container">
+                  <button class="copy-btn" onclick="copyCode(this)">${isAr ? "نسخ" : "Copy"}</button>
+                  <pre><code>${code}</code></pre>
+                </div>`;
+      });
+
+      $d("docsArticle").innerHTML = htmlBody;
+      document.title = `${it.title} | Basira Docs`;
+
+      buildNav();
+      updatePager();
+    }
+
+    window.copyCode = function (btn) {
+      const code = btn.nextElementSibling.innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = state.lang === "ar" ? "تم النسخ!" : "Copied!";
+        setTimeout(() => (btn.textContent = orig), 2000);
+      });
+    };
+
+    function updatePager() {
+      const idx  = state.flat.findIndex(x => x.id === state.current.id);
+      const prev = state.flat[idx - 1];
+      const next = state.flat[idx + 1];
+
+      $d("prevDoc").disabled = !prev;
+      $d("nextDoc").disabled = !next;
+      $d("prevDoc").onclick  = () => prev && navigateTo(prev.groupId, prev.id, true);
+      $d("nextDoc").onclick  = () => next && navigateTo(next.groupId, next.id, true);
+    }
+
+    function navigateTo(groupId, id, pushHash) {
+      state.flat = flattenDocs();
+      const it   = state.flat.find(x => x.id === id);
+      if (!it) return;
+      state.current = { groupId, id };
+      if (pushHash) history.pushState(null, "", `#${groupId}/${id}`);
+      renderContent(it);
+      window.scrollTo(0, 0);
+    }
+
+    function closeSidebar() {
+      $d("docsSidebar")?.classList.remove("open");
+      $d("sidebarOverlay")?.classList.remove("active");
+    }
+
+    /* ── Page-level i18n hook called by shared.js ── */
+    window.__basiraApplyPageI18n = function (lang) {
+      state.lang  = lang;
+      state.flat  = flattenDocs();
+
+      const isAr = lang === "ar";
+
+      // Sidebar labels
+      const st = $d("sidebarTitle");
+      const ss = $d("sidebarSub");
+      if (st) st.textContent = isAr ? "توثيق بصيرة" : "Basira Documentation";
+      if (ss) ss.textContent = isAr ? "دليل الاستخدام والتشغيل المحلي" : "Usage guide and local setup reference";
+
+      const search = $d("docsSearch");
+      if (search) search.placeholder = isAr ? "ابحث في الوثائق..." : "Search docs...";
+
+      // Re-render with current language data
+      const it = state.flat.find(x => x.id === state.current.id)
+               || state.flat[0];
+      if (it) {
+        state.current = { groupId: it.groupId, id: it.id };
+        renderContent(it);
+      }
+    };
+
+    /* ── Init ── */
+    function init() {
+      state.flat = flattenDocs();
+      const hash = location.hash.replace("#", "").split("/");
+      if (hash.length === 2) state.current = { groupId: hash[0], id: hash[1] };
+
+      navigateTo(state.current.groupId, state.current.id, false);
+
+      $d("docsSearch").oninput = (e) => { state.query = e.target.value; buildNav(); };
+      $d("sidebarOverlay").onclick = closeSidebar;
+      $d("copyLink").onclick = () => navigator.clipboard.writeText(location.href).then(() => {
+        const btn = $d("copyLink");
+        const orig = btn.textContent;
+        btn.textContent = state.lang === "ar" ? "تم النسخ!" : "Copied!";
+        setTimeout(() => (btn.textContent = orig), 2000);
+      });
+
+      // Wire mobile menu toggle — shared.js renders the header menu toggle,
+      // but the docs sidebar has its own toggle in the shared header's mobile menu
+      window.__basiraDocsToggleSidebar = () => {
+        $d("docsSidebar")?.classList.toggle("open");
+        $d("sidebarOverlay")?.classList.toggle("active");
+      };
+    }
+
+    // Wait for shared.js to inject header/footer first, then init
+    window.addEventListener("load", init);
+  </script>
+</body>
+</html>

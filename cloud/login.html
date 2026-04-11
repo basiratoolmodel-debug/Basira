@@ -1,0 +1,167 @@
+<!-- login page — Basira -->
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Basira | تسجيل الدخول</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Design system (provides CSS variables, toggle switch, dark theme) -->
+  <link rel="stylesheet" href="shared.css"/>
+  <!-- Auth-specific styles -->
+  <link rel="stylesheet" href="auth-ui.css"/>
+  <link rel="stylesheet" href="login_style.css"/>
+
+  <!-- Apply saved theme before first paint (prevents flash) -->
+  <script>
+    (function () {
+      const t = localStorage.getItem("basira_theme") || "light";
+      const l = localStorage.getItem("basira_lang")  || "ar";
+      document.documentElement.setAttribute("data-theme", t);
+      document.documentElement.setAttribute("lang",       l);
+      document.documentElement.setAttribute("dir",        l === "ar" ? "rtl" : "ltr");
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+</head>
+
+<body class="auth">
+
+  <!-- ── Auth topbar ──────────────────────────────────────── -->
+  <header class="topbar" id="authHeader">
+    <div class="container topbar__inner">
+
+      <!-- Brand -->
+      <a class="brand" href="./index.html" aria-label="Basira Home">
+        <span class="brand__mark" aria-hidden="true">B</span>
+        <span class="brand__text" id="authBrandText">بصيرة</span>
+      </a>
+
+      <!-- Controls -->
+      <div class="actions" style="display:flex;align-items:center;gap:10px;">
+
+        <!-- Theme toggle switch -->
+        <label class="theme-switch" aria-label="Toggle dark/light mode" title="Toggle theme">
+          <input type="checkbox" id="authThemeToggle" class="theme-switch__input"
+                 role="switch" aria-label="Dark mode"/>
+          <span class="theme-switch__track">
+            <span class="theme-switch__icon theme-switch__icon--sun"  aria-hidden="true">☀️</span>
+            <span class="theme-switch__icon theme-switch__icon--moon" aria-hidden="true">🌙</span>
+            <span class="theme-switch__thumb"></span>
+          </span>
+        </label>
+
+        <!-- Language toggle -->
+        <button class="lang" id="langBtn" type="button" aria-label="Switch language">
+          <span class="lang__dot" aria-hidden="true"></span>
+          <span id="langLabel">EN</span>
+        </button>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Login form ───────────────────────────────────────── -->
+  <main class="auth__main">
+    <div class="container auth__grid">
+      <section class="panel" aria-label="Login panel">
+
+        <h1 class="auth__title" id="loginTitle">تسجيل الدخول</h1>
+
+        <form class="form" id="loginForm" novalidate>
+
+          <label class="field">
+            <span class="field__label" id="emailLabel">البريد الإلكتروني</span>
+            <input class="input" id="email" type="email" name="email"
+                   placeholder="name@domain.com" required/>
+          </label>
+
+          <label class="field">
+            <span class="field__label" id="passLabel">كلمة المرور</span>
+            <input class="input" id="password" type="password" name="password"
+                   placeholder="••••••••" required/>
+          </label>
+
+          <button class="btn btn--primary btn--lg" type="submit" id="loginSubmitBtn">
+            تسجيل الدخول
+          </button>
+
+          <p class="muted auth__hint" id="loginHint">
+            لا تملك حسابًا؟
+            <a href="./register.html" id="loginHintLink">إنشاء حساب جديد</a>
+          </p>
+
+        </form>
+
+        <div class="note" id="loginMessage" role="status" aria-live="polite"></div>
+        <div class="subscription-wrap" id="subscriptionNotice" hidden></div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- ── Login success popup ─────────────────────────────── -->
+  <div class="popup-backdrop" id="loginSuccessPopup">
+    <div class="popup">
+      <div class="popup__icon">✓</div>
+      <h2 class="popup__title" id="popupTitle">تم تسجيل الدخول بنجاح</h2>
+      <p class="popup__text" id="loginSuccessPopupText">سيتم تحويلك الآن إلى بصيرة.</p>
+    </div>
+  </div>
+
+  <!-- ── Shared JS (handles theme, lang, progress bar) ────── -->
+  <script src="shared.js"></script>
+
+  <!-- ── Page-level i18n for login elements ────────────────── -->
+  <script>
+    /* Called by shared.js after each language change */
+    window.__basiraApplyPageI18n = function (lang) {
+      const isAr = lang === "ar";
+
+      const t = (ar, en) => isAr ? ar : en;
+
+      /* Brand in auth topbar */
+      const brand = document.getElementById("authBrandText");
+      if (brand) brand.textContent = isAr ? "بصيرة" : "BASIRA";
+
+      /* Form labels */
+      const elMap = [
+        ["loginTitle",    "تسجيل الدخول",           "Sign in"],
+        ["emailLabel",    "البريد الإلكتروني",        "Email address"],
+        ["passLabel",     "كلمة المرور",              "Password"],
+        ["loginSubmitBtn","تسجيل الدخول",            "Sign in"],
+        ["loginHint",     null, null],                /* handled below */
+        ["popupTitle",    "تم تسجيل الدخول بنجاح",  "Successfully signed in"],
+        ["loginSuccessPopupText", "سيتم تحويلك الآن إلى بصيرة.", "Redirecting to Basira..."],
+      ];
+
+      elMap.forEach(([id, ar, en]) => {
+        const el = document.getElementById(id);
+        if (el && ar !== null) el.textContent = t(ar, en);
+      });
+
+      /* Hint with link */
+      const hint     = document.getElementById("loginHint");
+      const hintLink = document.getElementById("loginHintLink");
+      if (hint && hintLink) {
+        const linkHref = hintLink.href;
+        hint.innerHTML = isAr
+          ? `لا تملك حسابًا؟ <a href="${linkHref}" id="loginHintLink">إنشاء حساب جديد</a>`
+          : `Don't have an account? <a href="${linkHref}" id="loginHintLink">Create one</a>`;
+      }
+
+      /* Email placeholder stays LTR regardless of language */
+      const emailInput = document.getElementById("email");
+      if (emailInput) emailInput.setAttribute("dir", "ltr");
+    };
+  </script>
+
+</body>
+</html>

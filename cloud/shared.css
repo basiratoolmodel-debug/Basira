@@ -1,0 +1,634 @@
+/* =====================================================================
+   shared.css — Basira Design System  v2
+   Fixes:
+     • nav-drawer now hidden on desktop (display:none by default)
+     • Theme toggle replaced with proper CSS switch
+     • Two-color scroll progress bar
+     • Footer always full page width
+     • English typography: lighter weights, more refined
+     • "Docs" → "Resources" handled via i18n strings
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
+
+/* ─── CSS Custom Properties ─────────────────────────────────────── */
+:root {
+  --brand-primary:      #2563EB;
+  --brand-hover:        #1D4ED8;
+  --brand-light:        #EFF6FF;
+  --brand-gradient:     linear-gradient(135deg, #2563EB 0%, #38BDF8 100%);
+  --progress-gradient:  linear-gradient(90deg, #2563EB 0%, #38BDF8 50%, #00D4AA 100%);
+
+  --bg-body:         #F8FAFC;
+  --bg-surface:      #FFFFFF;
+  --bg-elevated:     #FFFFFF;
+  --bg-subtle:       #F1F5F9;
+
+  --text-main:       #0F172A;
+  --text-body:       #334155;
+  --text-muted:      #64748B;
+  --text-faint:      #94A3B8;
+
+  --stroke:          #E2E8F0;
+  --stroke-strong:   #CBD5E1;
+
+  --success:         #16A34A;
+  --warning:         #F59E0B;
+  --error:           #DC2626;
+
+  --shadow-sm:  0 1px 2px 0 rgba(0,0,0,.05);
+  --shadow-md:  0 4px 6px -1px rgba(0,0,0,.10), 0 2px 4px -2px rgba(0,0,0,.10);
+  --shadow-lg:  0 10px 15px -3px rgba(0,0,0,.10), 0 4px 6px -4px rgba(0,0,0,.10);
+
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-2xl:  20px;
+  --r-full: 9999px;
+
+  --max-width:      1280px;
+  --topbar-height:  68px;
+
+  --font-body:     "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+  --font-en:       "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-brand-ar: "Noto Sans Arabic", "IBM Plex Sans Arabic", sans-serif;
+  --font-mono:     ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+/* ─── Dark Theme ─────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-body:         #0B1120;
+  --bg-surface:      #111827;
+  --bg-elevated:     #1E293B;
+  --bg-subtle:       #1E293B;
+  --text-main:       #F1F5F9;
+  --text-body:       #CBD5E1;
+  --text-muted:      #94A3B8;
+  --text-faint:      #64748B;
+  --stroke:          #1E293B;
+  --stroke-strong:   #334155;
+  --brand-light:     rgba(37,99,235,.15);
+  --shadow-sm:  0 1px 2px 0 rgba(0,0,0,.3);
+  --shadow-md:  0 4px 6px -1px rgba(0,0,0,.4), 0 2px 4px -2px rgba(0,0,0,.3);
+  --shadow-lg:  0 10px 15px -3px rgba(0,0,0,.5), 0 4px 6px -4px rgba(0,0,0,.4);
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-main);
+  background: var(--bg-body);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background .3s ease, color .3s ease;
+}
+
+/* English: use Latin-optimised font */
+[lang="en"] { font-family: var(--font-en); }
+
+a { color: inherit; text-decoration: none; }
+button, input, select { font-family: inherit; border: none; outline: none; }
+
+/* Arabic brand text */
+[lang="ar"] .brand__text,
+[lang="ar"] .nav-brand__text {
+  font-family: var(--font-brand-ar);
+  font-size: 1.18rem;
+  letter-spacing: 0;
+}
+
+/* ─── Placeholders for shared header/footer injection ── */
+#header-placeholder,
+#footer-placeholder {
+  display: block;
+  width: 100%;
+}
+
+/* ─── Container ─────────────────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+main, .main-content { flex: 1 0 auto; }
+
+/* ════════════════════════════════════════════════════════════════════
+   SCROLL PROGRESS BAR  (two-color gradient)
+   ════════════════════════════════════════════════════════════════════ */
+
+#scrollProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  /* gradient spans full vw so colour at any position reflects scroll */
+  background: var(--progress-gradient);
+  background-size: 100vw 3px;
+  z-index: 10001;
+  pointer-events: none;
+  transition: width .08s linear;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   HEADER
+   ════════════════════════════════════════════════════════════════════ */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: var(--topbar-height);
+  background: rgba(255,255,255,.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--stroke);
+  box-shadow: var(--shadow-sm);
+  transition: background .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+
+[data-theme="dark"] .site-header { background: rgba(11,17,32,.94); }
+
+.site-header__inner {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ── Brand ── */
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.nav-brand__mark {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-md);
+  display: grid;
+  place-items: center;
+  background: var(--brand-gradient);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
+.nav-brand__text {
+  font-weight: 700;
+  font-size: 1.08rem;
+  color: var(--text-main);
+  letter-spacing: -.2px;
+  transition: color .3s;
+}
+
+/* ── Nav links (desktop) ── */
+.nav-links {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+/*
+  English UI rule: nav links should be 400–500 weight, not bold.
+  Bold everywhere looks heavy and untailored.
+*/
+.nav-links__item {
+  color: var(--text-muted);
+  font-weight: 400;
+  padding: 7px 14px;
+  border-radius: var(--r-md);
+  font-size: .9rem;
+  transition: background .2s, color .2s;
+  white-space: nowrap;
+  letter-spacing: .05px;
+}
+
+[lang="ar"] .nav-links__item { font-weight: 500; }
+
+.nav-links__item:hover,
+.nav-links__item--active {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  font-weight: 500;
+}
+
+/* ── Nav actions ── */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   THEME TOGGLE SWITCH
+   Replaces the emoji icon button.
+   ════════════════════════════════════════════════════════════════════ */
+
+.theme-switch {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Visually hidden checkbox — still accessible to keyboard */
+.theme-switch__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* The pill track */
+.theme-switch__track {
+  position: relative;
+  width: 50px;
+  height: 26px;
+  border-radius: var(--r-full);
+  background: #CBD5E1;
+  border: 1px solid var(--stroke-strong);
+  transition: background .3s ease, border-color .3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+}
+
+.theme-switch__input:checked ~ .theme-switch__track {
+  background: #1E293B;
+  border-color: #334155;
+}
+
+/* Icons inside track */
+.theme-switch__icon {
+  font-size: 12px;
+  line-height: 1;
+  z-index: 1;
+  transition: opacity .25s;
+  pointer-events: none;
+}
+
+.theme-switch__icon--sun  { opacity: 1; }
+.theme-switch__icon--moon { opacity: .45; }
+
+.theme-switch__input:checked ~ .theme-switch__track .theme-switch__icon--sun  { opacity: .45; }
+.theme-switch__input:checked ~ .theme-switch__track .theme-switch__icon--moon { opacity: 1;   }
+
+/* The sliding thumb */
+.theme-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+  transition: left .3s cubic-bezier(.4,0,.2,1);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.theme-switch__input:checked ~ .theme-switch__track .theme-switch__thumb {
+  left: calc(100% - 21px);
+  background: #94A3B8;
+}
+
+/* Focus ring for accessibility */
+.theme-switch__input:focus-visible ~ .theme-switch__track {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* ── Language toggle ── */
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  background: var(--bg-subtle);
+  border: 1px solid var(--stroke);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+
+.lang-btn:hover {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  border-color: rgba(37,99,235,.25);
+}
+
+.lang-btn__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ── Auth-page lang button (used in login / register topbars) ── */
+.lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  background: var(--bg-subtle);
+  border: 1px solid var(--stroke);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+
+.lang:hover {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+}
+
+.lang__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  display: block;
+}
+
+/* ── Mobile hamburger ── */
+.menu-toggle {
+  display: none;        /* hidden on desktop — shown in media query */
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--stroke);
+  color: var(--text-main);
+  font-size: 1.2rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   NAV DRAWER  ← CRITICAL FIX
+   display:none globally — shown only inside @media (max-width:768px)
+   ════════════════════════════════════════════════════════════════════ */
+
+.nav-drawer {
+  display: none;        /* ← hides it on desktop (the bug fix) */
+}
+
+.nav-overlay {
+  display: none;
+  position: fixed;
+  inset: var(--topbar-height) 0 0;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
+  z-index: 998;
+}
+
+.nav-overlay.active { display: block; }
+
+/* ── Shared Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-weight: 500;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: all .2s;
+  border: none;
+  white-space: nowrap;
+  letter-spacing: .1px;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-body);
+  border: 1px solid var(--stroke);
+  font-weight: 400;
+}
+
+.btn--ghost:hover { background: var(--bg-subtle); }
+
+.btn--primary {
+  background: var(--brand-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--primary:hover {
+  background: var(--brand-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   FOOTER  — always full page width
+   ════════════════════════════════════════════════════════════════════ */
+
+.site-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  width: 100%;                  /* explicit — prevents any flex-child shrinkage */
+  background: var(--bg-surface);
+  border-top: 1px solid var(--stroke);
+  padding: 52px 0 32px;
+  transition: background .3s ease, border-color .3s ease;
+}
+
+.site-footer__grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  gap: 40px;
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--stroke);
+  margin-bottom: 28px;
+}
+
+.site-footer__brand-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+  letter-spacing: -.3px;
+}
+
+[lang="ar"] .site-footer__brand-name { font-family: var(--font-brand-ar); }
+
+.site-footer__tagline {
+  font-size: .87rem;
+  font-weight: 400;             /* regular — not bold */
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 18px;
+}
+
+.site-footer__social { display: flex; gap: 10px; }
+
+.site-footer__social-link {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--stroke);
+  display: grid;
+  place-items: center;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all .2s;
+}
+
+.site-footer__social-link:hover {
+  background: var(--brand-light);
+  color: var(--brand-primary);
+  border-color: rgba(37,99,235,.2);
+}
+
+.site-footer__col-title {
+  font-size: .73rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.site-footer__links { display: flex; flex-direction: column; gap: 10px; }
+
+.site-footer__link {
+  font-size: .87rem;
+  font-weight: 400;             /* regular — not medium */
+  color: var(--text-muted);
+  transition: color .2s;
+}
+
+.site-footer__link:hover { color: var(--brand-primary); }
+
+.site-footer__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.site-footer__copy {
+  font-size: .82rem;
+  font-weight: 400;
+  color: var(--text-faint);
+}
+
+.site-footer__bottom-links { display: flex; gap: 16px; }
+
+.site-footer__bottom-link {
+  font-size: .82rem;
+  font-weight: 400;
+  color: var(--text-faint);
+  transition: color .2s;
+}
+
+.site-footer__bottom-link:hover { color: var(--brand-primary); }
+
+/* ════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .site-footer__grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .nav-links   { display: none; }
+  .menu-toggle { display: inline-flex; }
+
+  /* Mobile drawer: now visible but off-screen (slides in) */
+  .nav-drawer {
+    display: flex;                  /* override global display:none */
+    flex-direction: column;
+    gap: 4px;
+    position: fixed;
+    top: var(--topbar-height);
+    right: 0;
+    width: min(300px, 85vw);
+    height: calc(100vh - var(--topbar-height));
+    background: var(--bg-surface);
+    border-left: 1px solid var(--stroke);
+    padding: 20px;
+    z-index: 999;
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    transform: translateX(100%);    /* start off-screen to the right */
+    transition: transform .3s ease;
+  }
+
+  /* RTL: drawer opens from the left */
+  [dir="rtl"] .nav-drawer {
+    right: auto;
+    left: 0;
+    border-left: none;
+    border-right: 1px solid var(--stroke);
+    transform: translateX(-100%);   /* off-screen to the left */
+  }
+
+  .nav-drawer.open  { transform: translateX(0) !important; }
+
+  .nav-drawer .nav-links__item {
+    display: block;
+    padding: 11px 14px;
+    border-radius: var(--r-md);
+    font-size: .95rem;
+  }
+
+  .site-footer__grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .site-footer__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-actions .btn--ghost { display: none; }
+}

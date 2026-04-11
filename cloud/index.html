@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Basira | بصيرة — منصة تحليل البيانات السعودية</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Shared design system -->
+  <link rel="stylesheet" href="shared.css"/>
+
+  <style>
+    /* ════════════════════════════════════════
+       INDEX PAGE STYLES
+       ════════════════════════════════════════ */
+
+    /* ── Gradient text utility ── */
+    .text-gradient {
+      background: linear-gradient(135deg, #2563EB 0%, #00D4AA 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ── Sections ── */
+    .section { padding: 96px 0; }
+    .section--alt { background: var(--bg-subtle); }
+
+    .section__head,
+    .section__header {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 56px;
+    }
+
+    .section__title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      letter-spacing: -.03em;
+      line-height: 1.2;
+    }
+
+    .section__subtitle {
+      font-size: 1.08rem;
+      color: var(--text-muted);
+      line-height: 1.9;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 120px 0 80px;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-body);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: -40%;
+      inset-inline-end: -15%;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(37,99,235,.08) 0%, transparent 68%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      bottom: -25%;
+      inset-inline-start: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0,212,170,.07) 0%, transparent 68%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero__content {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r-full);
+      font-weight: 600;
+      font-size: .88rem;
+      color: var(--brand-primary);
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .hero__badge::before { content: "✨"; font-size: 1rem; }
+
+    .hero__title {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 22px;
+      color: var(--text-main);
+      letter-spacing: -.03em;
+    }
+
+    .hero__subtitle {
+      font-size: 1.1rem;
+      line-height: 1.95;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      max-width: 700px;
+      margin-inline: auto;
+    }
+
+    .hero__actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 56px;
+    }
+
+    .btn--large { padding: 14px 30px; font-size: 1rem; border-radius: var(--r-lg); }
+    .btn--soft  { background: var(--brand-light); color: var(--brand-primary); }
+    .btn--soft:hover { transform: translateY(-2px); filter: brightness(.95); }
+
+    .hero__stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      max-width: 720px;
+      margin: 0 auto;
+      padding-top: 48px;
+      border-top: 1px solid var(--stroke);
+    }
+
+    .stat { text-align: center; }
+
+    .stat__value {
+      font-size: 2.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #2563EB, #00D4AA);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .stat__label { font-size: .88rem; color: var(--text-muted); font-weight: 500; }
+
+    /* ── Cards grid ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .info-card {
+      background: var(--bg-surface);
+      padding: 30px;
+      border-radius: var(--r-2xl);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow-md);
+      transition: transform .3s, box-shadow .3s;
+    }
+
+    .info-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .info-card__title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text-main);
+    }
+
+    .info-card__text {
+      font-size: .94rem;
+      line-height: 1.85;
+      color: var(--text-muted);
+    }
+
+    /* ── Features ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .feature-card {
+      background: var(--bg-surface);
+      padding: 36px 30px;
+      border-radius: var(--r-2xl);
+      border: 1px solid var(--stroke);
+      transition: transform .3s, box-shadow .3s, border-color .3s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(37,99,235,.2);
+    }
+
+    .feature-card__icon {
+      width: 60px;
+      height: 60px;
+      background: var(--brand-light);
+      border-radius: var(--r-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-card__title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text-main);
+    }
+
+    .feature-card__text {
+      font-size: .92rem;
+      line-height: 1.85;
+      color: var(--text-muted);
+    }
+
+    /* ── Journey ── */
+    .journey {
+      background: #0B1120;
+      color: #fff;
+      padding: 96px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .journey::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
+    }
+
+    .journey__content { max-width: 900px; margin: 0 auto; }
+
+    .journey__header { text-align: center; margin-bottom: 72px; }
+
+    .journey__title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 14px; }
+
+    .journey__subtitle { font-size: 1rem; color: #94A3B8; line-height: 1.9; }
+
+    .journey-steps { display: grid; gap: 36px; }
+
+    .journey-step {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .journey-step__number {
+      width: 76px; height: 76px;
+      background: rgba(255,255,255,.06);
+      border: 2px solid rgba(255,255,255,.15);
+      border-radius: var(--r-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #00D4AA;
+      flex-shrink: 0;
+    }
+
+    .journey-step__title  { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
+    .journey-step__text   { font-size: .94rem; line-height: 1.9; color: #94A3B8; }
+
+    /* ── CTA ── */
+    .cta {
+      background: linear-gradient(135deg, #2563EB, #00D4AA);
+      padding: 96px 0;
+      text-align: center;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta::before {
+      content: "";
+      position: absolute;
+      top: -40%; inset-inline-end: -15%;
+      width: 550px; height: 550px;
+      background: rgba(255,255,255,.08);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .cta__content { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; }
+
+    .cta__title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 18px; line-height: 1.2; }
+
+    .cta__text { font-size: 1.05rem; margin-bottom: 38px; opacity: .93; line-height: 1.85; }
+
+    .cta__actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    .btn--white { background: #fff; color: var(--brand-primary); }
+    .btn--white:hover { background: #f0f4ff; transform: translateY(-2px); }
+
+    .btn--outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.65); }
+    .btn--outline:hover { background: rgba(255,255,255,.12); }
+
+    /* ── Dark theme tweaks ── */
+    [data-theme="dark"] .hero   { background: #0B1120; }
+    [data-theme="dark"] .section--alt { background: #111827; }
+    [data-theme="dark"] .info-card,
+    [data-theme="dark"] .feature-card { background: #1E293B; border-color: #334155; }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .features-grid, .cards-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .hero { padding: 100px 0 60px; }
+      .hero__stats, .features-grid, .cards-grid { grid-template-columns: 1fr; }
+      .journey-step { grid-template-columns: 60px 1fr; gap: 18px; }
+      .journey-step__number { width: 60px; height: 60px; font-size: 1.4rem; }
+    }
+
+    @media (max-width: 560px) {
+      .hero__actions { flex-direction: column; align-items: center; }
+      .cta__actions  { flex-direction: column; align-items: center; }
+    }
+  </style>
+
+  <!-- Shared UI: language, theme, header/footer injection -->
+  <script src="shared.js"></script>
+</head>
+
+<body>
+
+  <!-- Shared header injected by shared.js -->
+  <div id="header-placeholder"></div>
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT
+       ══════════════════════════════════════ -->
+  <main>
+
+    <!-- HERO -->
+    <section class="hero" id="what">
+      <div class="container">
+        <div class="hero__content">
+          <div class="hero__badge" id="heroBadge">من البيانات إلى قرار مؤسسي واضح</div>
+
+          <h1 class="hero__title" id="heroTitle">
+            منصة تحليل البيانات
+            <br/>
+            <span class="text-gradient" id="heroTitleGradient">المصممة للسوق السعودي</span>
+          </h1>
+
+          <p class="hero__subtitle" id="heroSubtitle">
+            بصيرة منصة ويب سعودية لتحليل البيانات وتشغيل الأتمتة محليًا داخل بيئة المستخدم.
+            تم تصميمها لدعم البيانات العربية والسياق السعودي، مع الحفاظ على الخصوصية والسيادة الرقمية.
+          </p>
+
+          <div class="hero__actions">
+            <a href="register.html" class="btn btn--primary btn--large" id="heroCTA1">ابدأ الآن</a>
+            <a href="#journey"       class="btn btn--soft btn--large"    id="heroCTA2">استعرض المراحل</a>
+          </div>
+
+          <div class="hero__stats">
+            <div class="stat">
+              <div class="stat__value">100%</div>
+              <div class="stat__label" id="stat1">تخزين محلي آمن</div>
+            </div>
+            <div class="stat">
+              <div class="stat__value">AR / EN</div>
+              <div class="stat__label" id="stat2">دعم ثنائي اللغة</div>
+            </div>
+            <div class="stat">
+              <div class="stat__value">4</div>
+              <div class="stat__label" id="stat3">مراحل تحليل ذكية</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- START PATHS -->
+    <section class="section" id="start">
+      <div class="container">
+        <div class="section__head">
+          <h2 class="section__title" id="startTitle">مسارات البدء</h2>
+          <p class="section__subtitle" id="startSubtitle">
+            ابدأ من بياناتك الحالية أو من مصدر جديد، ثم دع بصيرة تتولى تنظيم البيانات وتحويلها إلى مخرجات قابلة للفهم.
+          </p>
+        </div>
+
+        <div class="cards-grid">
+          <article class="info-card">
+            <h3 class="info-card__title" id="card1Title">تحميل البيانات</h3>
+            <p class="info-card__text" id="card1Text">
+              رفع ملفات CSV أو Excel مباشرةً ثم تنفيذ فحص الجودة، اكتشاف المشكلات، وتجهيز خطة تحسين تلقائية.
+            </p>
+          </article>
+
+          <article class="info-card">
+            <h3 class="info-card__title" id="card2Title">قوالب جاهزة</h3>
+            <p class="info-card__text" id="card2Text">
+              بدء سريع عبر قوالب جاهزة للوحات المؤشرات والتقارير ثم ربطها ببياناتك دون إعدادات معقدة.
+            </p>
+          </article>
+
+          <article class="info-card">
+            <h3 class="info-card__title" id="card3Title">ويب سكرابينق</h3>
+            <p class="info-card__text" id="card3Text">
+              لا تملك بيانات جاهزة؟ استخدم Web Scraping لجمع البيانات من مواقع الويب وتحليلها داخل بصيرة.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section section--alt" id="features">
+      <div class="container">
+        <div class="section__header">
+          <h2 class="section__title" id="featTitle">مميزات تلبي احتياجاتك</h2>
+          <p class="section__subtitle" id="featSubtitle">
+            مجموعة شاملة من الأدوات المصممة خصيصًا للبيئة السعودية.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-card__icon">⚙️</div>
+            <h3 class="feature-card__title" id="feat1Title">أتمتة ذكية</h3>
+            <p class="feature-card__text" id="feat1Text">
+              تشغيل جميع عمليات الأتمتة محليًا على نسخة المستخدم دون الحاجة لنقل البيانات لخدمات خارجية.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card__icon">🛡️</div>
+            <h3 class="feature-card__title" id="feat2Title">حماية البيانات</h3>
+            <p class="feature-card__text" id="feat2Text">
+              تخزين محلي On-Premises يضمن بقاء البيانات داخل شبكة المؤسسة أو جهاز المستخدم.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card__icon">🇸🇦</div>
+            <h3 class="feature-card__title" id="feat3Title">جاهزية محلية</h3>
+            <p class="feature-card__text" id="feat3Text">
+              دعم كامل للغة العربية وRTL مع توافق مع طبيعة البيانات السعودية.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card__icon">🧹</div>
+            <h3 class="feature-card__title" id="feat4Title">تنظيف تلقائي</h3>
+            <p class="feature-card__text" id="feat4Text">
+              معالجة القيم الناقصة، إزالة التكرار، وتوحيد التنسيقات تلقائيًا قبل التحليل.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card__icon">📊</div>
+            <h3 class="feature-card__title" id="feat5Title">لوحات تفاعلية</h3>
+            <p class="feature-card__text" id="feat5Text">
+              إنشاء لوحات مؤشرات احترافية تلقائيًا لإظهار أهم النتائج بصريًا.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-card__icon">📝</div>
+            <h3 class="feature-card__title" id="feat6Title">تقارير شاملة</h3>
+            <p class="feature-card__text" id="feat6Text">
+              توليد تقارير تنفيذية جاهزة للمراجعة مع توصيات واضحة وقابلة للتطبيق.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- JOURNEY -->
+    <section class="journey" id="journey">
+      <div class="container">
+        <div class="journey__content">
+          <div class="journey__header">
+            <h2 class="journey__title" id="journeyTitle">رحلة بصيرة في أربع مراحل</h2>
+            <p class="journey__subtitle" id="journeySubtitle">
+              من رفع البيانات إلى الحصول على رؤى قابلة للتنفيذ في خطوات واضحة ومنظمة.
+            </p>
+          </div>
+
+          <div class="journey-steps">
+            <div class="journey-step">
+              <div class="journey-step__number">01</div>
+              <div class="journey-step__content">
+                <h3 class="journey-step__title" id="step1Title">جمع البيانات</h3>
+                <p class="journey-step__text" id="step1Text">
+                  رفع ملفات CSV أو Excel أو جمع البيانات عبر Web Scraping عند عدم توفر بيانات جاهزة.
+                </p>
+              </div>
+            </div>
+
+            <div class="journey-step">
+              <div class="journey-step__number">02</div>
+              <div class="journey-step__content">
+                <h3 class="journey-step__title" id="step2Title">التنظيف والمعالجة</h3>
+                <p class="journey-step__text" id="step2Text">
+                  تنظيف القيم المفقودة، إزالة التكرار، وتوحيد التنسيقات ومعالجة النصوص العربية والإنجليزية.
+                </p>
+              </div>
+            </div>
+
+            <div class="journey-step">
+              <div class="journey-step__number">03</div>
+              <div class="journey-step__content">
+                <h3 class="journey-step__title" id="step3Title">التحليل الذكي</h3>
+                <p class="journey-step__text" id="step3Text">
+                  تحليل البيانات، تصنيفها، واستخراج الأنماط والنتائج المهمة بطريقة مفهومة.
+                </p>
+              </div>
+            </div>
+
+            <div class="journey-step">
+              <div class="journey-step__number">04</div>
+              <div class="journey-step__content">
+                <h3 class="journey-step__title" id="step4Title">النتائج والتقارير</h3>
+                <p class="journey-step__text" id="step4Text">
+                  إنشاء Dashboard وتقارير جاهزة تدعم اتخاذ القرار وتوضح أهم الرؤى المكتشفة.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="contact">
+      <div class="container">
+        <div class="cta__content">
+          <h2 class="cta__title" id="ctaTitle">ابدأ رحلتك مع بصيرة اليوم</h2>
+          <p class="cta__text" id="ctaText">
+            انضم إلى الجهات التي تحول بياناتها إلى قرارات استراتيجية بصورة آمنة ومحلية.
+          </p>
+          <div class="cta__actions">
+            <a href="register.html" class="btn btn--white btn--large"   id="ctaCTA1">ابدأ الآن</a>
+            <a href="login.html"    class="btn btn--outline btn--large" id="ctaCTA2">تسجيل الدخول</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Shared footer injected by shared.js -->
+  <div id="footer-placeholder"></div>
+
+  <script>
+    /* ── Page-level i18n applied by shared.js ── */
+    window.__basiraApplyPageI18n = function (lang) {
+      const isAr = lang === "ar";
+
+      const t = (arText, enText) => isAr ? arText : enText;
+
+      // Hero
+      document.getElementById("heroBadge").textContent        = t("من البيانات إلى قرار مؤسسي واضح", "From raw data to clear strategic decisions");
+      document.getElementById("heroTitle").childNodes[0].textContent = t("منصة تحليل البيانات", "The Data Analytics Platform") + "\n";
+      document.getElementById("heroTitleGradient").textContent = t("المصممة للسوق السعودي", "Built for Saudi Arabia");
+      document.getElementById("heroSubtitle").textContent     = t(
+        "بصيرة منصة ويب سعودية لتحليل البيانات وتشغيل الأتمتة محليًا داخل بيئة المستخدم، مع الحفاظ على الخصوصية والسيادة الرقمية.",
+        "Basira is a Saudi analytics platform that runs automation locally inside your environment, keeping your data private and sovereign."
+      );
+      document.getElementById("heroCTA1").textContent = t("ابدأ الآن", "Get Started");
+      document.getElementById("heroCTA2").textContent = t("استعرض المراحل", "Explore the Journey");
+      document.getElementById("stat1").textContent    = t("تخزين محلي آمن", "Secure Local Storage");
+      document.getElementById("stat2").textContent    = t("دعم ثنائي اللغة", "Bilingual Support");
+      document.getElementById("stat3").textContent    = t("مراحل تحليل ذكية", "Smart Analysis Steps");
+
+      // Start paths
+      document.getElementById("startTitle").textContent    = t("مسارات البدء", "Getting Started");
+      document.getElementById("startSubtitle").textContent = t(
+        "ابدأ من بياناتك الحالية أو من مصدر جديد، ثم دع بصيرة تتولى التحليل.",
+        "Start from your existing data or a new source, and let Basira handle the analysis."
+      );
+      document.getElementById("card1Title").textContent = t("تحميل البيانات", "Upload Data");
+      document.getElementById("card1Text").textContent  = t(
+        "رفع ملفات CSV أو Excel وفحص الجودة تلقائيًا.",
+        "Upload CSV or Excel files and run automatic quality checks."
+      );
+      document.getElementById("card2Title").textContent = t("قوالب جاهزة", "Ready Templates");
+      document.getElementById("card2Text").textContent  = t(
+        "بدء سريع عبر قوالب جاهزة للوحات والتقارير.",
+        "Quick-start with ready-made dashboard and report templates."
+      );
+      document.getElementById("card3Title").textContent = t("ويب سكرابينق", "Web Scraping");
+      document.getElementById("card3Text").textContent  = t(
+        "جمع البيانات من مواقع الويب وتحليلها داخل بصيرة.",
+        "Collect data from websites and analyse it inside Basira."
+      );
+
+      // Features
+      document.getElementById("featTitle").textContent    = t("مميزات تلبي احتياجاتك", "Features Built for You");
+      document.getElementById("featSubtitle").textContent = t(
+        "مجموعة شاملة من الأدوات المصممة خصيصًا للبيئة السعودية.",
+        "A comprehensive suite of tools designed specifically for Saudi organisations."
+      );
+      [
+        ["feat1Title","أتمتة ذكية","Smart Automation"],
+        ["feat1Text","تشغيل الأتمتة محليًا دون نقل البيانات لخدمات خارجية.","Run all automations locally without sending data to external services."],
+        ["feat2Title","حماية البيانات","Data Protection"],
+        ["feat2Text","تخزين محلي On-Premises يضمن بقاء البيانات داخل شبكة مؤسستك.","On-Premises storage keeps data inside your organisation's network."],
+        ["feat3Title","جاهزية محلية","Local Readiness"],
+        ["feat3Text","دعم كامل للغة العربية وRTL مع توافق مع البيانات السعودية.","Full Arabic and RTL support with compatibility for Saudi data formats."],
+        ["feat4Title","تنظيف تلقائي","Auto Cleaning"],
+        ["feat4Text","معالجة القيم الناقصة، إزالة التكرار وتوحيد التنسيقات تلقائيًا.","Handle missing values, remove duplicates, and unify formats automatically."],
+        ["feat5Title","لوحات تفاعلية","Interactive Dashboards"],
+        ["feat5Text","إنشاء لوحات مؤشرات احترافية تلقائيًا.","Automatically generate professional indicator dashboards."],
+        ["feat6Title","تقارير شاملة","Comprehensive Reports"],
+        ["feat6Text","توليد تقارير تنفيذية جاهزة مع توصيات قابلة للتطبيق.","Generate executive-ready reports with actionable recommendations."],
+      ].forEach(([id, ar, en]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = t(ar, en);
+      });
+
+      // Journey
+      document.getElementById("journeyTitle").textContent    = t("رحلة بصيرة في أربع مراحل", "Basira's Four-Stage Journey");
+      document.getElementById("journeySubtitle").textContent = t(
+        "من رفع البيانات إلى الحصول على رؤى قابلة للتنفيذ في خطوات واضحة.",
+        "From uploading data to actionable insights in clear, structured steps."
+      );
+      [
+        ["step1Title","جمع البيانات","Data Collection"],
+        ["step1Text","رفع ملفات CSV أو Excel أو جمع البيانات عبر Web Scraping.","Upload CSV or Excel files, or collect data via Web Scraping."],
+        ["step2Title","التنظيف والمعالجة","Cleaning & Processing"],
+        ["step2Text","تنظيف القيم المفقودة وتوحيد التنسيقات ومعالجة النصوص.","Clean missing values, unify formats, and process Arabic and English text."],
+        ["step3Title","التحليل الذكي","Smart Analysis"],
+        ["step3Text","تحليل البيانات، تصنيفها، واستخراج الأنماط المهمة.","Analyse data, classify it, and extract meaningful patterns."],
+        ["step4Title","النتائج والتقارير","Results & Reports"],
+        ["step4Text","إنشاء Dashboard وتقارير جاهزة تدعم اتخاذ القرار.","Generate Dashboards and reports that support decision-making."],
+      ].forEach(([id, ar, en]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = t(ar, en);
+      });
+
+      // CTA
+      document.getElementById("ctaTitle").textContent = t("ابدأ رحلتك مع بصيرة اليوم", "Start Your Basira Journey Today");
+      document.getElementById("ctaText").textContent  = t(
+        "انضم إلى الجهات التي تحول بياناتها إلى قرارات استراتيجية بصورة آمنة ومحلية.",
+        "Join organisations transforming their data into strategic decisions — securely and locally."
+      );
+      document.getElementById("ctaCTA1").textContent = t("ابدأ الآن", "Get Started");
+      document.getElementById("ctaCTA2").textContent = t("تسجيل الدخول", "Sign In");
+    };
+
+    /* Smooth scroll for anchor links */
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        const href = this.getAttribute("href");
+        if (!href || href === "#") return;
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

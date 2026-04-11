@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-lang="ar" data-theme="light">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Basira | Local Setup | إعداد بصيرة المحلي</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Shared design system -->
+  <link rel="stylesheet" href="shared.css"/>
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="local-setup.css"/>
+
+  <style>
+    /* ── Page layout ── */
+    body.local-setup-page {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .local-setup-main {
+      flex: 1 0 auto;
+      padding: 40px 0 60px;
+    }
+
+    .local-setup-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* ── Panel ── */
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r-2xl);
+      padding: 28px 28px 24px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ── Setup badge ── */
+    .setup-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: var(--r-full);
+      background: var(--brand-light);
+      color: var(--brand-primary);
+      border: 1px solid rgba(37,99,235,.18);
+      font-size: .8rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    /* ── Page title ── */
+    .setup-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      letter-spacing: -.3px;
+    }
+
+    .setup-subtitle {
+      color: var(--text-muted);
+      font-size: .94rem;
+      line-height: 1.85;
+      margin-bottom: 22px;
+    }
+
+    /* ── Step indicators ── */
+    .setup-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .setup-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--stroke);
+      background: var(--bg-body);
+      border-radius: var(--r-lg);
+      padding: 10px 12px;
+      transition: .25s ease;
+    }
+
+    .setup-step.isActive {
+      border-color: rgba(37,99,235,.28);
+      background: rgba(37,99,235,.05);
+    }
+
+    .setup-step.isDone {
+      border-color: rgba(22,163,74,.28);
+      background: rgba(22,163,74,.06);
+    }
+
+    .setup-step__index {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--stroke);
+      color: var(--text-main);
+      font-size: .8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .setup-step.isActive .setup-step__index { background: var(--brand-primary); color: #fff; }
+    .setup-step.isDone   .setup-step__index { background: #22c55e; color: #fff; }
+
+    .setup-step__label {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-body);
+      line-height: 1.3;
+    }
+
+    /* ── Cards ── */
+    .local-card {
+      border: 1px solid var(--stroke);
+      background: var(--bg-surface);
+      border-radius: var(--r-xl);
+      padding: 20px;
+      margin-bottom: 14px;
+      transition: background .3s, border-color .3s;
+    }
+
+    .local-card.isHidden { display: none !important; }
+
+    .local-card__title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .local-card__text {
+      color: var(--text-muted);
+      font-size: .9rem;
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+
+    /* ── Progress ── */
+    .progress-block { margin-top: 8px; }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--stroke);
+      border-radius: var(--r-full);
+      overflow: hidden;
+    }
+
+    .progress-bar__fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+      border-radius: var(--r-full);
+      transition: width .4s ease;
+    }
+
+    .progress-text {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: .82rem;
+      text-align: center;
+    }
+
+    .progress-pct { font-weight: 700; color: var(--brand-primary); }
+
+    /* ── Spinner ── */
+    .checking-spinner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 0;
+    }
+
+    .spinner-ring {
+      width: 26px;
+      height: 26px;
+      border: 3px solid var(--stroke);
+      border-top-color: var(--brand-primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Download animation ── */
+    .dl-animation {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 0 10px;
+    }
+
+    .dl-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: dlPulse 1.8s ease-in-out infinite;
+    }
+
+    .dl-icon svg {
+      width: 30px;
+      height: 30px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+    }
+
+    @keyframes dlPulse {
+      0%,100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(14,165,233,.4); }
+      50%      { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(14,165,233,0); }
+    }
+
+    .dl-bars { display: flex; gap: 6px; align-items: flex-end; height: 34px; }
+
+    .dl-bar {
+      width: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to top, #0ea5e9, #6366f1);
+      animation: dlBar 1.2s ease-in-out infinite;
+    }
+
+    .dl-bar:nth-child(1) { height: 50%; animation-delay: 0s; }
+    .dl-bar:nth-child(2) { height: 80%; animation-delay: .15s; }
+    .dl-bar:nth-child(3) { height: 100%; animation-delay: .3s; }
+    .dl-bar:nth-child(4) { height: 65%; animation-delay: .45s; }
+    .dl-bar:nth-child(5) { height: 40%; animation-delay: .6s; }
+
+    @keyframes dlBar {
+      0%,100% { opacity: .4; transform: scaleY(.6); }
+      50%     { opacity: 1;  transform: scaleY(1); }
+    }
+
+    .dl-status { font-size: .86rem; color: var(--text-muted); text-align: center; min-height: 2.4rem; line-height: 1.7; }
+    .dl-speed  { font-size: .78rem; color: var(--text-faint); font-family: var(--font-mono); }
+
+    /* ── Success state ── */
+    .success-check {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 0;
+    }
+
+    .check-circle {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: popIn .5s cubic-bezier(.175,.885,.32,1.275) both;
+    }
+
+    .check-circle svg {
+      width: 34px;
+      height: 34px;
+      stroke: white;
+      fill: none;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title { font-size: 1.1rem; font-weight: 700; color: #16a34a; text-align: center; }
+    .success-sub   { font-size: .86rem; color: var(--text-muted); text-align: center; max-width: 300px; }
+
+    .folder-display {
+      background: var(--bg-subtle);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r-lg);
+      padding: 10px 14px;
+      font-size: .8rem;
+      color: var(--text-body);
+      word-break: break-all;
+      font-family: var(--font-mono);
+      margin-top: .5rem;
+    }
+
+    .folder-display::before { content: '📁 '; }
+
+    /* ── Radio install options ── */
+    .install-radio-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      padding: 12px 14px;
+      border: 1.5px solid var(--stroke);
+      border-radius: var(--r-lg);
+      font-size: .88rem;
+      color: var(--text-body);
+      transition: .15s;
+    }
+
+    .install-radio-label:hover { border-color: #0ea5e9; background: #f0f9ff; }
+
+    .info-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: var(--r-lg);
+      padding: 12px 16px;
+      margin-bottom: 1rem;
+    }
+
+    .info-box p { margin: 0; font-size: .86rem; color: #166534; font-weight: 600; }
+
+    /* ── Input fields ── */
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .field__label { font-size: .84rem; font-weight: 600; color: var(--text-body); }
+
+    .input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-body);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r-md);
+      font-family: var(--font-body);
+      font-size: .9rem;
+      color: var(--text-main);
+      transition: border .2s;
+    }
+
+    .input:focus { outline: none; border-color: var(--brand-primary); }
+
+    /* ── Note/alert ── */
+    .note {
+      padding: 10px 14px;
+      border-radius: var(--r-md);
+      font-size: .86rem;
+      font-weight: 500;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .note.isOk  { display: block; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .note.isErr { display: block; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    /* ── Sidebar boxes ── */
+    .side-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: var(--r-lg);
+      background: var(--bg-subtle);
+      border: 1px solid var(--stroke);
+    }
+
+    .side-box__label { color: var(--text-faint); font-size: .78rem; margin-bottom: 4px; font-weight: 600; }
+    .side-box__value { color: var(--text-main); font-size: .9rem; font-weight: 700; word-break: break-all; }
+
+    .side-title { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+    .side-text  { font-size: .88rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 14px; }
+
+    .side-list { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; }
+    .side-list li { font-size: .86rem; color: var(--text-body); padding: 6px 0; border-bottom: 1px solid var(--stroke); }
+    .side-list li:last-child { border-bottom: none; }
+
+    /* ── Button sizes ── */
+    .btn--lg { padding: 12px 22px; font-size: .96rem; width: 100%; justify-content: center; margin-top: 4px; }
+
+    /* ── Dark theme overrides ── */
+    [data-theme="dark"] .info-box { background: rgba(22,163,74,.1); border-color: rgba(22,163,74,.25); }
+    [data-theme="dark"] .info-box p { color: #4ade80; }
+    [data-theme="dark"] .install-radio-label:hover { background: rgba(14,165,233,.1); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .local-setup-grid { grid-template-columns: 1fr; }
+      .setup-steps { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .setup-steps { grid-template-columns: 1fr; }
+      .panel { padding: 18px 16px; }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <!-- Shared UI controller (language, theme, header/footer injection) -->
+  <script src="shared.js"></script>
+  <!-- Page logic loaded after DOM ready -->
+  <script src="local-setup.js" defer></script>
+</head>
+
+<body class="local-setup-page">
+
+  <!-- Shared header injected here by shared.js -->
+  <div id="header-placeholder"></div>
+
+  <!-- ═══════════════════════════════════════
+       MAIN CONTENT
+       ═══════════════════════════════════════ -->
+  <main class="local-setup-main">
+    <div class="container local-setup-grid">
+
+      <!-- ── MAIN PANEL ────────────────────── -->
+      <section class="panel" aria-label="Local setup panel">
+
+        <div class="setup-hero" style="margin-bottom:18px;">
+          <div class="setup-badge" id="setupBadgeText">Local Environment</div>
+          <h1 class="setup-title" id="setupTitleText">Basira Local Setup</h1>
+          <p class="setup-subtitle" id="setupSubtitleText">
+            First time: choose a folder, download files, done.<br>
+            Every time after: Basira opens automatically.
+          </p>
+        </div>
+
+        <!-- Step indicators -->
+        <div class="setup-steps" id="setupSteps">
+          <div class="setup-step isActive">
+            <span class="setup-step__index">1</span>
+            <span class="setup-step__label" data-i18n-step="0">Check Device</span>
+          </div>
+          <div class="setup-step">
+            <span class="setup-step__index">2</span>
+            <span class="setup-step__label" data-i18n-step="1">Choose Folder</span>
+          </div>
+          <div class="setup-step">
+            <span class="setup-step__index">3</span>
+            <span class="setup-step__label" data-i18n-step="2">Download Files</span>
+          </div>
+          <div class="setup-step">
+            <span class="setup-step__index">4</span>
+            <span class="setup-step__label" data-i18n-step="3">Launch Basira</span>
+          </div>
+        </div>
+
+        <!-- CARD 1: Checking -->
+        <div class="local-card" id="checkingCard">
+          <div class="checking-spinner">
+            <div class="spinner-ring"></div>
+            <div>
+              <div style="font-weight:600;color:var(--text-main);" id="checkingTitle">Checking local environment...</div>
+              <div style="font-size:.82rem;color:var(--text-muted);" id="checkingSubtitle">Looking for the local server on this device</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: Not installed — Step A: pick location / Step B: download -->
+        <div class="local-card isHidden" id="notInstalledCard">
+
+          <!-- Step A: Pick location -->
+          <div id="installStepA">
+            <h3 class="local-card__title" id="installStepATitle">Step 1 — Choose install location</h3>
+            <p class="local-card__text" id="installStepAText">
+              Basira will be installed in a folder called <strong>Basira_app</strong>. Choose where to put it:
+            </p>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.4rem;">
+              <label class="install-radio-label">
+                <input type="radio" name="installLoc" value="documents" checked
+                       style="accent-color:#0ea5e9;width:16px;height:16px;flex-shrink:0;"/>
+                <div>
+                  <strong>Documents</strong>&nbsp;<span style="color:var(--text-faint);font-size:.78rem;">(recommended)</span>
+                  <div style="color:var(--text-faint);font-size:.77rem;font-family:var(--font-mono);margin-top:2px;">Documents\Basira_app</div>
+                </div>
+              </label>
+              <label class="install-radio-label">
+                <input type="radio" name="installLoc" value="desktop"
+                       style="accent-color:#0ea5e9;width:16px;height:16px;flex-shrink:0;"/>
+                <div>
+                  <strong>Desktop</strong>
+                  <div style="color:var(--text-faint);font-size:.77rem;font-family:var(--font-mono);margin-top:2px;">Desktop\Basira_app</div>
+                </div>
+              </label>
+              <label class="install-radio-label">
+                <input type="radio" name="installLoc" value="c"
+                       style="accent-color:#0ea5e9;width:16px;height:16px;flex-shrink:0;"/>
+                <div>
+                  <strong>C:\ root</strong>
+                  <div style="color:var(--text-faint);font-size:.77rem;font-family:var(--font-mono);margin-top:2px;">C:\Basira_app</div>
+                </div>
+              </label>
+            </div>
+            <button onclick="goToDownload()" class="btn btn--primary btn--lg">
+              Next — Download Installer →
+            </button>
+          </div>
+
+          <!-- Step B: Download installer -->
+          <div id="installStepB" style="display:none;">
+            <h3 class="local-card__title">Step 2 — Download &amp; run installer</h3>
+            <div class="info-box" id="chosenLocationBox">
+              <p>Install location: <span id="chosenLocationText" style="font-family:var(--font-mono);"></span></p>
+            </div>
+            <p class="local-card__text" style="margin-bottom:.8rem;">The installer will automatically:</p>
+            <ul style="font-size:.83rem;color:var(--text-muted);margin:0 0 1.2rem 1.4rem;line-height:2.2;">
+              <li>Create <strong>Basira_app</strong> at your chosen location</li>
+              <li>Download all required files from GitHub</li>
+              <li>Install Python packages (flask, etc.)</li>
+              <li>Register Basira to start with Windows</li>
+              <li>Create a Desktop shortcut</li>
+              <li>Open Basira automatically when done</li>
+            </ul>
+            <button class="btn btn--primary btn--lg" id="downloadInstallerBtn"
+                    onclick="forceDownloadBat()" style="font-size:.96rem;letter-spacing:.3px;">
+              ⬇ &nbsp; Download Basira Installer
+            </button>
+            <p style="font-size:.77rem;color:var(--text-faint);text-align:center;margin:.6rem 0 1rem;">
+              File: <code>Install_Basira.bat</code> — double-click it after download
+            </p>
+
+            <!-- Shown after download completes -->
+            <div id="afterDownloadMsg" style="display:none;padding-top:1rem;border-top:1px solid var(--stroke);">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:.8rem;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <p style="font-size:.86rem;color:#16a34a;font-weight:600;margin:0;">
+                  Downloaded! Now double-click <code>Install_Basira.bat</code>
+                </p>
+              </div>
+              <p style="font-size:.81rem;color:var(--text-muted);margin:0 0 .8rem;">
+                After the installer finishes and Basira opens, click below:
+              </p>
+              <button class="btn btn--primary btn--lg" id="retryConnectBtn" type="button">
+                ✓ &nbsp; Basira is installed — Continue
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: Installed — pick data folder -->
+        <div class="local-card isHidden" id="pickFolderCard">
+          <h3 class="local-card__title" id="pickFolderTitle">Choose data folder</h3>
+          <p class="local-card__text" id="pickFolderText">
+            First time on this device. Choose where Basira saves your analysis files and results.
+            <strong>You will not be asked again.</strong>
+          </p>
+          <label class="field" style="margin-top:.5rem;">
+            <span class="field__label" id="pickFolderLabel">Data folder</span>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <input class="input" id="dataDirectory" type="text"
+                     value="C:\BasiraData" placeholder="C:\BasiraData"
+                     style="flex:1;direction:ltr;text-align:left;"/>
+              <button class="btn btn--ghost" id="browseBtn" type="button">Browse</button>
+            </div>
+          </label>
+          <button class="btn btn--primary btn--lg" id="startSetupBtn" type="button" style="margin-top:.8rem;">
+            ⬇ &nbsp; Start Setup &amp; Download Files
+          </button>
+        </div>
+
+        <!-- CARD 4: Downloading -->
+        <div class="local-card isHidden" id="downloadingCard">
+          <h3 class="local-card__title" style="text-align:center;" id="downloadingTitle">Setting up Basira...</h3>
+          <div class="dl-animation">
+            <div class="dl-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6M4 20h16"/></svg>
+            </div>
+            <div class="dl-bars">
+              <div class="dl-bar"></div><div class="dl-bar"></div>
+              <div class="dl-bar"></div><div class="dl-bar"></div>
+              <div class="dl-bar"></div>
+            </div>
+            <div class="dl-status" id="dlStatus">Starting...</div>
+            <div class="dl-speed" id="dlSpeed"></div>
+          </div>
+          <div class="progress-block">
+            <div class="progress-bar">
+              <div class="progress-bar__fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text">
+              <span class="progress-pct" id="progressPct">0%</span>
+              &nbsp;—&nbsp;
+              <span id="progressText">Starting setup...</span>
+            </p>
+          </div>
+          <div class="folder-display isHidden" id="chosenFolderDisplay"></div>
+        </div>
+
+        <!-- CARD 5: Recovery -->
+        <div class="local-card isHidden" id="recoveryCard">
+          <h3 class="local-card__title" id="recoveryTitle">Issue Detected</h3>
+          <p class="local-card__text" id="recoveryText">There is a problem with the local environment.</p>
+          <div class="isHidden" id="recoveryPathField" style="margin:.8rem 0;">
+            <label class="field">
+              <span class="field__label" id="recoveryFolderLabel">Choose new path</span>
+              <div style="display:flex;gap:10px;align-items:center;">
+                <input class="input" id="recoveryDir" type="text"
+                       value="C:\BasiraData" style="flex:1;direction:ltr;text-align:left;"/>
+                <button class="btn btn--ghost" id="browseRecoveryBtn" type="button">Browse</button>
+              </div>
+            </label>
+          </div>
+          <button class="btn btn--primary btn--lg" id="repairBtn" type="button"
+                  data-mode="repair-files" style="margin-top:.5rem;">
+            Repair &amp; Re-download
+          </button>
+        </div>
+
+        <!-- CARD 6: Subscription inactive -->
+        <div class="local-card isHidden" id="subscriptionCard">
+          <h3 class="local-card__title" id="subTitle">Subscription Inactive</h3>
+          <p class="local-card__text" id="subText">Please renew your subscription to continue.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:.5rem;">
+            <button class="btn btn--primary btn--lg" id="renewSubBtn" type="button">Renew Subscription</button>
+            <button class="btn btn--ghost btn--lg"  id="renewDemoBtn" type="button">Demo Renewal</button>
+          </div>
+        </div>
+
+        <!-- CARD 7: Ready / Success -->
+        <div class="local-card isHidden" id="readyCard">
+          <div class="success-check">
+            <div class="check-circle">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="success-title" id="readyTitle">Basira is Ready!</div>
+            <div class="success-sub" id="readySub">Setup complete. You can now open Basira.</div>
+            <div class="folder-display isHidden" id="readyFolderDisplay"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:.5rem;">
+            <!--
+              FIX: Clicking "Open Basira Now" navigates the CURRENT tab to the local app.
+              This closes the setup page and opens Basira in the same window — no extra tabs.
+              The handler calls openLocalAppWithSession() which now uses window.location.href.
+            -->
+            <button class="btn btn--primary btn--lg" id="launchBtn" type="button">
+              🚀 &nbsp; <span id="launchBtnText">Open Basira Now</span>
+            </button>
+            <button class="btn btn--ghost" id="renewSubBtnReady" type="button">
+              <span id="renewBtnText">Renew Subscription</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="note" id="setupNote" role="status" aria-live="polite"></div>
+      </section>
+
+      <!-- ── SIDE PANEL ─────────────────────── -->
+      <aside class="panel" aria-label="Info panel">
+        <h2 class="side-title" id="sidePanelTitle">How does setup work?</h2>
+        <p class="side-text" id="sidePanelText">
+          First time only: choose a folder and files download automatically.
+          Every time after, Basira opens instantly — no steps needed.
+        </p>
+        <ul class="side-list" id="sidePanelList">
+          <li>✓ Check if Basira is installed on this device.</li>
+          <li>✓ <strong>First time only:</strong> choose install location.</li>
+          <li>✓ Download all files from GitHub automatically.</li>
+          <li>✓ Open the analysis UI directly.</li>
+        </ul>
+
+        <div class="side-box">
+          <div class="side-box__label">Cloud Account</div>
+          <div class="side-box__value" id="cloudUserLabel">Reading...</div>
+        </div>
+        <div class="side-box">
+          <div class="side-box__label">Subscription</div>
+          <div class="side-box__value" id="subscriptionLabel">Reading...</div>
+        </div>
+        <div class="side-box" id="savedFolderBox" style="display:none;">
+          <div class="side-box__label">Data Folder</div>
+          <div class="side-box__value" id="savedFolderLabel"
+               style="font-size:.77rem;font-family:var(--font-mono);"></div>
+        </div>
+        <div class="side-box" id="versionBox" style="display:none;">
+          <div class="side-box__label">Version</div>
+          <div class="side-box__value" id="versionLabel">1.0.0</div>
+        </div>
+      </aside>
+
+    </div><!-- /.local-setup-grid -->
+  </main>
+
+  <!-- Shared footer injected here by shared.js -->
+  <div id="footer-placeholder"></div>
+
+  <script>
+    /* ─── Page-level i18n hook called by shared.js ───────────────── */
+    window.__basiraApplyPageI18n = function(lang) {
+      const isAr = lang === "ar";
+
+      /* Step labels */
+      const stepLabels = isAr
+        ? ["فحص الجهاز", "اختيار المجلد", "تنزيل الملفات", "تشغيل بصيرة"]
+        : ["Check Device", "Choose Folder", "Download Files", "Launch Basira"];
+
+      document.querySelectorAll("[data-i18n-step]").forEach(el => {
+        const idx = +el.getAttribute("data-i18n-step");
+        if (stepLabels[idx]) el.textContent = stepLabels[idx];
+      });
+
+      /* Hero section */
+      const badge    = document.getElementById("setupBadgeText");
+      const title    = document.getElementById("setupTitleText");
+      const subtitle = document.getElementById("setupSubtitleText");
+
+      if (badge)    badge.textContent    = isAr ? "البيئة المحلية" : "Local Environment";
+      if (title)    title.textContent    = isAr ? "إعداد بصيرة المحلي" : "Basira Local Setup";
+      if (subtitle) subtitle.innerHTML   = isAr
+        ? "المرة الأولى: اختري مجلدًا وسيتم تنزيل الملفات تلقائيًا.<br>في كل مرة بعدها: يفتح بصيرة مباشرةً."
+        : "First time: choose a folder, download files, done.<br>Every time after: Basira opens automatically.";
+
+      /* Checking card */
+      const checkTitle    = document.getElementById("checkingTitle");
+      const checkSubtitle = document.getElementById("checkingSubtitle");
+      if (checkTitle)    checkTitle.textContent    = isAr ? "جارٍ فحص البيئة المحلية..." : "Checking local environment...";
+      if (checkSubtitle) checkSubtitle.textContent = isAr ? "البحث عن الخادم المحلي على هذا الجهاز" : "Looking for the local server on this device";
+
+      /* Install card */
+      const installATitle = document.getElementById("installStepATitle");
+      const installAText  = document.getElementById("installStepAText");
+      if (installATitle) installATitle.textContent = isAr ? "الخطوة 1 — اختيار مكان التثبيت" : "Step 1 — Choose install location";
+      if (installAText)  installAText.innerHTML    = isAr
+        ? "سيتم تثبيت بصيرة في مجلد باسم <strong>Basira_app</strong>. اختاري مكانه:"
+        : "Basira will be installed in a folder called <strong>Basira_app</strong>. Choose where to put it:";
+
+      /* Pick folder card */
+      const pft = document.getElementById("pickFolderTitle");
+      const pftxt = document.getElementById("pickFolderText");
+      const pfl = document.getElementById("pickFolderLabel");
+      if (pft)   pft.textContent   = isAr ? "اختيار مجلد البيانات" : "Choose data folder";
+      if (pftxt) pftxt.innerHTML   = isAr
+        ? "المرة الأولى على هذا الجهاز. اختاري مكان حفظ ملفات التحليل والنتائج.<br><strong>لن تُسألي مرة أخرى.</strong>"
+        : "First time on this device. Choose where Basira saves your analysis files.<br><strong>You will not be asked again.</strong>";
+      if (pfl)   pfl.textContent   = isAr ? "مجلد البيانات" : "Data folder";
+
+      /* Downloading card */
+      const dlTitle = document.getElementById("downloadingTitle");
+      if (dlTitle) dlTitle.textContent = isAr ? "جارٍ إعداد بصيرة..." : "Setting up Basira...";
+
+      /* Recovery card */
+      const recTitle = document.getElementById("recoveryTitle");
+      const recFolder = document.getElementById("recoveryFolderLabel");
+      if (recTitle)  recTitle.textContent  = isAr ? "تم اكتشاف مشكلة" : "Issue Detected";
+      if (recFolder) recFolder.textContent = isAr ? "اختيار مسار جديد" : "Choose new path";
+
+      /* Subscription card */
+      const subTitle = document.getElementById("subTitle");
+      const subText  = document.getElementById("subText");
+      if (subTitle) subTitle.textContent = isAr ? "الاشتراك غير نشط" : "Subscription Inactive";
+      if (subText)  subText.textContent  = isAr ? "يرجى تجديد اشتراكك للمتابعة." : "Please renew your subscription to continue.";
+
+      /* Ready card */
+      const readyTitle = document.getElementById("readyTitle");
+      const readySub   = document.getElementById("readySub");
+      const launchTxt  = document.getElementById("launchBtnText");
+      const renewTxt   = document.getElementById("renewBtnText");
+      if (readyTitle) readyTitle.textContent = isAr ? "بصيرة جاهزة!" : "Basira is Ready!";
+      if (readySub)   readySub.textContent   = isAr ? "اكتمل الإعداد. يمكنك الآن فتح بصيرة." : "Setup complete. You can now open Basira.";
+      if (launchTxt)  launchTxt.textContent  = isAr ? "فتح بصيرة الآن" : "Open Basira Now";
+      if (renewTxt)   renewTxt.textContent   = isAr ? "تجديد الاشتراك" : "Renew Subscription";
+
+      /* Side panel */
+      const spt  = document.getElementById("sidePanelTitle");
+      const sptx = document.getElementById("sidePanelText");
+      const spl  = document.getElementById("sidePanelList");
+      if (spt)  spt.textContent  = isAr ? "كيف يعمل الإعداد؟" : "How does setup work?";
+      if (sptx) sptx.textContent = isAr
+        ? "المرة الأولى فقط: اختاري مجلدًا وستُنزَّل الملفات تلقائيًا. في كل مرة بعدها يفتح بصيرة فورًا."
+        : "First time only: choose a folder and files download automatically. Every time after, Basira opens instantly.";
+      if (spl) spl.innerHTML = isAr
+        ? `<li>✓ فحص تثبيت بصيرة على هذا الجهاز.</li>
+           <li>✓ <strong>المرة الأولى فقط:</strong> اختيار مكان التثبيت.</li>
+           <li>✓ تنزيل جميع الملفات من GitHub تلقائيًا.</li>
+           <li>✓ فتح واجهة التحليل مباشرةً.</li>`
+        : `<li>✓ Check if Basira is installed on this device.</li>
+           <li>✓ <strong>First time only:</strong> choose install location.</li>
+           <li>✓ Download all files from GitHub automatically.</li>
+           <li>✓ Open the analysis UI directly.</li>`;
+    };
+
+    /* ─── Installer download helper ─────────────────────────────── */
+    function goToDownload() {
+      const selected = document.querySelector('input[name="installLoc"]:checked');
+      const val = selected ? selected.value : "documents";
+      const labels = {
+        documents: "Documents\\Basira_app",
+        desktop:   "Desktop\\Basira_app",
+        c:         "C:\\Basira_app"
+      };
+      const locText = document.getElementById("chosenLocationText");
+      if (locText) locText.textContent = labels[val] || "Documents\\Basira_app";
+      document.getElementById("installStepA").style.display = "none";
+      document.getElementById("installStepB").style.display = "block";
+    }
+
+    async function forceDownloadBat() {
+      const btn = document.getElementById("downloadInstallerBtn");
+      btn.textContent = "Downloading...";
+      btn.disabled = true;
+
+      try {
+        const url = "https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Install_Basira.bat";
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Network error");
+        const blob = await res.blob();
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "Install_Basira.bat";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+
+        btn.textContent = "✓  Downloaded";
+        btn.style.background = "#16a34a";
+
+        const afterMsg = document.getElementById("afterDownloadMsg");
+        if (afterMsg) afterMsg.style.display = "block";
+      } catch (err) {
+        btn.textContent = "⬇ Download Basira Installer";
+        btn.disabled = false;
+        window.open(
+          "https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Install_Basira.bat",
+          "_blank"
+        );
+      }
+    }
+  </script>
+</body>
+</html>
