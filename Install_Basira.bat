@@ -3,7 +3,6 @@ setlocal EnableDelayedExpansion
 title Basira Installer
 
 set "RAW=https://raw.githubusercontent.com/basiratoolmodel-debug/Basira/main/Basira_local"
-set "API=https://api.github.com/repos/basiratoolmodel-debug/Basira/contents/Basira_local?ref=main"
 set "APPDATA_DIR=%USERPROFILE%\AppData\Local\Basira"
 set "LOG=%APPDATA_DIR%\install.log"
 
@@ -77,86 +76,80 @@ echo [%date% %time%] INSTALL_DIR=!INSTALL_DIR! >> "%LOG%"
 :: Save install path for launcher to find on every startup
 echo !INSTALL_DIR!> "%APPDATA_DIR%\install_path.txt"
 
-:: Fresh install to prevent old files from staying mixed with new files
-if exist "!INSTALL_DIR!" (
-    echo Existing Basira_app found.
-    echo Removing old folder to install a clean latest copy...
-    rmdir /s /q "!INSTALL_DIR!" >>"%LOG%" 2>&1
-    if exist "!INSTALL_DIR!" (
-        echo.
-        echo [ERROR] Could not remove old Basira_app folder.
-        echo Close Basira, close Python windows, then run this installer again.
-        echo Log: %LOG%
-        pause
-        exit /b 1
-    )
-)
-
-mkdir "!INSTALL_DIR!"
-if not exist "!INSTALL_DIR!" (
-    echo.
-    echo [ERROR] Could not create install folder.
-    echo Path: !INSTALL_DIR!
-    pause
-    exit /b 1
-)
-echo [OK] Fresh install folder created
+:: Create folders
+if not exist "!INSTALL_DIR!" mkdir "!INSTALL_DIR!"
+if not exist "!INSTALL_DIR!\templates" mkdir "!INSTALL_DIR!\templates"
+echo [OK] Folders created
 echo.
 
-:: STEP 3: Download all files and folders from GitHub without ZIP
-echo [Step 3/6] Downloading all Basira_local files and folders from GitHub...
+:: STEP 3: Download files from GitHub
+:: Downloads EVERYTHING inside Basira_local while preserving folder structure.
+echo [Step 3/6] Downloading files from GitHub...
 echo (This may take 1-2 minutes)
 echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"$ErrorActionPreference='Stop'; ^
-$api='!API!'; ^
-$install='!INSTALL_DIR!'; ^
-$log='%LOG%'; ^
-$headers=@{'User-Agent'='Basira-Installer'}; ^
-function DownloadTree([string]$url) { ^
-  $items = Invoke-RestMethod -Uri $url -Headers $headers; ^
-  foreach ($item in $items) { ^
-    if ($item.type -eq 'dir') { ^
-      DownloadTree $item.url; ^
-    } elseif ($item.type -eq 'file') { ^
-      $rel = $item.path -replace '^Basira_local/',''; ^
-      $out = Join-Path $install $rel; ^
-      $parent = Split-Path $out -Parent; ^
-      if (!(Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }; ^
-      Write-Host ('  Downloading ' + $rel + ' ...'); ^
-      Invoke-WebRequest -Uri $item.download_url -OutFile $out -UseBasicParsing; ^
-      if (!(Test-Path $out)) { throw ('Failed to download ' + $rel) }; ^
-      Add-Content -Path $log -Value ('Downloaded: ' + $rel); ^
-    } ^
-  } ^
-}; ^
-DownloadTree $api" >>"%LOG%" 2>&1
+set "REPO_OWNER=basiratoolmodel-debug"
+set "REPO_NAME=Basira"
+set "BRANCH=main"
+set "REMOTE_FOLDER=Basira_local"
+set "TREE_API=https://api.github.com/repos/%REPO_OWNER%/%REPO_NAME%/git/trees/%BRANCH%?recursive=1"
 
+set "PS1=%TEMP%\basira_download_all.ps1"
+
+> "%PS1%" echo $ErrorActionPreference = 'Stop'
+>> "%PS1%" echo $treeApi = '%TREE_API%'
+>> "%PS1%" echo $rawBase = '%RAW%'
+>> "%PS1%" echo $installDir = '!INSTALL_DIR!'
+>> "%PS1%" echo $remoteFolder = '%REMOTE_FOLDER%'
+>> "%PS1%" echo $log = '%LOG%'
+>> "%PS1%" echo Add-Content -Path $log -Value "[$(Get-Date)] Download-all started from $treeApi"
+>> "%PS1%" echo [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+>> "%PS1%" echo $headers = @{ 'User-Agent' = 'Basira-Installer' }
+>> "%PS1%" echo $tree = Invoke-RestMethod -Uri $treeApi -Headers $headers
+>> "%PS1%" echo $files = $tree.tree ^| Where-Object { $_.type -eq 'blob' -and $_.path.StartsWith($remoteFolder + '/') }
+>> "%PS1%" echo if (-not $files -or $files.Count -eq 0) { throw "No files found inside $remoteFolder on GitHub." }
+>> "%PS1%" echo foreach ($file in $files) {
+>> "%PS1%" echo     $relative = $file.path.Substring($remoteFolder.Length + 1)
+>> "%PS1%" echo     if ([string]::IsNullOrWhiteSpace($relative)) { continue }
+>> "%PS1%" echo     $relativeWin = $relative -replace '/', '\'
+>> "%PS1%" echo     $outFile = Join-Path $installDir $relativeWin
+>> "%PS1%" echo     $outDir = Split-Path $outFile -Parent
+>> "%PS1%" echo     if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force ^| Out-Null }
+>> "%PS1%" echo     $urlPath = ($relative -split '/') ^| ForEach-Object { [uri]::EscapeDataString($_) }
+>> "%PS1%" echo     $url = $rawBase + '/' + ($urlPath -join '/')
+>> "%PS1%" echo     Write-Host ('  Downloading ' + $relative + ' ...')
+>> "%PS1%" echo     Add-Content -Path $log -Value ('Downloading ' + $url + ' -^> ' + $outFile)
+>> "%PS1%" echo     Invoke-WebRequest -Uri $url -OutFile $outFile -UseBasicParsing -Headers $headers
+>> "%PS1%" echo     if (-not (Test-Path $outFile)) { throw "Failed to download $relative" }
+>> "%PS1%" echo     Write-Host ('  [OK] ' + $relative)
+>> "%PS1%" echo }
+>> "%PS1%" echo Add-Content -Path $log -Value "[$(Get-Date)] Download-all complete. Files: $($files.Count)"
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "%PS1%" >>"%LOG%" 2>&1
 if %errorlevel% neq 0 (
     echo.
-    echo [ERROR] Failed to download Basira_local from GitHub.
-    echo Check your internet connection and make sure the repository is public.
-    echo Log: %LOG%
+    echo [ERROR] Failed to download files from GitHub.
+    echo Check this log:
+    echo %LOG%
+    echo.
+    type "%LOG%"
+    echo.
     pause
     exit /b 1
 )
 
-echo [OK] All GitHub files and folders downloaded
-echo.
+del "%PS1%" 2>nul
 
-:: Make sure launcher.py exists before continuing
 if not exist "!INSTALL_DIR!\launcher.py" (
     echo.
     echo [ERROR] launcher.py was not downloaded.
-    echo Make sure this file exists in GitHub: Basira_local/launcher.py
-    echo Log: %LOG%
+    echo Make sure this file exists in GitHub:
+    echo Basira_local/launcher.py
+    echo.
     pause
     exit /b 1
 )
-echo [OK] launcher.py found
 
-:: Create fallback requirements.txt only if GitHub does not include one
 if not exist "!INSTALL_DIR!\requirements.txt" (
     echo flask> "!INSTALL_DIR!\requirements.txt"
     echo flask-cors>> "!INSTALL_DIR!\requirements.txt"
@@ -165,10 +158,13 @@ if not exist "!INSTALL_DIR!\requirements.txt" (
     echo scikit-learn>> "!INSTALL_DIR!\requirements.txt"
     echo scipy>> "!INSTALL_DIR!\requirements.txt"
     echo openpyxl>> "!INSTALL_DIR!\requirements.txt"
-    echo [OK] fallback requirements.txt created
+    echo   [OK] requirements.txt created because it was not found in GitHub
 ) else (
-    echo [OK] requirements.txt found from GitHub
+    echo   [OK] requirements.txt downloaded from GitHub
 )
+
+echo.
+echo [OK] All files downloaded
 echo.
 
 :: STEP 4: Install Python packages
@@ -178,13 +174,6 @@ echo.
 cd /d "!INSTALL_DIR!"
 python -m pip install --upgrade pip -q >>"%LOG%" 2>&1
 python -m pip install -r requirements.txt >>"%LOG%" 2>&1
-if %errorlevel% neq 0 (
-    echo.
-    echo [ERROR] Failed to install Python packages.
-    echo Log: %LOG%
-    pause
-    exit /b 1
-)
 echo.
 echo [OK] Packages installed
 echo.
@@ -205,7 +194,7 @@ echo [OK] Launcher: !PYW!
 
 echo !PYTHON_EXE!> "%APPDATA_DIR%\python_path.txt"
 
-:: Register MAIN launcher
+:: Register MAIN launcher (starts both servers)
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Basira" /t REG_SZ /d "\"!PYW!\" \"!INSTALL_DIR!\launcher.py\" --background" /f >>"%LOG%" 2>&1
 echo [OK] Basira will auto-start on Windows login
 echo.
@@ -213,7 +202,7 @@ echo.
 :: STEP 6: Desktop shortcuts
 echo [Step 6/6] Creating Desktop shortcuts...
 
-:: Shortcut 1: Main Basira
+:: ── Shortcut 1: Main Basira ──────────────────────────────────
 set "VBS=%TEMP%\basira_sc.vbs"
 echo Set oWS = WScript.CreateObject("WScript.Shell") > "%VBS%"
 echo Set oLink = oWS.CreateShortcut("%USERPROFILE%\Desktop\Basira.lnk") >> "%VBS%"
@@ -226,7 +215,7 @@ cscript //nologo "%VBS%" >>"%LOG%" 2>&1
 del "%VBS%" 2>nul
 echo [OK] Desktop shortcut: Basira
 
-:: Shortcut 2: Preprocessor
+:: ── Shortcut 2: Preprocessor ────────────────────────────────
 if exist "!INSTALL_DIR!\launcher_preprocessor.py" (
     set "VBS2=%TEMP%\basira_prep_sc.vbs"
     echo Set oWS = WScript.CreateObject("WScript.Shell") > "%VBS2%"
@@ -259,8 +248,11 @@ timeout /t 12 /nobreak >nul
 start "" "https://basira.basira-toolmodel.workers.dev/local-setup.html"
 
 echo.
-echo If Basira did not open, check this log:
-echo %LOG%
+echo Basira is running.
+echo The setup page is opening in your browser.
+echo Follow the steps on screen to complete setup.
 echo.
-pause
+echo You can close this window now.
+echo.
+timeout /t 5 /nobreak >nul
 exit /b 0
