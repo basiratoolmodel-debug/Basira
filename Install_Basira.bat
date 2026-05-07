@@ -83,85 +83,92 @@ echo [OK] Folders created
 echo.
 
 :: STEP 3: Download files from GitHub
-:: Downloads EVERYTHING inside Basira_local while preserving folder structure.
-echo [Step 3/6] Downloading files from GitHub...
+echo [Step 3/6] Downloading all files from GitHub...
 echo (This may take 1-2 minutes)
 echo.
 
-set "REPO_OWNER=basiratoolmodel-debug"
-set "REPO_NAME=Basira"
-set "BRANCH=main"
-set "REMOTE_FOLDER=Basira_local"
-set "TREE_API=https://api.github.com/repos/%REPO_OWNER%/%REPO_NAME%/git/trees/%BRANCH%?recursive=1"
+set "DL_B64=%TEMP%\basira_download_all.b64"
+set "DL_PY=%TEMP%\basira_download_all.py"
 
-set "PS1=%TEMP%\basira_download_all.ps1"
+> "!DL_B64!" (
+echo aW1wb3J0IG9zCmltcG9ydCBzeXMKaW1wb3J0IGpzb24KaW1wb3J0IHVybGxpYi5yZXF1ZXN0Cmlt
+echo cG9ydCB1cmxsaWIucGFyc2UKCnJlcG8gPSAiYmFzaXJhdG9vbG1vZGVsLWRlYnVnL0Jhc2lyYSIK
+echo YnJhbmNoID0gIm1haW4iCnByZWZpeCA9ICJCYXNpcmFfbG9jYWwvIgppbnN0YWxsX2RpciA9IG9z
+echo LmVudmlyb24uZ2V0KCJCQVNJUkFfSU5TVEFMTF9ESVIiKQoKaWYgbm90IGluc3RhbGxfZGlyOgog
+echo ICAgcHJpbnQoIltFUlJPUl0gQkFTSVJBX0lOU1RBTExfRElSIHdhcyBub3Qgc2V0LiIpCiAgICBz
+echo eXMuZXhpdCgxKQoKb3MubWFrZWRpcnMoaW5zdGFsbF9kaXIsIGV4aXN0X29rPVRydWUpCgpoZWFk
+echo ZXJzID0gewogICAgIlVzZXItQWdlbnQiOiAiQmFzaXJhLUluc3RhbGxlciIsCiAgICAiQWNjZXB0
+echo IjogImFwcGxpY2F0aW9uL3ZuZC5naXRodWIranNvbiIKfQoKZGVmIHJlcXVlc3RfanNvbih1cmwp
+echo OgogICAgcmVxID0gdXJsbGliLnJlcXVlc3QuUmVxdWVzdCh1cmwsIGhlYWRlcnM9aGVhZGVycykK
+echo ICAgIHdpdGggdXJsbGliLnJlcXVlc3QudXJsb3BlbihyZXEsIHRpbWVvdXQ9NjApIGFzIHJlc3Bv
+echo bnNlOgogICAgICAgIHJldHVybiBqc29uLmxvYWRzKHJlc3BvbnNlLnJlYWQoKS5kZWNvZGUoInV0
+echo Zi04IikpCgpkZWYgZG93bmxvYWRfZmlsZSh1cmwsIG91dF9wYXRoKToKICAgIHJlcSA9IHVybGxp
+echo Yi5yZXF1ZXN0LlJlcXVlc3QodXJsLCBoZWFkZXJzPXsiVXNlci1BZ2VudCI6ICJCYXNpcmEtSW5z
+echo dGFsbGVyIn0pCiAgICB3aXRoIHVybGxpYi5yZXF1ZXN0LnVybG9wZW4ocmVxLCB0aW1lb3V0PTEy
+echo MCkgYXMgcmVzcG9uc2U6CiAgICAgICAgZGF0YSA9IHJlc3BvbnNlLnJlYWQoKQogICAgb3MubWFr
+echo ZWRpcnMob3MucGF0aC5kaXJuYW1lKG91dF9wYXRoKSwgZXhpc3Rfb2s9VHJ1ZSkKICAgIHdpdGgg
+echo b3BlbihvdXRfcGF0aCwgIndiIikgYXMgZjoKICAgICAgICBmLndyaXRlKGRhdGEpCgphcGlfdXJs
+echo ID0gZiJodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL3tyZXBvfS9naXQvdHJlZXMve2JyYW5j
+echo aH0/cmVjdXJzaXZlPTEiCnByaW50KCJSZWFkaW5nIEdpdEh1YiBmaWxlIGxpc3QuLi4iKQoKdHJ5
+echo OgogICAgdHJlZSA9IHJlcXVlc3RfanNvbihhcGlfdXJsKQpleGNlcHQgRXhjZXB0aW9uIGFzIGU6
+echo CiAgICBwcmludCgiW0VSUk9SXSBDb3VsZCBub3QgcmVhZCBHaXRIdWIgZmlsZSBsaXN0LiIpCiAg
+echo ICBwcmludChzdHIoZSkpCiAgICBzeXMuZXhpdCgxKQoKaXRlbXMgPSB0cmVlLmdldCgidHJlZSIs
+echo IFtdKQpmaWxlcyA9IFtdCmZvciBpdGVtIGluIGl0ZW1zOgogICAgcGF0aCA9IGl0ZW0uZ2V0KCJw
+echo YXRoIiwgIiIpCiAgICBpZiBpdGVtLmdldCgidHlwZSIpID09ICJibG9iIiBhbmQgcGF0aC5zdGFy
+echo dHN3aXRoKHByZWZpeCk6CiAgICAgICAgcmVsID0gcGF0aFtsZW4ocHJlZml4KTpdCiAgICAgICAg
+echo aWYgcmVsOgogICAgICAgICAgICBmaWxlcy5hcHBlbmQoKHBhdGgsIHJlbCkpCgppZiBub3QgZmls
+echo ZXM6CiAgICBwcmludCgiW0VSUk9SXSBObyBmaWxlcyBmb3VuZCBpbnNpZGUgQmFzaXJhX2xvY2Fs
+echo IG9uIEdpdEh1Yi4iKQogICAgc3lzLmV4aXQoMSkKCnByaW50KGYiRm91bmQge2xlbihmaWxlcyl9
+echo IGZpbGVzLiBEb3dubG9hZGluZy4uLiIpCgpmYWlsZWQgPSBbXQpmb3IgaW5kZXgsIChwYXRoLCBy
+echo ZWwpIGluIGVudW1lcmF0ZShmaWxlcywgMSk6CiAgICByYXdfcGF0aCA9IHVybGxpYi5wYXJzZS5x
+echo dW90ZShwYXRoLCBzYWZlPSIvIikKICAgIHJhd191cmwgPSBmImh0dHBzOi8vcmF3LmdpdGh1YnVz
+echo ZXJjb250ZW50LmNvbS97cmVwb30ve2JyYW5jaH0ve3Jhd19wYXRofSIKICAgIG91dF9wYXRoID0g
+echo b3MucGF0aC5qb2luKGluc3RhbGxfZGlyLCByZWwucmVwbGFjZSgiLyIsIG9zLnNlcCkpCiAgICBw
+echo cmludChmIiAgW3tpbmRleH0ve2xlbihmaWxlcyl9XSB7cmVsfSIpCiAgICB0cnk6CiAgICAgICAg
+echo ZG93bmxvYWRfZmlsZShyYXdfdXJsLCBvdXRfcGF0aCkKICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMg
+echo ZToKICAgICAgICBmYWlsZWQuYXBwZW5kKChyZWwsIHN0cihlKSkpCiAgICAgICAgcHJpbnQoZiIg
+echo ICAgICBGQUlMRUQ6IHtlfSIpCgppZiBmYWlsZWQ6CiAgICBwcmludCgiW0VSUk9SXSBTb21lIGZp
+echo bGVzIGZhaWxlZCB0byBkb3dubG9hZDoiKQogICAgZm9yIHJlbCwgZXJyIGluIGZhaWxlZDoKICAg
+echo ICAgICBwcmludChmIiAgLSB7cmVsfToge2Vycn0iKQogICAgc3lzLmV4aXQoMSkKCmxhdW5jaGVy
+echo ID0gb3MucGF0aC5qb2luKGluc3RhbGxfZGlyLCAibGF1bmNoZXIucHkiKQppZiBub3Qgb3MucGF0
+echo aC5leGlzdHMobGF1bmNoZXIpOgogICAgcHJpbnQoIltFUlJPUl0gbGF1bmNoZXIucHkgd2FzIG5v
+echo dCBkb3dubG9hZGVkLiIpCiAgICBwcmludCgiTWFrZSBzdXJlIEJhc2lyYV9sb2NhbC9sYXVuY2hl
+echo ci5weSBleGlzdHMgaW4gR2l0SHViLiIpCiAgICBzeXMuZXhpdCgxKQoKcmVxID0gb3MucGF0aC5q
+echo b2luKGluc3RhbGxfZGlyLCAicmVxdWlyZW1lbnRzLnR4dCIpCmlmIG5vdCBvcy5wYXRoLmV4aXN0
+echo cyhyZXEpOgogICAgcHJpbnQoInJlcXVpcmVtZW50cy50eHQgbm90IGZvdW5kIGluIEdpdEh1Yi4g
+echo Q3JlYXRpbmcgZGVmYXVsdCByZXF1aXJlbWVudHMudHh0Li4uIikKICAgIHdpdGggb3BlbihyZXEs
+echo ICJ3IiwgZW5jb2Rpbmc9InV0Zi04IikgYXMgZjoKICAgICAgICBmLndyaXRlKCJmbGFza1xuZmxh
+echo c2stY29yc1xucmVxdWVzdHNcbnBhbmRhc1xuc2Npa2l0LWxlYXJuXG5zY2lweVxub3BlbnB5eGxc
+echo biIpCgpwcmludCgiW09LXSBBbGwgQmFzaXJhX2xvY2FsIGZpbGVzIGRvd25sb2FkZWQgd2l0aCBm
+echo b2xkZXIgc3RydWN0dXJlLiIpCg==
+)
 
-> "%PS1%" echo $ErrorActionPreference = 'Stop'
->> "%PS1%" echo $treeApi = '%TREE_API%'
->> "%PS1%" echo $rawBase = '%RAW%'
->> "%PS1%" echo $installDir = '!INSTALL_DIR!'
->> "%PS1%" echo $remoteFolder = '%REMOTE_FOLDER%'
->> "%PS1%" echo $log = '%LOG%'
->> "%PS1%" echo Add-Content -Path $log -Value "[$(Get-Date)] Download-all started from $treeApi"
->> "%PS1%" echo [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
->> "%PS1%" echo $headers = @{ 'User-Agent' = 'Basira-Installer' }
->> "%PS1%" echo $tree = Invoke-RestMethod -Uri $treeApi -Headers $headers
->> "%PS1%" echo $files = $tree.tree ^| Where-Object { $_.type -eq 'blob' -and $_.path.StartsWith($remoteFolder + '/') }
->> "%PS1%" echo if (-not $files -or $files.Count -eq 0) { throw "No files found inside $remoteFolder on GitHub." }
->> "%PS1%" echo foreach ($file in $files) {
->> "%PS1%" echo     $relative = $file.path.Substring($remoteFolder.Length + 1)
->> "%PS1%" echo     if ([string]::IsNullOrWhiteSpace($relative)) { continue }
->> "%PS1%" echo     $relativeWin = $relative -replace '/', '\'
->> "%PS1%" echo     $outFile = Join-Path $installDir $relativeWin
->> "%PS1%" echo     $outDir = Split-Path $outFile -Parent
->> "%PS1%" echo     if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force ^| Out-Null }
->> "%PS1%" echo     $urlPath = ($relative -split '/') ^| ForEach-Object { [uri]::EscapeDataString($_) }
->> "%PS1%" echo     $url = $rawBase + '/' + ($urlPath -join '/')
->> "%PS1%" echo     Write-Host ('  Downloading ' + $relative + ' ...')
->> "%PS1%" echo     Add-Content -Path $log -Value ('Downloading ' + $url + ' -^> ' + $outFile)
->> "%PS1%" echo     Invoke-WebRequest -Uri $url -OutFile $outFile -UseBasicParsing -Headers $headers
->> "%PS1%" echo     if (-not (Test-Path $outFile)) { throw "Failed to download $relative" }
->> "%PS1%" echo     Write-Host ('  [OK] ' + $relative)
->> "%PS1%" echo }
->> "%PS1%" echo Add-Content -Path $log -Value "[$(Get-Date)] Download-all complete. Files: $($files.Count)"
+certutil -f -decode "!DL_B64!" "!DL_PY!" >nul 2>>"%LOG%"
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] Could not prepare the downloader script.
+    echo Check this log:
+    echo %LOG%
+    pause
+    exit /b 1
+)
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%PS1%" >>"%LOG%" 2>&1
+set "BASIRA_INSTALL_DIR=!INSTALL_DIR!"
+python "!DL_PY!"
 if %errorlevel% neq 0 (
     echo.
     echo [ERROR] Failed to download files from GitHub.
-    echo Check this log:
+    echo The lines above show the exact file or reason.
+    echo Check this log too:
     echo %LOG%
-    echo.
-    type "%LOG%"
-    echo.
+    del "!DL_B64!" 2>nul
+    del "!DL_PY!" 2>nul
     pause
     exit /b 1
 )
 
-del "%PS1%" 2>nul
-
-if not exist "!INSTALL_DIR!\launcher.py" (
-    echo.
-    echo [ERROR] launcher.py was not downloaded.
-    echo Make sure this file exists in GitHub:
-    echo Basira_local/launcher.py
-    echo.
-    pause
-    exit /b 1
-)
-
-if not exist "!INSTALL_DIR!\requirements.txt" (
-    echo flask> "!INSTALL_DIR!\requirements.txt"
-    echo flask-cors>> "!INSTALL_DIR!\requirements.txt"
-    echo requests>> "!INSTALL_DIR!\requirements.txt"
-    echo pandas>> "!INSTALL_DIR!\requirements.txt"
-    echo scikit-learn>> "!INSTALL_DIR!\requirements.txt"
-    echo scipy>> "!INSTALL_DIR!\requirements.txt"
-    echo openpyxl>> "!INSTALL_DIR!\requirements.txt"
-    echo   [OK] requirements.txt created because it was not found in GitHub
-) else (
-    echo   [OK] requirements.txt downloaded from GitHub
-)
+del "!DL_B64!" 2>nul
+del "!DL_PY!" 2>nul
 
 echo.
 echo [OK] All files downloaded
