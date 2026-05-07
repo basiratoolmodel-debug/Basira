@@ -76,87 +76,100 @@ echo [%date% %time%] INSTALL_DIR=!INSTALL_DIR! >> "%LOG%"
 :: Save install path for launcher to find on every startup
 echo !INSTALL_DIR!> "%APPDATA_DIR%\install_path.txt"
 
-:: Create folders
-if not exist "!INSTALL_DIR!" mkdir "!INSTALL_DIR!"
-if not exist "!INSTALL_DIR!\templates" mkdir "!INSTALL_DIR!\templates"
-echo [OK] Folders created
-echo.
-
-:: STEP 3: Download files from GitHub
-echo [Step 3/6] Downloading files from GitHub...
-echo (This may take 1-2 minutes)
-echo.
-
-:: ── Core files (unchanged) ──────────────────────────────────
-for %%F in (
-    launcher.py
-    basira_local_bootstrap.py
-    Basira_app_structure.py
-    basira_paths.py
-    basira_session.py
-) do (
-    echo   Downloading %%F ...
-    powershell -Command "Invoke-WebRequest -Uri '!RAW!/%%F' -OutFile '!INSTALL_DIR!\%%F' -UseBasicParsing" 2>>"%LOG%"
-    if not exist "!INSTALL_DIR!\%%F" (
+:: Backup old installation to avoid mixing old and new files
+if exist "!INSTALL_DIR!" (
+    for /f "tokens=1-4 delims=/ " %%a in ("%date%") do set "DATESTAMP=%%d%%b%%c"
+    for /f "tokens=1-3 delims=:., " %%a in ("%time%") do set "TIMESTAMP=%%a%%b%%c"
+    set "BACKUP_DIR=!BASE!\Basira_app_backup_!DATESTAMP!_!TIMESTAMP!"
+    echo Existing Basira_app found.
+    echo Moving old folder to: !BACKUP_DIR!
+    move "!INSTALL_DIR!" "!BACKUP_DIR!" >>"%LOG%" 2>&1
+    if exist "!INSTALL_DIR!" (
         echo.
-        echo [ERROR] Failed to download %%F
-        echo Check your internet and try again.
+        echo [ERROR] Could not move old Basira_app folder.
+        echo Close any running Basira windows and try again.
         pause
         exit /b 1
     )
-    echo   [OK] %%F
 )
 
-:: ── NEW: Preprocessor files ─────────────────────────────────
-for %%F in (
-    launcher_preprocessor.py
-    Basira_preprocessor_app.py
-) do (
-    echo   Downloading %%F ...
-    powershell -Command "Invoke-WebRequest -Uri '!RAW!/%%F' -OutFile '!INSTALL_DIR!\%%F' -UseBasicParsing" 2>>"%LOG%"
-    if not exist "!INSTALL_DIR!\%%F" (
-        echo.
-        echo [WARN] Could not download %%F - Preprocessor may not work
-        echo        You can add it later from GitHub manually.
-        echo.
-    ) else (
-        echo   [OK] %%F
-    )
-)
+:: Create fresh install folder
+mkdir "!INSTALL_DIR!"
+echo [OK] Fresh install folder created
 
-:: ── requirements.txt ────────────────────────────────────────
-echo flask> "!INSTALL_DIR!\requirements.txt"
-echo flask-cors>> "!INSTALL_DIR!\requirements.txt"
-echo requests>> "!INSTALL_DIR!\requirements.txt"
-echo pandas>> "!INSTALL_DIR!\requirements.txt"
-echo scikit-learn>> "!INSTALL_DIR!\requirements.txt"
-echo scipy>> "!INSTALL_DIR!\requirements.txt"
-echo openpyxl>> "!INSTALL_DIR!\requirements.txt"
-echo   [OK] requirements.txt
+echo.
 
-:: ── Main app HTML ────────────────────────────────────────────
-echo   Downloading basira_app.html ...
-powershell -Command "Invoke-WebRequest -Uri '!RAW!/templates/basira_app.html' -OutFile '!INSTALL_DIR!\templates\basira_app.html' -UseBasicParsing" 2>>"%LOG%"
-if not exist "!INSTALL_DIR!\templates\basira_app.html" (
+:: STEP 3: Download the full Basira_local folder from GitHub
+echo [Step 3/6] Downloading the full Basira_local folder from GitHub...
+echo (This may take 1-2 minutes)
+echo.
+
+set "REPO_ZIP=https://github.com/basiratoolmodel-debug/Basira/archive/refs/heads/main.zip"
+set "ZIP_FILE=%TEMP%\Basira_main.zip"
+set "EXTRACT_DIR=%TEMP%\Basira_extract_%RANDOM%_%RANDOM%"
+
+if exist "!ZIP_FILE!" del /f /q "!ZIP_FILE!" >nul 2>&1
+if exist "!EXTRACT_DIR!" rmdir /s /q "!EXTRACT_DIR!" >nul 2>&1
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest -Uri '!REPO_ZIP!' -OutFile '!ZIP_FILE!' -UseBasicParsing; exit 0 } catch { Write-Host $_.Exception.Message; exit 1 }" >>"%LOG%" 2>&1
+if %errorlevel% neq 0 (
     echo.
-    echo [ERROR] Failed to download basira_app.html
-    echo Make sure Basira_local/templates/basira_app.html is in your GitHub repo.
+    echo [ERROR] Failed to download GitHub repository ZIP.
+    echo Check your internet connection and make sure the repository is public.
     pause
     exit /b 1
 )
-echo   [OK] basira_app.html
+echo [OK] Repository ZIP downloaded
 
-:: ── NEW: Preprocessor HTML ───────────────────────────────────
-echo   Downloading basira_preprocessor.html ...
-powershell -Command "Invoke-WebRequest -Uri '!RAW!/templates/basira_preprocessor.html' -OutFile '!INSTALL_DIR!\templates\basira_preprocessor.html' -UseBasicParsing" 2>>"%LOG%"
-if not exist "!INSTALL_DIR!\templates\basira_preprocessor.html" (
-    echo   [WARN] basira_preprocessor.html not found - Preprocessor UI unavailable
-) else (
-    echo   [OK] basira_preprocessor.html
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Expand-Archive -Path '!ZIP_FILE!' -DestinationPath '!EXTRACT_DIR!' -Force; exit 0 } catch { Write-Host $_.Exception.Message; exit 1 }" >>"%LOG%" 2>&1
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] Failed to extract repository ZIP.
+    pause
+    exit /b 1
+)
+echo [OK] Repository ZIP extracted
+
+set "SOURCE_DIR=!EXTRACT_DIR!\Basira-main\Basira_local"
+if not exist "!SOURCE_DIR!" (
+    echo.
+    echo [ERROR] Could not find Basira_local inside the GitHub repository.
+    echo Expected path: !SOURCE_DIR!
+    pause
+    exit /b 1
 )
 
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Copy-Item -Path '!SOURCE_DIR!\*' -Destination '!INSTALL_DIR!' -Recurse -Force; exit 0 } catch { Write-Host $_.Exception.Message; exit 1 }" >>"%LOG%" 2>&1
+if %errorlevel% neq 0 (
+    echo.
+    echo [ERROR] Failed to copy Basira_local files to the install folder.
+    pause
+    exit /b 1
+)
+
+echo [OK] Full Basira_local folder copied
+
+:: Create fallback requirements.txt only if the project does not include one
+if not exist "!INSTALL_DIR!\requirements.txt" (
+    echo flask> "!INSTALL_DIR!\requirements.txt"
+    echo flask-cors>> "!INSTALL_DIR!\requirements.txt"
+    echo requests>> "!INSTALL_DIR!\requirements.txt"
+    echo pandas>> "!INSTALL_DIR!\requirements.txt"
+    echo scikit-learn>> "!INSTALL_DIR!\requirements.txt"
+    echo scipy>> "!INSTALL_DIR!\requirements.txt"
+    echo openpyxl>> "!INSTALL_DIR!\requirements.txt"
+    echo [OK] fallback requirements.txt created
+) else (
+    echo [OK] requirements.txt found from GitHub
+)
+
+:: Clean temporary files
+if exist "!ZIP_FILE!" del /f /q "!ZIP_FILE!" >nul 2>&1
+if exist "!EXTRACT_DIR!" rmdir /s /q "!EXTRACT_DIR!" >nul 2>&1
+
 echo.
-echo [OK] All files downloaded
+echo [OK] All GitHub files and folders downloaded
+
 echo.
 
 :: STEP 4: Install Python packages
