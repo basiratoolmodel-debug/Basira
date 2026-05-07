@@ -87,14 +87,7 @@ echo [Step 3/6] Downloading files from GitHub...
 echo (This may take 1-2 minutes)
 echo.
 
-:: ── Core files (unchanged) ──────────────────────────────────
-for %%F in (
-    launcher.py
-    basira_local_bootstrap.py
-    Basira_app_structure.py
-    basira_paths.py
-    basira_session.py
-) do (
+for %%F in (launcher.py basira_local_bootstrap.py Basira_app_structure.py basira_paths.py basira_session.py) do (
     echo   Downloading %%F ...
     powershell -Command "Invoke-WebRequest -Uri '!RAW!/%%F' -OutFile '!INSTALL_DIR!\%%F' -UseBasicParsing" 2>>"%LOG%"
     if not exist "!INSTALL_DIR!\%%F" (
@@ -107,34 +100,13 @@ for %%F in (
     echo   [OK] %%F
 )
 
-:: ── NEW: Preprocessor files ─────────────────────────────────
-for %%F in (
-    launcher_preprocessor.py
-    Basira_preprocessor_app.py
-) do (
-    echo   Downloading %%F ...
-    powershell -Command "Invoke-WebRequest -Uri '!RAW!/%%F' -OutFile '!INSTALL_DIR!\%%F' -UseBasicParsing" 2>>"%LOG%"
-    if not exist "!INSTALL_DIR!\%%F" (
-        echo.
-        echo [WARN] Could not download %%F - Preprocessor may not work
-        echo        You can add it later from GitHub manually.
-        echo.
-    ) else (
-        echo   [OK] %%F
-    )
-)
-
-:: ── requirements.txt ────────────────────────────────────────
+:: Write requirements.txt directly
 echo flask> "!INSTALL_DIR!\requirements.txt"
 echo flask-cors>> "!INSTALL_DIR!\requirements.txt"
 echo requests>> "!INSTALL_DIR!\requirements.txt"
-echo pandas>> "!INSTALL_DIR!\requirements.txt"
-echo scikit-learn>> "!INSTALL_DIR!\requirements.txt"
-echo scipy>> "!INSTALL_DIR!\requirements.txt"
-echo openpyxl>> "!INSTALL_DIR!\requirements.txt"
 echo   [OK] requirements.txt
 
-:: ── Main app HTML ────────────────────────────────────────────
+:: Download basira_app.html
 echo   Downloading basira_app.html ...
 powershell -Command "Invoke-WebRequest -Uri '!RAW!/templates/basira_app.html' -OutFile '!INSTALL_DIR!\templates\basira_app.html' -UseBasicParsing" 2>>"%LOG%"
 if not exist "!INSTALL_DIR!\templates\basira_app.html" (
@@ -145,27 +117,16 @@ if not exist "!INSTALL_DIR!\templates\basira_app.html" (
     exit /b 1
 )
 echo   [OK] basira_app.html
-
-:: ── NEW: Preprocessor HTML ───────────────────────────────────
-echo   Downloading basira_preprocessor.html ...
-powershell -Command "Invoke-WebRequest -Uri '!RAW!/templates/basira_preprocessor.html' -OutFile '!INSTALL_DIR!\templates\basira_preprocessor.html' -UseBasicParsing" 2>>"%LOG%"
-if not exist "!INSTALL_DIR!\templates\basira_preprocessor.html" (
-    echo   [WARN] basira_preprocessor.html not found - Preprocessor UI unavailable
-) else (
-    echo   [OK] basira_preprocessor.html
-)
-
 echo.
 echo [OK] All files downloaded
 echo.
 
 :: STEP 4: Install Python packages
 echo [Step 4/6] Installing Python packages...
-echo (pandas, scikit-learn, flask and others - may take 2-3 min)
 echo.
 cd /d "!INSTALL_DIR!"
 python -m pip install --upgrade pip -q >>"%LOG%" 2>&1
-python -m pip install -r requirements.txt >>"%LOG%" 2>&1
+python -m pip install flask flask-cors requests
 echo.
 echo [OK] Packages installed
 echo.
@@ -173,9 +134,11 @@ echo.
 :: STEP 5: Register in Windows startup
 echo [Step 5/6] Registering Basira in Windows startup...
 
+:: Get FULL python path - avoids VS Code or other program associations
 for /f "usebackq tokens=*" %%p in (`python -c "import sys; print(sys.executable)"`) do set "PYTHON_EXE=%%p"
 echo [OK] Python: !PYTHON_EXE!
 
+:: Use pythonw.exe if available (no black console window shown to user)
 set "PYTHONW_EXE=!PYTHON_EXE:python.exe=pythonw.exe!"
 if exist "!PYTHONW_EXE!" (
     set "PYW=!PYTHONW_EXE!"
@@ -184,17 +147,16 @@ if exist "!PYTHONW_EXE!" (
 )
 echo [OK] Launcher: !PYW!
 
+:: Save paths for future use
 echo !PYTHON_EXE!> "%APPDATA_DIR%\python_path.txt"
 
-:: Register MAIN launcher (starts both servers)
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Basira" /t REG_SZ /d "\"!PYW!\" \"!INSTALL_DIR!\launcher.py\" --background" /f >>"%LOG%" 2>&1
 echo [OK] Basira will auto-start on Windows login
 echo.
 
-:: STEP 6: Desktop shortcuts
-echo [Step 6/6] Creating Desktop shortcuts...
+:: STEP 6: Desktop shortcut
+echo [Step 6/6] Creating Desktop shortcut...
 
-:: ── Shortcut 1: Main Basira ──────────────────────────────────
 set "VBS=%TEMP%\basira_sc.vbs"
 echo Set oWS = WScript.CreateObject("WScript.Shell") > "%VBS%"
 echo Set oLink = oWS.CreateShortcut("%USERPROFILE%\Desktop\Basira.lnk") >> "%VBS%"
@@ -205,26 +167,10 @@ echo oLink.Description = "Basira Local Intelligence" >> "%VBS%"
 echo oLink.Save >> "%VBS%"
 cscript //nologo "%VBS%" >>"%LOG%" 2>&1
 del "%VBS%" 2>nul
-echo [OK] Desktop shortcut: Basira
-
-:: ── Shortcut 2: Preprocessor ────────────────────────────────
-if exist "!INSTALL_DIR!\launcher_preprocessor.py" (
-    set "VBS2=%TEMP%\basira_prep_sc.vbs"
-    echo Set oWS = WScript.CreateObject("WScript.Shell") > "%VBS2%"
-    echo Set oLink = oWS.CreateShortcut("%USERPROFILE%\Desktop\Basira Preprocessor.lnk") >> "%VBS2%"
-    echo oLink.TargetPath = "!PYW!" >> "%VBS2%"
-    echo oLink.Arguments = Chr(34) ^& "!INSTALL_DIR!\launcher_preprocessor.py" ^& Chr(34) >> "%VBS2%"
-    echo oLink.WorkingDirectory = "!INSTALL_DIR!" >> "%VBS2%"
-    echo oLink.Description = "Basira Smart Preprocessor" >> "%VBS2%"
-    echo oLink.Save >> "%VBS2%"
-    cscript //nologo "%VBS2%" >>"%LOG%" 2>&1
-    del "%VBS2%" 2>nul
-    echo [OK] Desktop shortcut: Basira Preprocessor
-)
-
+echo [OK] Desktop shortcut created
 echo.
 
-:: LAUNCH
+:: LAUNCH - using full python path so Windows opens Python not VS Code
 echo =====================================================
 echo   DONE! Installation complete.
 echo   Location: !INSTALL_DIR!
@@ -235,8 +181,11 @@ echo [%date% %time%] Complete. Launching. >> "%LOG%"
 
 start "" "!PYW!" "!INSTALL_DIR!\launcher.py"
 
+:: Wait for launcher to start both servers
 timeout /t 12 /nobreak >nul
 
+:: Open the cloud setup page so session gets properly linked
+:: This is where user picks data folder and everything is configured
 start "" "https://basira.basira-toolmodel.workers.dev/local-setup.html"
 
 echo.
