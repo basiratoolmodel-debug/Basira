@@ -1,0 +1,2 @@
+html,body{padding:0;margin:0} a{color:inherit} button,input,select{font:inherit}
+@media(max-width:760px){.bs-card[style]{grid-template-columns:1fr!important}.bs-page .bs-card div[style*='grid-template-columns']{grid-template-columns:1fr!important}.bs-results-layout{flex-direction:column;height:auto}.bs-sidebar{width:100%;min-width:0;border-inline-end:0;border-bottom:1px solid var(--border)}.bs-results-main{padding:16px}.bs-nav{height:auto;min-height:64px;flex-wrap:wrap}.bs-table-wrap{overflow-x:auto}}
