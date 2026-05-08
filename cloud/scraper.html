@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basira — Web Scraper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- ══ CONFIG — عدّل هذا السطر بعد نشر الـ Worker ══════════════════════ -->
+<script>
+  window.BASIRA_WORKER_URL = 'https://basira-scraper-worker.YOUR_SUBDOMAIN.workers.dev';
+</script>
+<!-- ════════════════════════════════════════════════════════════════════ -->
+
+<style>
+/* ── Reset & Tokens ─────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:       #09090f;
+  --bg2:      #111119;
+  --surface:  #16161f;
+  --surface2: #1c1c28;
+  --border:   rgba(255,255,255,.07);
+  --border2:  rgba(255,255,255,.12);
+  --accent:   #6ee7f7;
+  --accent2:  #a78bfa;
+  --success:  #4ade80;
+  --danger:   #f87171;
+  --warning:  #fbbf24;
+  --text:     #f0f0f5;
+  --text2:    #a0a0b8;
+  --text3:    #606078;
+  --mono:     'DM Mono', monospace;
+  --sans:     'Syne', 'Noto Sans Arabic', sans-serif;
+  --r:        10px;
+  --r2:       16px;
+  --tr:       .2s cubic-bezier(.4,0,.2,1);
+  --glow:     0 0 24px rgba(110,231,247,.10);
+}
+[data-theme="light"]{
+  --bg:#f4f4f8;--bg2:#ebebf2;--surface:#fff;--surface2:#f0f0f7;
+  --border:rgba(0,0,0,.07);--border2:rgba(0,0,0,.12);
+  --accent:#0891b2;--accent2:#7c3aed;
+  --text:#0c0c14;--text2:#4a4a60;--text3:#9090a8;
+  --glow:0 0 24px rgba(8,145,178,.10);
+}
+html{font-size:15px;-webkit-font-smoothing:antialiased;}
+body{
+  font-family:var(--sans);background:var(--bg);color:var(--text);
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 80% -10%, rgba(110,231,247,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 10% 90%, rgba(167,139,250,.05) 0%, transparent 50%);
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ── Nav ────────────────────────────────────────────────────────────── */
+.nav{
+  height:58px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  border-bottom:1px solid var(--border);
+  background:rgba(9,9,15,.7);
+  backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:100;
+}
+.nav-brand{
+  display:flex;align-items:center;gap:10px;
+  font-size:1.1rem;font-weight:800;letter-spacing:-.02em;
+  color:var(--accent);
+}
+.nav-brand-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 12px var(--accent);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(.8);}}
+.nav-badge{
+  font-size:.65rem;font-family:var(--mono);
+  padding:2px 8px;border-radius:20px;
+  background:rgba(110,231,247,.1);border:1px solid rgba(110,231,247,.2);
+  color:var(--accent);font-weight:500;letter-spacing:.05em;
+}
+.nav-actions{display:flex;gap:8px;align-items:center;}
+.nav-btn{
+  height:34px;padding:0 14px;border-radius:var(--r);
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text2);font-family:var(--sans);font-size:.78rem;font-weight:600;
+  cursor:pointer;transition:var(--tr);
+}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(110,231,247,.06);}
+.nav-btn.active{background:rgba(110,231,247,.08);border-color:rgba(110,231,247,.3);color:var(--accent);}
+
+/* ── Layout ─────────────────────────────────────────────────────────── */
+.page{max-width:960px;margin:0 auto;padding:32px 24px 64px;}
+
+/* ── Cards ──────────────────────────────────────────────────────────── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);padding:24px 28px;
+  transition:border-color var(--tr);
+}
+.card+.card{margin-top:16px;}
+.card-title{
+  font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── Form elements ──────────────────────────────────────────────────── */
+label.lbl{
+  display:block;font-size:.72rem;font-weight:600;
+  color:var(--text3);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;
+}
+.inp{
+  width:100%;height:42px;padding:0 14px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:.9rem;
+  transition:var(--tr);
+}
+.inp:focus{border-color:var(--accent);outline:none;background:var(--surface);box-shadow:0 0 0 3px rgba(110,231,247,.08);}
+.inp::placeholder{color:var(--text3);}
+select.inp{
+  appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M5 6L0 0h10z' fill='%23606078'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:calc(100% - 14px) center;
+}
+[dir=rtl] select.inp{background-position:14px center;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.fgroup{display:flex;flex-direction:column;}
+
+/* ── Toggle ─────────────────────────────────────────────────────────── */
+.toggle{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-radius:var(--r);
+  border:1px solid var(--border2);background:var(--surface2);
+  cursor:pointer;font-family:var(--sans);font-size:.85rem;
+  color:var(--text2);font-weight:600;transition:var(--tr);user-select:none;
+}
+.toggle.on{border-color:rgba(110,231,247,.3);color:var(--accent);background:rgba(110,231,247,.06);}
+.toggle-track{
+  width:30px;height:17px;border-radius:9px;
+  background:var(--border2);position:relative;flex-shrink:0;transition:var(--tr);
+}
+.toggle.on .toggle-track{background:var(--accent);}
+.toggle-thumb{
+  position:absolute;top:2.5px;left:2.5px;
+  width:12px;height:12px;border-radius:50%;background:#fff;
+  transition:var(--tr);
+}
+.toggle.on .toggle-thumb{left:calc(100% - 14.5px);}
+.toggle-label{flex:1;}
+.toggle-sub{font-size:.75rem;opacity:.6;font-weight:400;margin-inline-start:4px;}
+
+/* ── Buttons ────────────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:11px 22px;border-radius:var(--r);font-family:var(--sans);
+  font-size:.88rem;font-weight:700;cursor:pointer;
+  border:1px solid transparent;transition:var(--tr);white-space:nowrap;
+}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-primary{
+  background:var(--accent);color:#09090f;border-color:var(--accent);
+  box-shadow:0 0 18px rgba(110,231,247,.25);
+}
+.btn-primary:hover:not(:disabled){filter:brightness(1.1);box-shadow:0 0 28px rgba(110,231,247,.35);}
+.btn-ghost{background:var(--surface2);border-color:var(--border2);color:var(--text2);}
+.btn-ghost:hover:not(:disabled){border-color:var(--accent);color:var(--accent);background:rgba(110,231,247,.06);}
+.btn-danger{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.25);color:var(--danger);}
+.btn-danger:hover:not(:disabled){background:rgba(248,113,113,.18);}
+.btn-success{background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.25);color:var(--success);}
+.btn-success:hover:not(:disabled){background:rgba(74,222,128,.18);}
+.btn-full{width:100%;}
+.btn-sm{padding:7px 14px;font-size:.78rem;}
+
+/* ── Fields builder ─────────────────────────────────────────────────── */
+.field-row{
+  display:grid;grid-template-columns:1fr 1.4fr 100px 32px;
+  gap:8px;align-items:end;
+  padding:10px 12px;border-radius:var(--r);
+  background:var(--surface2);border:1px solid var(--border);
+  margin-bottom:8px;transition:border-color var(--tr);
+}
+.field-row:hover{border-color:var(--border2);}
+.field-remove{
+  width:32px;height:32px;border-radius:8px;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text3);cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--tr);margin-bottom:0;flex-shrink:0;
+}
+.field-remove:hover{background:rgba(248,113,113,.12);color:var(--danger);border-color:rgba(248,113,113,.3);}
+
+/* ── Notice ─────────────────────────────────────────────────────────── */
+.notice{
+  padding:11px 16px;border-radius:var(--r);
+  background:rgba(110,231,247,.06);
+  border:1px solid rgba(110,231,247,.15);
+  color:var(--accent);font-size:.82rem;line-height:1.55;
+}
+.notice.warn{background:rgba(251,191,36,.06);border-color:rgba(251,191,36,.2);color:var(--warning);}
+.notice.err{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.2);color:var(--danger);}
+
+/* ── Spinner / Progress ─────────────────────────────────────────────── */
+.spinner{
+  width:38px;height:38px;
+  border:2.5px solid var(--border2);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .65s linear infinite;margin:0 auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.progress-bg{height:6px;border-radius:6px;background:var(--surface2);overflow:hidden;margin:14px 0;}
+.progress-bar{
+  height:100%;border-radius:6px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .5s ease;
+}
+
+/* ── Stats ──────────────────────────────────────────────────────────── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r2);padding:14px 16px;text-align:center;
+}
+.stat-val{font-size:1.5rem;font-weight:800;color:var(--accent);font-family:var(--mono);}
+.stat-lbl{font-size:.65rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+
+/* ── Table ──────────────────────────────────────────────────────────── */
+.tbl-wrap{overflow:auto;border-radius:var(--r);border:1px solid var(--border);max-height:520px;}
+table{width:100%;border-collapse:collapse;font-size:.83rem;}
+thead{position:sticky;top:0;z-index:2;}
+th{
+  padding:10px 14px;background:var(--surface2);
+  border-bottom:1px solid var(--border2);
+  font-size:.68rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--text3);cursor:pointer;
+  white-space:nowrap;user-select:none;transition:color var(--tr);
+}
+th:hover{color:var(--accent);}
+td{
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  color:var(--text2);max-width:260px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;
+}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(110,231,247,.03);}
+.td-idx{color:var(--text3);font-family:var(--mono);font-size:.7rem;width:36px;}
+
+/* ── History ────────────────────────────────────────────────────────── */
+.hist-item{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.hist-item:last-child{border-bottom:none;}
+.hist-icon{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:var(--surface2);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+}
+.hist-info{flex:1;min-width:0;}
+.hist-name{font-weight:700;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hist-meta{font-size:.72rem;color:var(--text3);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;}
+.badge{
+  display:inline-block;padding:1px 8px;border-radius:20px;
+  font-size:.68rem;font-weight:600;font-family:var(--mono);
+  background:rgba(110,231,247,.1);border:1px solid rgba(110,231,247,.15);color:var(--accent);
+}
+.badge.purple{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.2);color:var(--accent2);}
+
+/* ── Search bar ─────────────────────────────────────────────────────── */
+.search-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.cnt-badge{font-size:.72rem;color:var(--text3);font-family:var(--mono);flex-shrink:0;}
+
+/* ── Divider ────────────────────────────────────────────────────────── */
+.div{height:1px;background:var(--border);margin:20px 0;}
+
+/* ── Scraping overlay ───────────────────────────────────────────────── */
+.scraping-card{max-width:480px;margin:80px auto;text-align:center;}
+.scraping-title{font-size:1.3rem;font-weight:800;margin:18px 0 8px;}
+.scraping-sub{font-size:.88rem;color:var(--text2);line-height:1.5;}
+.scraping-msg{font-size:.78rem;color:var(--text3);font-family:var(--mono);margin-top:6px;}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media(max-width:640px){
+  .page{padding:20px 14px 48px;}
+  .row2,.row3{grid-template-columns:1fr;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .field-row{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;}
+  .field-remove{grid-column:span 2;width:100%;margin-top:4px;}
+  .nav{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Nav ─────────────────────────────────────────────────────────────── -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-brand-dot"></div>
+    <span id="brandTxt">Basira</span>
+    <span class="nav-badge" id="cloudBadge">CLOUD</span>
+  </div>
+  <div class="nav-actions">
+    <button class="nav-btn" id="langBtn" onclick="toggleLang()">AR</button>
+    <button class="nav-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
+    <button class="nav-btn btn-sm" onclick="window.history.back()" id="backBtn" style="display:none">← Back</button>
+  </div>
+</nav>
+
+<!-- ── App root ─────────────────────────────────────────────────────────── -->
+<div class="page" id="root"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   TRANSLATIONS
+════════════════════════════════════════════════════════════════════════ */
+const T = {
+  en:{
+    title:'Web Scraper',subtitle:'Extract structured data from any website — runs entirely in the cloud.',
+    urlLbl:'Target URL',urlPh:'https://example.com/products',
+    parentLbl:'Container Selector',parentPh:'.products-grid',parentHelp:'CSS selector for the wrapper holding all items',
+    itemLbl:'Item Selector',itemPh:'.product-card',itemHelp:'CSS selector for each repeating item',
+    fieldsLbl:'Fields to Extract',addField:'+ Field',
+    fName:'Field name',fSel:'CSS selector',fType:'Type',
+    methodLbl:'Loading Method',maxRowsLbl:'Max rows (0 = all)',
+    autoScroll:'Auto-Scroll',pagination:'Pagination',loadMore:'Load More',
+    pagSelLbl:'Next-page selector',loadMoreSelLbl:'Load More selector',
+    stealth:'Stealth Mode',stealthSub:'Rotate user-agents & human delays',
+    advanced:'Advanced Options',proxy:'Proxy',
+    proxyHost:'host:port',proxyUser:'Username',proxyPass:'Password',
+    start:'Start Scraping',back:'← New Scrape',
+    scraping:'Running in cloud…',scrapingSub:'Cloudflare Browser is loading and extracting the page.',
+    done:'Extraction Complete',rows:'Rows',cols:'Columns',cells:'Cells',fail:'Failed',
+    dlCSV:'↓ CSV',dlJSON:'↓ JSON',
+    history:'Recent Jobs',noHistory:'No jobs yet.',viewJob:'View',
+    filterPh:'Search results…',
+    howto:'💡 To find CSS selectors: Right-click any element on the target page → Inspect → right-click element in DevTools → Copy → Copy selector',
+    errUrl:'Please enter a valid URL starting with https://',
+    errSel:'Container and item selectors are required',
+    errField:'Add at least one field with a name and CSS selector',
+    errWorker:'Could not reach the Worker. Check WORKER_URL in the config.',
+    justNow:'just now',ago:'ago',
+    sortAsc:'↑',sortDesc:'↓',
+  },
+  ar:{
+    title:'كاشط الويب',subtitle:'استخرج بيانات منظمة من أي موقع — يعمل كلياً في السحابة.',
+    urlLbl:'رابط الموقع',urlPh:'https://example.com/products',
+    parentLbl:'محدد الحاوية',parentPh:'.products-grid',parentHelp:'محدد CSS للعنصر الذي يحتوي على كل العناصر',
+    itemLbl:'محدد العنصر',itemPh:'.product-card',itemHelp:'محدد CSS لكل عنصر متكرر',
+    fieldsLbl:'الحقول المطلوبة',addField:'+ حقل',
+    fName:'اسم الحقل',fSel:'محدد CSS',fType:'النوع',
+    methodLbl:'طريقة التحميل',maxRowsLbl:'الحد الأقصى (0 = الكل)',
+    autoScroll:'تمرير تلقائي',pagination:'صفحات',loadMore:'تحميل المزيد',
+    pagSelLbl:'محدد زر التالي',loadMoreSelLbl:'محدد زر التحميل',
+    stealth:'وضع التخفي',stealthSub:'تغيير هوية المتصفح وإضافة تأخير بشري',
+    advanced:'خيارات متقدمة',proxy:'بروكسي',
+    proxyHost:'host:port',proxyUser:'اسم المستخدم',proxyPass:'كلمة المرور',
+    start:'ابدأ الكشط',back:'كشط جديد →',
+    scraping:'يعمل في السحابة…',scrapingSub:'متصفح Cloudflare يحمّل الصفحة ويستخرج البيانات.',
+    done:'اكتمل الاستخراج',rows:'الصفوف',cols:'الأعمدة',cells:'الخلايا',fail:'فاشلة',
+    dlCSV:'↓ CSV',dlJSON:'↓ JSON',
+    history:'آخر العمليات',noHistory:'لا توجد عمليات بعد.',viewJob:'عرض',
+    filterPh:'ابحث في النتائج…',
+    howto:'💡 لإيجاد محددات CSS: انقر بالزر الأيمن على أي عنصر → فحص → في DevTools انقر بالزر الأيمن → نسخ → نسخ المحدد',
+    errUrl:'الرجاء إدخال رابط صحيح يبدأ بـ https://',
+    errSel:'محددات الحاوية والعنصر مطلوبة',
+    errField:'أضف حقلاً واحداً على الأقل باسم ومحدد',
+    errWorker:'تعذّر الوصول للـ Worker. تحقق من WORKER_URL في الإعدادات.',
+    justNow:'الآن',ago:'مضى',
+    sortAsc:'↑',sortDesc:'↓',
+  }
+};
+const methodIcon={'auto-scroll':'↕','pagination':'⏭','load-more':'＋'};
+const typeIcon={text:'T',link:'🔗',image:'🖼',price:'＄'};
+
+/* ════════════════════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════════════════════ */
+let lang    = localStorage.getItem('bs_lang')  || 'en';
+let theme   = localStorage.getItem('bs_theme') || 'dark';
+let view    = 'form';                 // form | scraping | results
+let result  = null;
+let history = [];
+let fields  = [{id:1,name:'',selector:'',type:'text'}];
+let fid     = 2;
+let stealth = true;
+let proxyOn = false;
+let advOn   = false;
+let loadMethod = 'auto-scroll';
+let sortCol = null, sortDir = 1;
+let filter  = '';
+
+/* ════════════════════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════════════════════ */
+applyGlobals();
+fetchHistory().then(render);
+
+function applyGlobals(){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.setAttribute('dir', lang==='ar'?'rtl':'ltr');
+  document.documentElement.lang = lang;
+  document.getElementById('themeBtn').textContent = theme==='dark'?'☀️':'🌙';
+  document.getElementById('langBtn').textContent  = lang==='en'?'AR':'EN';
+  document.getElementById('brandTxt').textContent = T[lang].title || 'Basira';
+  document.getElementById('cloudBadge').textContent = lang==='ar'?'سحابة':'CLOUD';
+}
+function toggleTheme(){ theme=theme==='dark'?'light':'dark'; localStorage.setItem('bs_theme',theme); applyGlobals(); }
+function toggleLang(){  lang=lang==='en'?'ar':'en';           localStorage.setItem('bs_lang',lang);  applyGlobals(); render(); }
+
+async function fetchHistory(){
+  try{
+    const r = await fetch(WORKER_URL+'/api/history');
+    const d = await r.json();
+    history = d.history||[];
+  }catch{ history=[]; }
+}
+const WORKER_URL = (window.BASIRA_WORKER_URL||'').replace(/\/$/,'');
+
+/* ════════════════════════════════════════════════════════════════════════
+   RENDER ROUTER
+════════════════════════════════════════════════════════════════════════ */
+function render(){
+  const root = document.getElementById('root');
+  if(view==='form')     root.innerHTML = renderForm();
+  else if(view==='scraping') root.innerHTML = renderScraping();
+  else if(view==='results')  root.innerHTML = renderResults();
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   FORM VIEW
+════════════════════════════════════════════════════════════════════════ */
+function renderForm(){
+  const t = T[lang];
+  const lm = loadMethod;
+  return `
+<!-- Hero -->
+<div style="margin-bottom:24px;">
+  <h1 style="font-size:1.7rem;font-weight:800;letter-spacing:-.03em;margin-bottom:6px;">${t.title}</h1>
+  <p style="color:var(--text2);font-size:.9rem;line-height:1.6;">${t.subtitle}</p>
+</div>
+
+<!-- Notice -->
+<div class="notice" style="margin-bottom:20px;">${t.howto}</div>
+
+<!-- URL -->
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-title">${lang==='ar'?'الرابط':'Target'}</div>
+  <label class="lbl">${t.urlLbl}</label>
+  <input class="inp" id="iUrl" type="url" placeholder="${t.urlPh}" value="${g('iUrl')}">
+</div>
+
+<!-- Selectors -->
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-title">${lang==='ar'?'المحددات':'Selectors'}</div>
+  <div class="row2" style="margin-bottom:14px;">
+    <div class="fgroup">
+      <label class="lbl">${t.parentLbl}</label>
+      <input class="inp" id="iParent" placeholder="${t.parentPh}" value="${g('iParent')}">
+      <span style="font-size:.7rem;color:var(--text3);margin-top:4px;">${t.parentHelp}</span>
+    </div>
+    <div class="fgroup">
+      <label class="lbl">${t.itemLbl}</label>
+      <input class="inp" id="iItem" placeholder="${t.itemPh}" value="${g('iItem')}">
+      <span style="font-size:.7rem;color:var(--text3);margin-top:4px;">${t.itemHelp}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Fields -->
+<div class="card" style="margin-bottom:16px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <span class="card-title" style="margin-bottom:0;">${t.fieldsLbl}</span>
+    <button class="btn btn-ghost btn-sm" onclick="addField()">${t.addField}</button>
+  </div>
+  <!-- field headers -->
+  <div style="display:grid;grid-template-columns:1fr 1.4fr 100px 32px;gap:8px;padding:0 12px;margin-bottom:4px;">
+    <span style="font-size:.67rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">${t.fName}</span>
+    <span style="font-size:.67rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">${t.fSel}</span>
+    <span style="font-size:.67rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">${t.fType}</span>
+    <span></span>
+  </div>
+  <div id="fieldsWrap">${fields.map(f=>fieldRow(f)).join('')}</div>
+</div>
+
+<!-- Loading & Options -->
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-title">${lang==='ar'?'الإعدادات':'Options'}</div>
+  <div class="row2" style="margin-bottom:14px;">
+    <div class="fgroup">
+      <label class="lbl">${t.methodLbl}</label>
+      <select class="inp" id="iMethod" onchange="loadMethod=this.value;render()">
+        <option value="auto-scroll" ${lm==='auto-scroll'?'selected':''}>${methodIcon['auto-scroll']} ${t.autoScroll}</option>
+        <option value="pagination"  ${lm==='pagination' ?'selected':''}>${methodIcon['pagination']} ${t.pagination}</option>
+        <option value="load-more"   ${lm==='load-more'  ?'selected':''}>${methodIcon['load-more']} ${t.loadMore}</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <label class="lbl">${t.maxRowsLbl}</label>
+      <input class="inp" id="iMax" type="number" min="0" placeholder="0" value="${g('iMax')}">
+    </div>
+  </div>
+
+  ${lm==='pagination'?`
+  <div class="fgroup" style="margin-bottom:14px;">
+    <label class="lbl">${t.pagSelLbl}</label>
+    <input class="inp" id="iPagSel" placeholder="a.next-page, li.next a" value="${g('iPagSel')}">
+  </div>`:''}
+  ${lm==='load-more'?`
+  <div class="fgroup" style="margin-bottom:14px;">
+    <label class="lbl">${t.loadMoreSelLbl}</label>
+    <input class="inp" id="iLMSel" placeholder="button.load-more" value="${g('iLMSel')}">
+  </div>`:''}
+
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div class="toggle ${stealth?'on':''}" onclick="stealth=!stealth;render()">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">${t.stealth}<span class="toggle-sub">${t.stealthSub}</span></span>
+    </div>
+    <div class="toggle ${advOn?'on':''}" onclick="advOn=!advOn;render()">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">${t.advanced}</span>
+    </div>
+  </div>
+
+  ${advOn?`
+  <div style="margin-top:12px;padding:16px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border2);">
+    <div class="toggle ${proxyOn?'on':''}" onclick="proxyOn=!proxyOn;render()" style="margin-bottom:${proxyOn?'12px':'0'}">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">${t.proxy}</span>
+    </div>
+    ${proxyOn?`
+    <div class="row3">
+      <div class="fgroup"><label class="lbl">Host:Port</label><input class="inp" id="iProxyHost" placeholder="${t.proxyHost}" value="${g('iProxyHost')}"></div>
+      <div class="fgroup"><label class="lbl">${t.proxyUser}</label><input class="inp" id="iProxyUser" value="${g('iProxyUser')}"></div>
+      <div class="fgroup"><label class="lbl">${t.proxyPass}</label><input class="inp" type="password" id="iProxyPass" value="${g('iProxyPass')}"></div>
+    </div>`:''}
+  </div>`:''}
+</div>
+
+<!-- Error -->
+<div id="errBox"></div>
+
+<!-- Submit -->
+<button class="btn btn-primary btn-full" style="margin-top:16px;height:48px;font-size:1rem;" onclick="doScrape()">
+  ${t.start}
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+
+<!-- History -->
+${history.length?`
+<div class="card" style="margin-top:20px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <span style="font-weight:700;font-size:.92rem;">${t.history}</span>
+    <button class="btn btn-danger btn-sm" onclick="clearHist()">🗑</button>
+  </div>
+  ${history.map(h=>`
+  <div class="hist-item">
+    <div class="hist-icon">${methodIcon[h.loadingMethod]||'↕'}</div>
+    <div class="hist-info">
+      <div class="hist-name">${h.hostname||h.url}</div>
+      <div class="hist-meta">
+        <span class="badge">${h.rows} rows</span>
+        ${h.failedItems?`<span class="badge" style="background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.2);color:var(--danger);">${h.failedItems} failed</span>`:''}
+        <span>${fmtAge(h.timestamp)}</span>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="loadJob('${h.id}')">${t.viewJob}</button>
+  </div>`).join('')}
+</div>`:''}
+`;
+}
+
+function fieldRow(f){
+  return `<div class="field-row" id="fr${f.id}">
+    <input class="inp" placeholder="${T[lang].fName}" value="${f.name}" oninput="upField(${f.id},'name',this.value)" style="height:36px;font-size:.83rem;">
+    <input class="inp" placeholder="${T[lang].fSel}" value="${f.selector}" oninput="upField(${f.id},'selector',this.value)" style="height:36px;font-size:.83rem;">
+    <select class="inp" onchange="upField(${f.id},'type',this.value)" style="height:36px;font-size:.83rem;">
+      ${['text','link','image','price'].map(tp=>`<option value="${tp}"${f.type===tp?' selected':''}>${typeIcon[tp]} ${tp}</option>`).join('')}
+    </select>
+    <button class="field-remove" onclick="rmField(${f.id})">×</button>
+  </div>`;
+}
+
+function addField(){ fields.push({id:fid++,name:'',selector:'',type:'text'}); document.getElementById('fieldsWrap').innerHTML=fields.map(fieldRow).join(''); }
+function rmField(id){ if(fields.length<=1)return; fields=fields.filter(f=>f.id!==id); document.getElementById('fieldsWrap').innerHTML=fields.map(fieldRow).join(''); }
+function upField(id,k,v){ const f=fields.find(x=>x.id===id); if(f)f[k]=v; }
+function g(id){ return document.getElementById(id)?.value||''; }
+
+/* ════════════════════════════════════════════════════════════════════════
+   SCRAPING VIEW
+════════════════════════════════════════════════════════════════════════ */
+function renderScraping(){
+  const t=T[lang];
+  return `<div class="scraping-card card">
+    <div class="spinner"></div>
+    <div class="scraping-title">${t.scraping}</div>
+    <div class="scraping-sub">${t.scrapingSub}</div>
+    <div class="progress-bg"><div class="progress-bar" id="pbar" style="width:8%"></div></div>
+    <div class="scraping-msg" id="pmsg">Connecting…</div>
+  </div>`;
+}
+
+function animateProgress(){
+  const msgs=['Launching Cloudflare Browser…','Loading target page…','Scrolling through content…','Extracting fields…','Finalizing results…'];
+  let w=8, mi=0;
+  return setInterval(()=>{
+    w=Math.min(w+Math.random()*9,88);
+    const bar=document.getElementById('pbar');
+    const msg=document.getElementById('pmsg');
+    if(bar)bar.style.width=w+'%';
+    if(msg&&mi<msgs.length-1&&w>(mi+1)*17)msg.textContent=msgs[++mi];
+  },800);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   RESULTS VIEW
+════════════════════════════════════════════════════════════════════════ */
+function renderResults(){
+  const t=T[lang];
+  const {data,fields:rf,meta}=result;
+  const names=rf.map(f=>f.name);
+  const n=meta.itemsScraped, nc=names.length;
+  const filled=data.filter(d=>d.value&&d.value!=='N/A').length;
+  const fill=n?Math.round(filled/(n*nc)*100):0;
+
+  const rowMap={};
+  for(const d of data){
+    if(!rowMap[d.item_index])rowMap[d.item_index]={};
+    rowMap[d.item_index][d.field_name]=d.value;
+  }
+  let rows=Object.values(rowMap);
+  if(filter)rows=rows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(filter.toLowerCase())));
+  if(sortCol){
+    rows.sort((a,b)=>String(a[sortCol]||'').localeCompare(String(b[sortCol]||''),undefined,{numeric:true})*sortDir);
+  }
+  const arr=(c)=>sortCol===c?(sortDir===1?T[lang].sortAsc:T[lang].sortDesc):'';
+
+  return `
+<!-- Top bar -->
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+  <div>
+    <h2 style="font-size:1.2rem;font-weight:800;">${t.done}</h2>
+    <div style="font-size:.78rem;color:var(--text3);margin-top:2px;font-family:var(--mono);">${meta.url||''}</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-success btn-sm" onclick="expCSV()">${t.dlCSV}</button>
+    <button class="btn btn-ghost btn-sm" onclick="expJSON()">${t.dlJSON}</button>
+    <button class="btn btn-ghost btn-sm" onclick="resetForm()">${t.back}</button>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-val">${n}</div><div class="stat-lbl">${t.rows}</div></div>
+  <div class="stat"><div class="stat-val">${nc}</div><div class="stat-lbl">${t.cols}</div></div>
+  <div class="stat"><div class="stat-val">${n*nc}</div><div class="stat-lbl">${t.cells}</div></div>
+  <div class="stat"><div class="stat-val">${fill}%</div><div class="stat-lbl">Fill</div></div>
+</div>
+
+${meta.failedItems?`<div class="notice warn" style="margin-bottom:14px;">⚠️ ${meta.failedItems} ${t.fail}</div>`:''}
+
+<!-- Search -->
+<div class="search-row">
+  <input class="inp" style="max-width:300px;height:36px;font-size:.85rem;" placeholder="${t.filterPh}" oninput="filter=this.value;reRender()" value="${filter}">
+  <span class="cnt-badge">${rows.length} / ${n}</span>
+</div>
+
+<!-- Table -->
+<div class="tbl-wrap">
+  <table>
+    <thead><tr>
+      <th class="td-idx">#</th>
+      ${names.map(nm=>`<th onclick="setSort('${nm}')">${nm} ${arr(nm)}</th>`).join('')}
+    </tr></thead>
+    <tbody>
+      ${rows.slice(0,500).map((r,i)=>`<tr>
+        <td class="td-idx">${i+1}</td>
+        ${names.map(nm=>{
+          const v=r[nm]||'';
+          const fld=rf.find(f=>f.name===nm)||{};
+          if(fld.type==='image'&&v)return `<td><img src="${v}" style="height:34px;border-radius:5px;object-fit:cover;" loading="lazy" onerror="this.style.display='none'"></td>`;
+          if(fld.type==='link'&&v)return `<td><a href="${v}" target="_blank" rel="noreferrer" style="color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:.75rem;">${v.replace(/^https?:\/\//,'').slice(0,45)}</a></td>`;
+          return `<td title="${v.replace(/"/g,'')}">${v.slice(0,90)}</td>`;
+        }).join('')}
+      </tr>`).join('')}
+    </tbody>
+  </table>
+  ${rows.length>500?`<div style="padding:10px 14px;font-size:.75rem;color:var(--text3);border-top:1px solid var(--border);">Showing 500 of ${rows.length} — download for full data</div>`:''}
+</div>`;
+}
+
+function reRender(){ document.getElementById('root').innerHTML=renderResults(); }
+function setSort(col){ sortCol===col?sortDir*=-1:(sortCol=col,sortDir=1); reRender(); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   ACTIONS
+════════════════════════════════════════════════════════════════════════ */
+async function doScrape(){
+  const t=T[lang];
+  const url=g('iUrl').trim();
+  const parentSelector=g('iParent').trim();
+  const itemSelector=g('iItem').trim();
+  const lm=document.getElementById('iMethod')?.value||loadMethod;
+  const maxRows=parseInt(g('iMax'))||0;
+  const pagSel=g('iPagSel').trim();
+  const lmSel=g('iLMSel').trim();
+
+  const err=document.getElementById('errBox');
+  err.innerHTML='';
+
+  if(!/^https?:\/\//.test(url)){ err.innerHTML=`<div class="notice err" style="margin-top:12px;">${t.errUrl}</div>`; return; }
+  if(!parentSelector||!itemSelector){ err.innerHTML=`<div class="notice err" style="margin-top:12px;">${t.errSel}</div>`; return; }
+  const vf=fields.filter(f=>f.name&&f.selector);
+  if(!vf.length){ err.innerHTML=`<div class="notice err" style="margin-top:12px;">${t.errField}</div>`; return; }
+
+  let proxy=null;
+  if(proxyOn){
+    const ph=g('iProxyHost').trim();
+    if(ph){ const[host,port]=ph.split(':'); proxy={protocol:'http',host,port:parseInt(port)||8080,username:g('iProxyUser'),password:g('iProxyPass')}; }
+  }
+
+  view='scraping'; render();
+  const iv=animateProgress();
+
+  try{
+    const res=await fetch(WORKER_URL+'/api/scrape',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,parentSelector,itemSelector,fields:vf,loadingMethod:lm,paginationSelector:pagSel,loadMoreSelector:lmSel,rowLimit:maxRows,stealth,proxy}),
+    });
+    clearInterval(iv);
+    const bar=document.getElementById('pbar');
+    if(bar)bar.style.width='100%';
+
+    if(!res.ok){
+      const e=await res.json().catch(()=>({}));
+      view='form'; render();
+      document.getElementById('errBox').innerHTML=`<div class="notice err" style="margin-top:12px;">${e.error||t.errWorker}</div>`;
+      return;
+    }
+
+    result=await res.json();
+    filter=''; sortCol=null;
+    view='results';
+    await fetchHistory();
+    render();
+  }catch(e){
+    clearInterval(iv);
+    view='form'; render();
+    document.getElementById('errBox').innerHTML=`<div class="notice err" style="margin-top:12px;">${t.errWorker}: ${e.message}</div>`;
+  }
+}
+
+async function loadJob(jobId){
+  try{
+    const r=await fetch(WORKER_URL+'/api/job/'+jobId);
+    if(!r.ok)return;
+    result=await r.json(); filter=''; sortCol=null; view='results'; render();
+  }catch{}
+}
+
+async function clearHist(){
+  await fetch(WORKER_URL+'/api/history',{method:'DELETE'});
+  history=[]; render();
+}
+
+function resetForm(){ view='form'; fetchHistory().then(render); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   EXPORTS
+════════════════════════════════════════════════════════════════════════ */
+function buildRows(){
+  const names=result.fields.map(f=>f.name);
+  const map={};
+  for(const d of result.data){
+    if(!map[d.item_index])map[d.item_index]={};
+    map[d.item_index][d.field_name]=d.value;
+  }
+  return{rows:Object.values(map),names};
+}
+function expCSV(){
+  const{rows,names}=buildRows();
+  let csv='\uFEFF'+names.join(',')+'\n';
+  for(const r of rows) csv+=names.map(n=>'"'+(r[n]||'').replace(/"/g,'""')+'"').join(',')+'\n';
+  dl(csv,'basira-'+Date.now()+'.csv','text/csv;charset=utf-8');
+}
+function expJSON(){
+  const{rows}=buildRows();
+  dl(JSON.stringify(rows,null,2),'basira-'+Date.now()+'.json','application/json');
+}
+function dl(content,name,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   UTILS
+════════════════════════════════════════════════════════════════════════ */
+function fmtAge(ts){
+  const t=T[lang];
+  const s=Math.floor((Date.now()-new Date(ts))/1000);
+  if(s<60)return t.justNow;
+  const m=Math.floor(s/60); if(m<60)return m+'m '+t.ago;
+  const h=Math.floor(m/60); if(h<24)return h+'h '+t.ago;
+  return Math.floor(h/24)+'d '+t.ago;
+}
+</script>
+</body>
+</html>
