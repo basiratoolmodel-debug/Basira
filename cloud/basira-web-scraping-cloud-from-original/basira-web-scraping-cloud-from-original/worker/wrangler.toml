@@ -1,6 +1,0 @@
-name = "basira-scraper-api"
-main = "src/index.js"
-compatibility_date = "2026-05-08"
-
-[browser]
-binding = "MYBROWSER"
