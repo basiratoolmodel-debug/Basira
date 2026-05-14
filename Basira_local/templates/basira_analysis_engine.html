@@ -1,0 +1,3894 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Basira — Analysis Engine</title>
+<script>
+/* Basira Settings Sync — URL params are authoritative; API is fallback only */
+(function(){
+  function _applyTheme(v){
+    if(!v) return;
+    document.documentElement.setAttribute("data-theme", v);
+    try{ localStorage.setItem("basira_theme", v); }catch(e){}
+  }
+  function _applyLang(lang){
+    if(!lang) return;
+    try{ localStorage.setItem("basira_lang", lang); }catch(e){}
+    document.documentElement.lang = lang;
+    document.documentElement.dir  = lang === "ar" ? "rtl" : "ltr";
+  }
+  var params   = new URLSearchParams(window.location.search);
+  var urlTheme = params.get("bs_theme");
+  var urlLang  = params.get("bs_lang");
+  var theme    = urlTheme || localStorage.getItem("basira_theme") || "light";
+  var lang     = urlLang  || localStorage.getItem("basira_lang")  || "en";
+  _applyTheme(theme);
+  _applyLang(lang);
+
+  // If URL params present, push to server so config stays in sync
+  if(urlTheme || urlLang){
+    var body = {};
+    if(urlTheme) body.theme = urlTheme;
+    if(urlLang)  body.language = urlLang;
+    try{
+      fetch("http://127.0.0.1:5001/api/settings",{
+        method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)
+      }).catch(function(){});
+    }catch(e){}
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    // Re-apply URL params (highest priority) or localStorage
+    _applyTheme(urlTheme || localStorage.getItem("basira_theme") || "light");
+    _applyLang(urlLang  || localStorage.getItem("basira_lang")  || "en");
+    // Fetch from API only when no URL params (bare navigation)
+    if(!urlTheme && !urlLang){
+      fetch("http://127.0.0.1:5001/api/settings", {cache:"no-store"})
+        .then(function(r){ return r.json(); })
+        .then(function(d){ if(d.status==="ok"){ _applyTheme(d.theme); _applyLang(d.language); applyAEi18n(); } })
+        .catch(function(){});
+    }
+    applyAEi18n();
+  });
+})();
+
+/* ── Analysis Engine i18n ─────────────────────────────────── */
+const AE_I18N = {
+  en: {
+    brand: "Basira",
+    nav_preprocessor: "← Preprocessor",
+    nav_home: "🏠 Home",
+    nav_save: "Save",
+    nav_records: "Records",
+    nav_reset: "↺ Reset",
+    upload_label: "Start Analysis",
+    upload_title: "Upload Preprocessed Data",
+    upload_sub: "Drop your file or click to browse — analysis starts automatically",
+    tag_auto: "Auto-Target Detection",
+    tab_charts: "📊 Smart Charts",
+    tab_predictions: "🎯 Predictions / Assignments",
+    tab_forecast:    "📈 Forecast",
+    tab_rca: "🔍 Root Cause Analysis",
+    tab_data: "📋 Data Preview",
+    section_insights: "Analytical Insights",
+    section_charts: "Intelligent Visualizations",
+    btn_manage_charts: "⚙️ Manage Charts",
+    btn_predict: "⟳ Predict",
+    btn_open_preprocessor: "🔧 Open Preprocessor",
+    modal_close: "Close",
+    modal_try_again: "Try Another File",
+    dirty_what: "💡 What to do",
+    dirty_desc: "This file cannot be analyzed directly — it needs to be cleaned and prepared first. Basira Preprocessor will automatically fix missing values, encoding issues, and data types.",
+    error_generic: "An error occurred. Please try again.",
+    loading_steps: ["Initializing engines…","Reading dataset…","Detecting features…","Running supervised analysis…","Building RCA report…","Generating insights…","Rendering charts…","Finalizing results…"],
+    loading_labels: ["Analyzing Your Data","Analyzing Your Data","Processing Features","Running ML Models","Root Cause Analysis","Generating Insights","Building Charts","Almost Done…"]
+  },
+  ar: {
+    brand: "بصيرة",
+    nav_preprocessor: "المعالجة المسبقة →",
+    nav_home: "🏠 الرئيسية",
+    nav_save: "حفظ",
+    nav_records: "السجلات",
+    nav_reset: "↺ إعادة",
+    upload_label: "ابدأ التحليل",
+    upload_title: "ارفع بياناتك المعالجة",
+    upload_sub: "اسحب ملفك أو انقر للاختيار — يبدأ التحليل تلقائياً",
+    tag_auto: "اكتشاف تلقائي للهدف",
+    tab_charts: "📊 رسوم ذكية",
+    tab_predictions: "🎯 التنبؤات والتجميعات",
+    tab_forecast:    "📈 التوقعات",
+    tab_rca: "🔍 تحليل الأسباب الجذرية",
+    tab_data: "📋 معاينة البيانات",
+    section_insights: "الرؤى التحليلية",
+    section_charts: "التصور الذكي",
+    btn_manage_charts: "⚙️ إدارة الرسوم",
+    btn_predict: "⟳ تنبؤ",
+    btn_open_preprocessor: "🔧 فتح المعالج",
+    modal_close: "إغلاق",
+    modal_try_again: "جرّب ملفاً آخر",
+    dirty_what: "💡 ماذا تفعل",
+    dirty_desc: "لا يمكن تحليل هذا الملف مباشرة — يحتاج إلى تنظيف وتجهيز أولاً. سيقوم المعالج المسبق تلقائياً بإصلاح القيم المفقودة والترميز وأنواع البيانات.",
+    error_generic: "حدث خطأ. حاول مرة أخرى.",
+    loading_steps: ["تهيئة المحركات…","قراءة البيانات…","اكتشاف الخصائص…","تشغيل التحليل…","بناء تقرير الأسباب…","توليد الرؤى…","رسم المخططات…","إنهاء النتائج…"],
+    loading_labels: ["تحليل بياناتك","تحليل بياناتك","معالجة الخصائص","تشغيل النماذج","الأسباب الجذرية","توليد الرؤى","بناء الرسوم","يكاد ينتهي…"]
+  }
+};
+function aeT(key){
+  const lang = (localStorage.getItem('basira_lang')||'en').startsWith('ar') ? 'ar' : 'en';
+  const val = (AE_I18N[lang]&&AE_I18N[lang][key] !== undefined) ? AE_I18N[lang][key] : AE_I18N.en[key];
+  return val !== undefined ? val : key;
+}
+function applyAEi18n(){
+  const lang = (localStorage.getItem('basira_lang')||'en').startsWith('ar') ? 'ar' : 'en';
+  document.querySelectorAll('[data-ae-t]').forEach(el => {
+    const k = el.getAttribute('data-ae-t');
+    const v = (AE_I18N[lang]&&AE_I18N[lang][k] !== undefined) ? AE_I18N[lang][k] : AE_I18N.en[k];
+    if(v === undefined || Array.isArray(v)) return;
+    el.textContent = v;
+  });
+  // Update no-data notice if visible
+  const noticeText = document.getElementById('ae-no-data-text');
+  if (noticeText) {
+    noticeText.textContent = lang === 'ar'
+      ? 'لا توجد بيانات محملة حاليًا. يرجى رفع بيانات أو إرسالها من المعالجة المسبقة.'
+      : 'No dataset is currently loaded. Please upload data or send data from Preprocess.';
+  }
+  // Update loading label if showing
+  const ldLbl = document.getElementById('loading-label');
+  if (ldLbl && ldLbl.textContent) {
+    const labels = AE_I18N[lang].loading_labels || AE_I18N.en.loading_labels;
+    if (labels && labels[0]) ldLbl.textContent = labels[0];
+  }
+}
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f0f4f8;--surface:#ffffff;--surface-2:#f8fafc;
+  --surface-glass:rgba(255,255,255,0.92);
+  --accent:#0ea5e9;--accent-2:#6366f1;
+  --accent-dim:rgba(14,165,233,0.10);--accent-glow:rgba(14,165,233,0.22);
+  --success:#22c55e;--warning:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --text:#0f172a;--text-2:#334155;--text-dim:#64748b;--text-muted:#94a3b8;
+  --border:#e2e8f0;--border-2:#cbd5e1;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Plus Jakarta Sans','Noto Sans Arabic',system-ui,sans-serif;
+  --nav-h:62px;
+  --r:12px;--r-lg:18px;--r-xl:24px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+  --sh-md:0 4px 16px rgba(0,0,0,.09);
+  --sh-lg:0 12px 40px rgba(0,0,0,.12);
+  --tr:.18s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;-webkit-font-smoothing:antialiased;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
+
+/* ── Nav ── */
+.hdr{
+  background:var(--surface-glass);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);padding:0 5%;height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;box-shadow:var(--sh);gap:16px;
+}
+.brand{font-weight:800;color:var(--accent);font-size:1.3rem;letter-spacing:-0.5px;font-family:var(--mono);cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text-dim);}
+.breadcrumb a{color:var(--accent);text-decoration:none;font-weight:600;transition:var(--tr);}
+.breadcrumb a:hover{opacity:.7;}
+.breadcrumb-sep{color:var(--border-2);}
+.breadcrumb-cur{color:var(--accent);font-weight:700;}
+.nav-actions{display:flex;align-items:center;gap:8px;}
+.nav-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--r);font-family:var(--sans);
+  font-weight:700;font-size:.8rem;cursor:pointer;border:1.5px solid var(--border);
+  background:var(--surface-2);color:var(--text-dim);transition:var(--tr);white-space:nowrap;
+}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.nav-btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.nav-btn-primary:hover{filter:brightness(1.08);color:#fff;}
+
+/* ── Layout ── */
+.main{max-width:1200px;margin:0 auto;padding:28px 20px 56px;}
+
+/* ── Section label ── */
+.slbl{font-size:.67rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin:26px 0 12px;display:flex;align-items:center;gap:8px;}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── Upload zone ── */
+.uzone{
+  border:2px dashed var(--border-2);border-radius:var(--r-xl);
+  padding:52px 28px;text-align:center;background:var(--accent-dim);
+  transition:var(--tr);cursor:pointer;position:relative;
+}
+.uzone:hover,.uzone.drag{border-color:var(--accent);background:rgba(14,165,233,.13);}
+.uzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.uzone-icon{width:58px;height:58px;margin:0 auto 16px;border-radius:16px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-md);font-size:1.6rem;}
+.uzone-title{font-size:1.05rem;font-weight:800;margin-bottom:5px;}
+.uzone-sub{font-size:.84rem;color:var(--text-dim);margin-bottom:14px;}
+.ftags{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;}
+.ftag{background:var(--surface);border:1px solid var(--border);padding:3px 11px;border-radius:7px;font-size:.72rem;font-family:var(--mono);font-weight:700;color:var(--text-dim);}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px 26px;box-shadow:var(--sh);}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:var(--r);font-family:var(--sans);font-weight:700;font-size:.88rem;cursor:pointer;border:1.5px solid transparent;transition:var(--tr);white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
+.btn-ghost{background:var(--surface-2);border-color:var(--border-2);color:var(--text-dim);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.btn-full{width:100%;}
+.btn-danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3);color:var(--danger);}
+.btn-danger:hover{background:var(--danger);color:#fff;border-color:var(--danger);}
+
+/* ── Info bar ── */
+.fi-bar{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(155px,1fr));
+  gap:0;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  box-shadow:var(--sh);
+  margin-bottom:20px;
+}
+.fi-item{
+  min-width:0;
+  padding:14px 18px;
+  border-right:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+}
+.fi-item:nth-last-child(-n+2){border-bottom:none;}
+.fi-item:last-child{border-right:none;}
+.fi-lbl{
+  font-size:.6rem;
+  font-weight:800;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:6px;
+}
+.fi-val{
+  font-size:.92rem;
+  font-weight:800;
+  font-family:var(--mono);
+  color:var(--accent);
+  line-height:1.35;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.fi-item.file-meta{
+  grid-column:span 2;
+}
+.fi-item.file-meta .fi-val{
+  font-size:.82rem;
+}
+@media(max-width:760px){
+  .fi-bar{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .fi-item{border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .fi-item.file-meta{grid-column:1/-1;}
+}
+@media(max-width:520px){
+  .fi-bar{grid-template-columns:1fr;}
+  .fi-item,.fi-item:last-child{border-right:none;border-bottom:1px solid var(--border);}
+}
+
+/* ── Narrative banner ── */
+.narrative-banner{
+  background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(99,102,241,.07));
+  border:1px solid rgba(14,165,233,.2);border-radius:var(--r-xl);
+  padding:28px 32px;margin-bottom:24px;position:relative;overflow:hidden;
+}
+.narrative-banner::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-2));}
+.narrative-label{font-size:.67rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
+.narrative-headline{font-size:1.4rem;font-weight:800;margin-bottom:12px;line-height:1.3;color:var(--text);}
+.narrative-summary{font-size:.9rem;line-height:1.75;color:var(--text-2);margin-bottom:20px;}
+.narrative-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-top:10px;}
+.narrative-box-title{font-weight:800;font-size:.72rem;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+
+/* ── Insight cards ── */
+.insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:24px;}
+.insight-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:20px;position:relative;overflow:hidden;transition:var(--tr);box-shadow:var(--sh);
+  min-width:0;
+}
+.insight-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--accent);}
+.insight-card:hover{transform:translateY(-3px);box-shadow:var(--sh-md);}
+.insight-card.sev-critical::before{background:var(--danger);}
+.insight-card.sev-high::before{background:var(--warning);}
+.insight-card.sev-medium::before{background:var(--accent-2);}
+.insight-card.sev-low::before{background:var(--success);}
+.insight-card.sev-info::before{background:var(--accent);}
+.insight-icon{font-size:1.6rem;margin-bottom:10px;opacity:.9;}
+.insight-label{font-size:.6rem;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;}
+.insight-value{font-size:clamp(.78rem,3vw,1.1rem);font-weight:800;font-family:var(--mono);margin-bottom:6px;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;cursor:default;}
+.insight-metric{font-size:.75rem;color:var(--text-dim);margin-bottom:10px;}
+.insight-desc{font-size:.83rem;line-height:1.6;color:var(--text-2);margin-bottom:10px;}
+.insight-action{background:var(--accent-dim);border-left:3px solid var(--accent);padding:9px 12px;border-radius:0 var(--r) var(--r) 0;font-size:.78rem;color:var(--text-dim);}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:3px;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto;}
+.tab{padding:9px 18px;font-size:.82rem;font-weight:700;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:var(--tr);white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--sans);}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* ── Charts ── */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:20px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;box-shadow:var(--sh);transition:border-color var(--tr),box-shadow var(--tr),opacity .25s ease,transform .25s ease;position:relative;}
+.chart-card:hover{border-color:var(--border-2);box-shadow:var(--sh-md);}
+.chart-card.removing{opacity:0!important;transform:scale(.94)!important;pointer-events:none;}
+.chart-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.chart-title{font-size:.9rem;font-weight:700;color:var(--text);}
+.chart-reason{font-size:.75rem;color:var(--text-dim);margin-top:3px;}
+.chart-container{height:340px;position:relative;}
+.chart-card-btns{display:flex;gap:6px;flex-shrink:0;}
+.chart-card-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;font-family:var(--sans);transition:var(--tr);white-space:nowrap;}
+.chart-card-btn-refresh{background:var(--accent-dim);border-color:rgba(14,165,233,.25);color:var(--accent);}
+.chart-card-btn-refresh:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+
+/* ── Table ── */
+.twrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);}
+table{width:100%;border-collapse:collapse;font-size:.78rem;}
+thead th{padding:10px 14px;background:var(--accent-dim);text-align:left;font-weight:800;font-family:var(--mono);font-size:.67rem;letter-spacing:.4px;color:var(--accent);border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);}
+tbody tr:hover{background:var(--accent-dim);}
+tbody td{padding:9px 14px;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;color:var(--text-2);}
+.pred-index{font-family:var(--mono);color:var(--text-muted);}
+.pred-value{font-family:var(--mono);font-weight:700;color:var(--accent);}
+
+/* ── Confidence bar ── */
+.confidence-cell{min-width:150px;}
+.confidence-bar-container{background:var(--border);height:6px;border-radius:3px;overflow:hidden;margin-top:4px;}
+.confidence-bar{height:100%;background:linear-gradient(90deg,var(--success),var(--accent));border-radius:3px;transition:width .6s ease;}
+
+/* ── RCA ── */
+.rca-node{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;margin-bottom:16px;position:relative;overflow:hidden;transition:var(--tr);box-shadow:var(--sh);}
+.rca-node::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;}
+.rca-node:hover{box-shadow:var(--sh-md);}
+.rca-critical::before{background:var(--danger);}
+.rca-high::before{background:var(--warning);}
+.rca-medium::before{background:var(--accent-2);}
+.rca-low::before{background:var(--success);}
+.rca-info::before,.rca-standard::before{background:var(--accent);}
+.rca-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.rca-title{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:6px;}
+.rca-id{font-family:var(--mono);font-size:.75rem;color:var(--text-muted);}
+.severity-badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;border:1.5px solid;}
+.severity-critical{background:rgba(239,68,68,.08);color:var(--danger);border-color:rgba(239,68,68,.3);}
+.severity-high{background:rgba(245,158,11,.08);color:var(--warning);border-color:rgba(245,158,11,.3);}
+.severity-medium{background:rgba(99,102,241,.08);color:var(--accent-2);border-color:rgba(99,102,241,.3);}
+.severity-low{background:rgba(34,197,94,.08);color:var(--success);border-color:rgba(34,197,94,.3);}
+.severity-info,.severity-standard{background:var(--accent-dim);color:var(--accent);border-color:rgba(14,165,233,.3);}
+.cause-tag{display:inline-flex;padding:5px 12px;margin:3px;border-radius:20px;font-size:.72rem;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);color:var(--danger);}
+.causal-chain{margin:12px 0;padding:14px;background:var(--surface-2);border-radius:var(--r);}
+.causal-step{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.83rem;color:var(--text-dim);}
+.causal-step:last-child{border-bottom:none;}
+.causal-step-num{min-width:22px;height:22px;border-radius:50%;background:var(--accent-dim);color:var(--accent);font-size:.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.recommendation-box{background:var(--accent-dim);border-left:3px solid var(--accent);padding:14px 18px;border-radius:0 var(--r) var(--r) 0;margin-top:14px;}
+.recommendation-label{font-weight:800;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.priority-actions{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:var(--r-lg);padding:20px;margin-bottom:20px;}
+.priority-actions-title{font-weight:800;font-size:.78rem;letter-spacing:.5px;text-transform:uppercase;color:var(--warning);margin-bottom:12px;}
+.priority-action-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.85rem;color:var(--text-2);}
+.priority-action-item:last-child{border-bottom:none;}
+.priority-action-num{min-width:26px;height:26px;border-radius:50%;background:rgba(245,158,11,.12);color:var(--warning);font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* ── Export ── */
+.export-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:20px;}
+.checkbox-item{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r);background:var(--surface-2);border:1px solid var(--border);cursor:pointer;transition:var(--tr);font-size:.85rem;font-weight:600;}
+.checkbox-item:hover{border-color:var(--accent);background:var(--accent-dim);}
+.checkbox-item input{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);}
+
+/* ── Empty state ── */
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-dim);}
+.empty-state-icon{font-size:2.5rem;margin-bottom:12px;opacity:.4;}
+.empty-state-text{font-size:.9rem;}
+
+/* ── Toast ── */
+#toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:var(--r);background:var(--surface);border-left:4px solid var(--accent);box-shadow:var(--sh-lg);display:none;z-index:9999;font-size:.86rem;font-weight:600;max-width:400px;width:max-content;color:var(--text);transition:opacity .25s ease;}
+
+/* ── Modal / Popup overlay ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(4px);display:flex;align-items:center;
+  justify-content:center;z-index:9998;padding:20px;
+  animation:fadeIn .18s ease;
+}
+.modal-overlay.hidden{display:none;}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);padding:36px 32px 28px;
+  max-width:400px;width:100%;box-shadow:var(--sh-lg);text-align:center;
+}
+.modal-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;}
+.modal-icon-info{background:var(--accent-dim);}
+.modal-icon-warning{background:rgba(245,158,11,.1);}
+.modal-title{font-size:1.05rem;font-weight:800;margin-bottom:8px;}
+.modal-desc{font-size:.86rem;color:var(--text-dim);line-height:1.65;}
+.modal-actions{display:flex;gap:10px;margin-top:22px;}
+.modal-btn{flex:1;padding:11px 18px;border-radius:var(--r);font-weight:700;font-size:.88rem;cursor:pointer;font-family:var(--sans);transition:var(--tr);border:1.5px solid transparent;}
+.modal-btn-cancel{background:var(--surface-2);border-color:var(--border);color:var(--text-dim);}
+.modal-btn-cancel:hover{border-color:var(--border-2);color:var(--text);}
+.modal-btn-confirm{background:var(--danger);color:#fff;border-color:var(--danger);}
+.modal-btn-confirm:hover{filter:brightness(1.08);}
+.modal-btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.modal-btn-primary:hover{filter:brightness(1.08);}
+
+/* ── Loading popup ── */
+#loading-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  backdrop-filter:blur(6px);display:none;align-items:center;
+  justify-content:center;z-index:9999;
+}
+.loading-popup{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);padding:40px 44px;
+  box-shadow:var(--sh-lg);text-align:center;
+  max-width:480px;width:100%;
+  animation:popIn .25s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── Animation stage (loading) ── */
+.anim-stage{
+  width:100%;height:200px;background:var(--surface-2);
+  border-radius:var(--r-lg);overflow:hidden;position:relative;
+  margin-bottom:24px;border:1px solid var(--border);
+}
+.anim-chrome{height:32px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:5px;}
+.anim-dot{width:10px;height:10px;border-radius:50%;}
+.anim-dot:nth-child(1){background:#ff5f57;}
+.anim-dot:nth-child(2){background:#febc2e;}
+.anim-dot:nth-child(3){background:#28c840;}
+.anim-bar{flex:1;height:18px;background:var(--border);border-radius:5px;margin:0 12px;}
+.anim-content{position:absolute;top:32px;left:0;right:0;bottom:0;overflow:hidden;}
+.anim-scene{position:absolute;inset:0;padding:12px;opacity:0;transition:opacity .5s ease;pointer-events:none;}
+.anim-scene.vis{opacity:1;}
+/* spreadsheet mini */
+.ss-mini-header{display:grid;grid-template-columns:28px 1fr 70px 65px 60px;background:var(--surface-2);border-bottom:1px solid var(--border);}
+.ss-mini-hc{padding:5px 8px;font-size:8px;font-weight:800;color:var(--text-muted);text-transform:uppercase;border-right:1px solid var(--border);}
+.ss-mini-row{display:grid;grid-template-columns:28px 1fr 70px 65px 60px;border-bottom:1px solid var(--surface-2);opacity:0;transform:translateX(-8px);transition:opacity .25s,transform .3s cubic-bezier(.34,1.56,.64,1);}
+.ss-mini-row.in{opacity:1;transform:translateX(0);}
+.ss-mini-c{padding:5px 8px;font-size:9px;color:var(--text-2);border-right:1px solid var(--surface-2);}
+.ss-mini-c.bl{color:var(--accent);font-weight:700;}
+.ss-mini-c.gr{color:var(--success);font-weight:700;}
+/* blocks mini */
+.blocks-mini{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px;}
+.blk{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px;opacity:0;transform:scale(.88) translateY(8px);transition:opacity .35s,transform .4s cubic-bezier(.34,1.56,.64,1);}
+.blk.in{opacity:1;transform:scale(1) translateY(0);}
+.blk-lbl{font-size:7px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;}
+.blk-val{font-size:14px;font-weight:800;color:var(--accent);margin-bottom:6px;font-family:var(--mono);}
+.blk-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.blk-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0;transition:width .6s cubic-bezier(.4,0,.2,1);}
+/* charts mini */
+.charts-mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.cm{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px;opacity:0;transform:translateY(10px);transition:opacity .4s,transform .45s cubic-bezier(.34,1.56,.64,1);}
+.cm.in{opacity:1;transform:translateY(0);}
+.cm-title{font-size:7px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;}
+/* dashboard mini */
+.dash-mini{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.dm-kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .35s cubic-bezier(.34,1.56,.64,1);}
+.dm-kpi.in{opacity:1;transform:translateY(0);}
+.dm-kpi-lbl{font-size:7px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:2px;}
+.dm-kpi-val{font-size:13px;font-weight:800;font-family:var(--mono);}
+
+.loading-label{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:6px;}
+.loading-sub{font-size:.82rem;color:var(--text-dim);}
+.loading-step{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--accent-dim);border:1px solid rgba(14,165,233,.2);
+  border-radius:20px;padding:5px 14px;font-size:.75rem;font-weight:700;
+  color:var(--accent);margin-top:14px;
+}
+.loading-spinner{width:14px;height:14px;border:2px solid rgba(14,165,233,.25);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Hidden ── */
+.hidden{display:none!important;}
+
+/* ── Analysis overview cards ── */
+.analysis-overview-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+  margin:0 0 22px;
+}
+.overview-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:18px 20px;
+  box-shadow:var(--sh);
+  position:relative;
+  overflow:hidden;
+}
+.overview-card::before{
+  content:'';
+  position:absolute;
+  inset:0 auto 0 0;
+  width:4px;
+  background:var(--accent);
+}
+.overview-label{
+  font-size:.65rem;
+  font-weight:800;
+  color:var(--text-muted);
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.overview-value{
+  font-size:1.45rem;
+  font-weight:900;
+  color:var(--text);
+  line-height:1.1;
+}
+.overview-sub{
+  margin-top:6px;
+  font-size:.78rem;
+  color:var(--text-dim);
+  line-height:1.55;
+}
+.score-ring{
+  width:74px;
+  height:74px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.05rem;
+  font-weight:900;
+  color:var(--accent);
+  background:
+    radial-gradient(circle at center,var(--surface) 58%,transparent 60%),
+    conic-gradient(var(--accent) var(--score,75%),rgba(226,232,240,.9) 0);
+}
+.overview-card.score-card{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.explain-panel{
+  display:none;
+  margin:0 0 22px;
+  background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(99,102,241,.06));
+  border:1px solid rgba(14,165,233,.18);
+  border-radius:var(--r-lg);
+  padding:18px 20px;
+  box-shadow:var(--sh);
+}
+.explain-panel.open{display:block;animation:fadeIn .18s ease;}
+.explain-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.explain-item{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+}
+.explain-item-title{
+  font-size:.68rem;
+  font-weight:900;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:7px;
+}
+.explain-item-text{
+  font-size:.84rem;
+  line-height:1.65;
+  color:var(--text-2);
+}
+
+/* ── Prediction cards ── */
+.pred-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:12px;
+  margin:0 0 18px;
+}
+.pred-summary-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:15px 16px;
+  box-shadow:var(--sh);
+}
+.pred-summary-label{
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:7px;
+}
+.pred-summary-value{
+  font-size:1.15rem;
+  font-weight:900;
+  color:var(--accent);
+  line-height:1.2;
+  overflow-wrap:anywhere;
+}
+.pred-summary-sub{
+  font-size:.74rem;
+  color:var(--text-dim);
+  margin-top:5px;
+}
+.pred-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 9px;
+  border-radius:999px;
+  font-size:.72rem;
+  font-weight:800;
+  background:var(--accent-dim);
+  color:var(--accent);
+}
+.pred-value-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 9px;
+  border-radius:999px;
+  background:var(--accent-dim);
+  color:var(--accent);
+  font-size:.75rem;
+  font-weight:900;
+  max-width:180px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.pred-table-note{
+  font-size:.76rem;
+  color:var(--text-dim);
+  margin:10px 0 0;
+}
+
+
+.report-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.report-actions .btn{
+  flex:1;
+  min-width:96px;
+  font-size:.76rem!important;
+  padding:8px 10px!important;
+}
+
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ════ LOADING POPUP MODAL ════ -->
+<div id="loading-modal">
+  <div class="loading-popup">
+    <!-- Data rows animation — Basira identity -->
+    <div style="width:80px;height:60px;margin:0 auto 20px;">
+      <svg viewBox="0 0 80 60" width="80" height="60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="4" width="72" height="52" rx="6" stroke="var(--border,#e2e8f0)" stroke-width="1.5"/>
+        <line x1="4" y1="16" x2="76" y2="16" stroke="var(--border,#e2e8f0)" stroke-width="1.5"/>
+        <line x1="4" y1="28" x2="76" y2="28" stroke="var(--border,#e2e8f0)" stroke-width="1.5"/>
+        <line x1="4" y1="40" x2="76" y2="40" stroke="var(--border,#e2e8f0)" stroke-width="1.5"/>
+        <line x1="28" y1="4" x2="28" y2="56" stroke="var(--border,#e2e8f0)" stroke-width="1"/>
+        <line x1="52" y1="4" x2="52" y2="56" stroke="var(--border,#e2e8f0)" stroke-width="1"/>
+        <rect x="4" y="4" width="72" height="12" rx="6" fill="url(#ae-hdr-grad)" opacity="0.95"/>
+        <rect class="ae-ld-bar ae-ld-r1" x="8" y="19" width="16" height="6" rx="3"/>
+        <rect class="ae-ld-bar ae-ld-r1" x="32" y="19" width="14" height="6" rx="3" style="animation-delay:.14s"/>
+        <rect class="ae-ld-bar ae-ld-r1" x="56" y="19" width="16" height="6" rx="3" style="animation-delay:.28s"/>
+        <rect class="ae-ld-bar ae-ld-r2" x="8" y="31" width="12" height="6" rx="3" style="animation-delay:.42s"/>
+        <rect class="ae-ld-bar ae-ld-r2" x="32" y="31" width="16" height="6" rx="3" style="animation-delay:.56s"/>
+        <rect class="ae-ld-bar ae-ld-r2" x="56" y="31" width="10" height="6" rx="3" style="animation-delay:.70s"/>
+        <rect class="ae-ld-bar ae-ld-r3" x="8" y="43" width="18" height="6" rx="3" style="animation-delay:.84s"/>
+        <rect class="ae-ld-bar ae-ld-r3" x="32" y="43" width="10" height="6" rx="3" style="animation-delay:.98s"/>
+        <rect class="ae-ld-bar ae-ld-r3" x="56" y="43" width="14" height="6" rx="3" style="animation-delay:1.12s"/>
+        <defs>
+          <linearGradient id="ae-hdr-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#0ea5e9"/>
+            <stop offset="100%" stop-color="#6366f1"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="loading-label" id="loading-label">Analyzing Your Data</div>
+    <div class="loading-sub" id="loading-sub">Running AI analysis pipeline…</div>
+    <!-- Progress bar -->
+    <div style="height:5px;background:#f1f5f9;border-radius:99px;overflow:hidden;margin-top:20px;">
+      <div id="ld-bar" style="height:100%;width:6%;background:linear-gradient(90deg,#0ea5e9,#6366f1);border-radius:99px;transition:width .5s ease;"></div>
+    </div>
+    <!-- Step badge -->
+    <div class="loading-step" style="margin-top:16px;">
+      <div class="loading-spinner"></div>
+      <span id="loading-step-text">Initializing engines…</span>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes ld-spin { to { transform: rotate(360deg); } }
+.ae-ld-bar { fill: #0ea5e9; opacity: 0; animation: ae-ld-row-in 1.6s ease forwards infinite; }
+.ae-ld-r2  { animation-duration: 1.8s; }
+.ae-ld-r3  { animation-duration: 2.0s; }
+@keyframes ae-ld-row-in {
+  0%  { opacity: 0; transform: translateX(-5px); }
+  28% { opacity: 0.9; transform: translateX(0); }
+  70% { opacity: 0.9; transform: translateX(0); }
+  100%{ opacity: 0; }
+}
+
+/* ── Analysis overview cards ── */
+.analysis-overview-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+  margin:0 0 22px;
+}
+.overview-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:18px 20px;
+  box-shadow:var(--sh);
+  position:relative;
+  overflow:hidden;
+}
+.overview-card::before{
+  content:'';
+  position:absolute;
+  inset:0 auto 0 0;
+  width:4px;
+  background:var(--accent);
+}
+.overview-label{
+  font-size:.65rem;
+  font-weight:800;
+  color:var(--text-muted);
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.overview-value{
+  font-size:1.45rem;
+  font-weight:900;
+  color:var(--text);
+  line-height:1.1;
+}
+.overview-sub{
+  margin-top:6px;
+  font-size:.78rem;
+  color:var(--text-dim);
+  line-height:1.55;
+}
+.score-ring{
+  width:74px;
+  height:74px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.05rem;
+  font-weight:900;
+  color:var(--accent);
+  background:
+    radial-gradient(circle at center,var(--surface) 58%,transparent 60%),
+    conic-gradient(var(--accent) var(--score,75%),rgba(226,232,240,.9) 0);
+}
+.overview-card.score-card{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.explain-panel{
+  display:none;
+  margin:0 0 22px;
+  background:linear-gradient(135deg,rgba(14,165,233,.07),rgba(99,102,241,.06));
+  border:1px solid rgba(14,165,233,.18);
+  border-radius:var(--r-lg);
+  padding:18px 20px;
+  box-shadow:var(--sh);
+}
+.explain-panel.open{display:block;animation:fadeIn .18s ease;}
+.explain-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.explain-item{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+}
+.explain-item-title{
+  font-size:.68rem;
+  font-weight:900;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:7px;
+}
+.explain-item-text{
+  font-size:.84rem;
+  line-height:1.65;
+  color:var(--text-2);
+}
+
+/* ── Prediction cards ── */
+.pred-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:12px;
+  margin:0 0 18px;
+}
+.pred-summary-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:15px 16px;
+  box-shadow:var(--sh);
+}
+.pred-summary-label{
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  color:var(--text-muted);
+  margin-bottom:7px;
+}
+.pred-summary-value{
+  font-size:1.15rem;
+  font-weight:900;
+  color:var(--accent);
+  line-height:1.2;
+  overflow-wrap:anywhere;
+}
+.pred-summary-sub{
+  font-size:.74rem;
+  color:var(--text-dim);
+  margin-top:5px;
+}
+.pred-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 9px;
+  border-radius:999px;
+  font-size:.72rem;
+  font-weight:800;
+  background:var(--accent-dim);
+  color:var(--accent);
+}
+.pred-value-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 9px;
+  border-radius:999px;
+  background:var(--accent-dim);
+  color:var(--accent);
+  font-size:.75rem;
+  font-weight:900;
+  max-width:180px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.pred-table-note{
+  font-size:.76rem;
+  color:var(--text-dim);
+  margin:10px 0 0;
+}
+
+
+.report-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.report-actions .btn{
+  flex:1;
+  min-width:96px;
+  font-size:.76rem!important;
+  padding:8px 10px!important;
+}
+
+</style>
+
+<!-- ════ ERROR / PREPROCESSOR SUGGESTION POPUP ════ -->
+<div class="modal-overlay hidden" id="error-modal">
+  <div class="modal-box" style="max-width:480px;">
+
+    <!-- icon + title — changes based on error type -->
+    <div class="modal-icon" id="error-modal-icon" style="font-size:1.8rem;margin-bottom:14px;">⚠️</div>
+    <div class="modal-title" id="error-modal-title" style="font-size:1.05rem;">Analysis Error</div>
+    <div class="modal-desc" id="error-modal-desc" style="margin-top:6px;font-size:.85rem;color:var(--text-dim);line-height:1.65;">An unexpected error occurred.</div>
+
+    <!-- Blue card: preprocessor suggestion (dirty data) -->
+    <div id="preprocess-suggestion" class="hidden" style="margin-top:18px;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.22);border-radius:var(--r-lg);padding:16px 18px;text-align:left;">
+      <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--accent);margin-bottom:10px;" data-ae-t="dirty_what">💡 What to do</div>
+      <div style="font-size:.84rem;color:var(--text-2);line-height:1.7;margin-bottom:14px;" data-ae-t="dirty_desc">
+        This file cannot be analyzed directly — it needs to be <strong>cleaned and prepared</strong> first.<br><br>
+        <strong>Basira Preprocessor</strong> will automatically fix missing values, encoding issues, data types, and format problems, then send it straight to the Analysis Engine.
+      </div>
+      <button onclick="goToPreprocessor()" style="width:100%;padding:11px 16px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-weight:700;font-size:.88rem;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:8px;" data-ae-t="btn_open_preprocessor">
+        🔧 Open Preprocessor
+      </button>
+    </div>
+
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="modal-btn modal-btn-cancel" onclick="closeErrorModal()" data-ae-t="modal_close">Close</button>
+      <button class="modal-btn modal-btn-primary" onclick="closeErrorModal();document.getElementById('file-input').click()" data-ae-t="modal_try_again">Try Another File</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ NAVBAR ════ -->
+<div class="hdr">
+  <div class="brand" onclick="safeNavigate('/')" data-ae-t="brand">Basira</div>
+  <!-- Breadcrumb removed to avoid repeating Home / Preprocessor in the header.
+  <div class="breadcrumb">
+    <a href="#" onclick="safeNavigate('/');return false;">🏠 Home</a>
+    <span class="breadcrumb-sep">›</span>
+    <a href="#" onclick="safeNavigate('/basira_preprocessor.html');return false;">📊 Preprocessor</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-cur">🔬 Analysis Engine</span>
+  </div>
+  -->
+  <div class="nav-actions">
+    <button class="nav-btn" onclick="safeNavigate('/basira_preprocessor.html')" data-ae-t="nav_preprocessor">← Preprocessor</button>
+    <button class="nav-btn" onclick="safeNavigate('/')" data-ae-t="nav_home">🏠 Home</button>
+    <button class="nav-btn nav-btn-primary" id="save-record-btn" onclick="saveToRecords()" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span data-ae-t="nav_save">Save</span>
+    </button>
+    <button class="nav-btn" onclick="showRecords()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8L2 7h20l-6-4z"/></svg>
+      <span data-ae-t="nav_records">Records</span>
+    </button>
+    <button class="nav-btn" onclick="resetToUpload()" data-ae-t="nav_reset">↺ Reset</button>
+  </div>
+</div>
+
+<!-- ════ MAIN ════ -->
+<div class="main">
+
+  <!-- Upload section -->
+  <div id="upload-section">
+    <div class="slbl" data-ae-t="upload_label">Start Analysis</div>
+    <!-- Direct access notice — shown when no data is preloaded -->
+    <div id="ae-no-data-notice" style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:14px;font-size:.86rem;color:var(--text-dim);display:none;">
+      <span id="ae-no-data-text">No dataset is currently loaded. Please upload data or send data from Preprocess.</span>
+    </div>
+    <div class="card">
+      <div class="uzone" id="dropzone">
+        <input type="file" id="file-input" accept=".csv,.xlsx,.xls" onchange="smartUploadAndAnalyze()"/>
+        <div class="uzone-icon">📂</div>
+        <div class="uzone-title" data-ae-t="upload_title">Upload Preprocessed Data</div>
+        <div class="uzone-sub" data-ae-t="upload_sub">Drop your file or click to browse — analysis starts automatically</div>
+        <div class="ftags">
+          <span class="ftag">CSV</span>
+          <span class="ftag">XLSX</span>
+          <span class="ftag" data-ae-t="tag_auto">Auto-Target Detection</span>
+          <span class="ftag">Multi-Model</span>
+          <span class="ftag">RCA + Insights</span>
+        </div>
+      </div>
+      <!-- auto-runs on file select via smartUploadAndAnalyze() -->
+      <button class="btn btn-primary btn-full hidden" id="analyze-btn" style="display:none!important;"></button>
+    </div>
+  </div>
+
+  <!-- Results section -->
+  <div id="results-area" class="hidden">
+
+    <!-- Info bar -->
+    <div class="fi-bar" id="results-meta"></div>
+
+    <!-- Analysis overview cards -->
+    <div class="analysis-overview-grid" id="analysis-overview-grid">
+      <div class="overview-card score-card">
+        <div class="score-ring" id="quality-score-ring" style="--score:0%;"><span id="quality-score-value">—</span></div>
+        <div>
+          <div class="overview-label">Data Quality Score</div>
+          <div class="overview-sub" id="quality-score-sub">Calculated after analysis</div>
+        </div>
+      </div>
+      <div class="overview-card">
+        <div class="overview-label">Target Confidence</div>
+        <div class="overview-value" id="target-confidence-value">—</div>
+        <div class="overview-sub" id="target-confidence-sub">Confidence for detected target</div>
+      </div>
+      <div class="overview-card">
+        <div class="overview-label">Result Explanation</div>
+        <div class="overview-sub">A short explanation of Strategy, Task, and Target.</div>
+        <button class="btn btn-ghost" style="margin-top:10px;font-size:.78rem;padding:8px 12px;" onclick="toggleExplainPanel()">Explain Result</button>
+      </div>
+      <div class="overview-card">
+        <div class="overview-label">Export Report</div>
+        <div class="overview-sub">Quick PDF summary above, or full HTML report with results and charts.</div>
+        <div class="report-actions">
+          <button class="btn btn-primary" onclick="openReportBuilder()">📄 Report Builder</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="explain-panel" id="explain-panel">
+      <div class="explain-grid">
+        <div class="explain-item">
+          <div class="explain-item-title">Strategy</div>
+          <div class="explain-item-text" id="explain-strategy">—</div>
+        </div>
+        <div class="explain-item">
+          <div class="explain-item-title">Task</div>
+          <div class="explain-item-text" id="explain-task">—</div>
+        </div>
+        <div class="explain-item">
+          <div class="explain-item-title">Target</div>
+          <div class="explain-item-text" id="explain-target">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Narrative -->
+    <div class="narrative-banner">
+      <div class="narrative-label">Executive Intelligence Summary</div>
+      <h2 class="narrative-headline" id="narrative-headline"></h2>
+      <p class="narrative-summary" id="narrative-summary"></p>
+      <div class="narrative-box" id="box-key-finding" style="display:none;">
+        <div class="narrative-box-title">🎯 Key Finding</div>
+        <p id="narrative-key" style="font-size:.86rem;color:var(--text-2);line-height:1.65;"></p>
+      </div>
+      <div class="narrative-box" id="box-action" style="display:none;margin-top:10px;">
+        <div class="narrative-box-title">💡 Recommended Action</div>
+        <p id="narrative-action" style="font-size:.86rem;color:var(--text-2);line-height:1.65;"></p>
+      </div>
+      <div class="narrative-box" id="box-risk" style="display:none;margin-top:10px;">
+        <div class="narrative-box-title">⚠️ Risk Assessment</div>
+        <p id="narrative-risk" style="font-size:.86rem;color:var(--text-2);line-height:1.65;"></p>
+      </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="slbl" data-ae-t="section_insights">Analytical Insights</div>
+    <div id="insights-grid" class="insights-grid"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('charts',event)" data-ae-t="tab_charts">📊 Smart Charts</button>
+      <button class="tab" onclick="switchTab('forecast',event)" id="tab-forecast-btn" data-ae-t="tab_forecast">📈 Forecast</button>
+      <button class="tab" onclick="switchTab('predictions',event)" data-ae-t="tab_predictions">🎯 Predictions / Assignments</button>
+      <button class="tab" onclick="switchTab('rca',event)" data-ae-t="tab_rca">🔍 Root Cause Analysis</button>
+      <button class="tab" onclick="switchTab('data',event)" data-ae-t="tab_data">📋 Data Preview</button>
+    </div>
+
+    <!-- Charts tab -->
+    <div id="charts-tab" class="tab-content active">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div class="slbl" style="margin:0;" data-ae-t="section_charts">Intelligent Visualizations</div>
+        <button class="btn btn-ghost" style="font-size:.8rem;padding:8px 14px;" onclick="openChartManagement()" data-ae-t="btn_manage_charts">⚙️ Manage Charts</button>
+      </div>
+      <div id="charts-container" class="charts-grid"></div>
+    </div>
+
+    <!-- Forecast tab -->
+    <div id="forecast-tab" class="tab-content" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+        <div>
+          <div class="slbl" style="margin:0;" id="forecast-tab-title">📈 Forecast</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:3px;" id="forecast-method-label"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <label style="font-size:.8rem;font-weight:700;color:var(--text-muted);" id="forecast-col-label">Column:</label>
+          <select id="forecast-col-select" style="padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:.82rem;" onchange="onForecastColChange()"></select>
+          <label style="font-size:.8rem;font-weight:700;color:var(--text-muted);" id="forecast-horizon-label">Horizon:</label>
+          <input type="range" id="forecast-slider" min="5" max="60" value="12" step="1"
+            style="width:140px;accent-color:var(--accent);" oninput="onForecastSlider(this.value)">
+          <span id="forecast-horizon-val" style="font-size:.82rem;font-weight:800;color:var(--accent);min-width:36px;">12</span>
+          <button class="btn btn-primary" style="font-size:.8rem;padding:7px 16px;" onclick="applyForecast()">
+            <span id="forecast-apply-lbl">Apply</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Forecast not available notice -->
+      <div id="forecast-unavailable" class="empty-state hidden">
+        <div style="font-size:2rem;">📉</div>
+        <div class="empty-state-text" id="forecast-unavailable-text">Forecast not available for this dataset.</div>
+      </div>
+
+      <!-- Chart -->
+      <div id="forecast-chart-wrap" style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:28px;height:3px;background:#2563eb;border-radius:2px;"></div>
+            <span style="font-size:.75rem;font-weight:600;color:var(--text-muted);" id="fc-legend-hist">Historical</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:28px;height:3px;background:#f59e0b;border-radius:2px;border-style:dashed;"></div>
+            <span style="font-size:.75rem;font-weight:600;color:var(--text-muted);" id="fc-legend-forecast">Forecast</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:28px;height:10px;background:rgba(245,158,11,.15);border-radius:2px;"></div>
+            <span style="font-size:.75rem;font-weight:600;color:var(--text-muted);" id="fc-legend-ci">90% Confidence</span>
+          </div>
+        </div>
+        <div style="height:340px;position:relative;">
+          <canvas id="forecast-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Summary card -->
+      <div id="forecast-summary-card" style="background:linear-gradient(135deg,var(--accent)10,var(--surface));border:1px solid var(--accent);border-radius:var(--r-lg);padding:18px 22px;">
+        <div style="font-size:.68rem;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;" id="fc-summary-lbl">FORECAST SUMMARY</div>
+        <div style="font-size:.92rem;color:var(--text);line-height:1.7;" id="forecast-summary-text"></div>
+      </div>
+    </div>
+
+    <!-- Predictions tab -->
+    <div id="predictions-tab" class="tab-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+        <div class="slbl" style="margin:0;" id="predictions-tab-title">Predictions / Cluster Assignments</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:.8rem;color:var(--text-dim);">Mode: <strong id="pred-mode-status" style="color:var(--success);">—</strong></span>
+          <button class="btn btn-ghost" style="font-size:.78rem;padding:7px 14px;" onclick="rerunPredictions(event)" title="Re-run predictions on current data">⟳ Predict</button>
+        </div>
+      </div>
+
+      <div id="pred-summary-grid" class="pred-summary-grid hidden"></div>
+
+      <!-- Prediction chart -->
+      <div id="pred-narrative-box" style="display:none;background:var(--surface-2,#f8fafc);border:1px solid var(--border);border-radius:var(--r,12px);padding:14px 18px;margin-bottom:14px;line-height:1.7;"></div>
+      <div id="pred-chart-wrap" class="card hidden" style="margin-bottom:18px;padding:18px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div>
+            <div style="font-size:.9rem;font-weight:700;color:var(--text);" id="pred-chart-title">Predictions Overview</div>
+            <div style="font-size:.75rem;color:var(--text-dim);margin-top:2px;" id="pred-chart-sub"></div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <select id="pred-chart-type" onchange="switchPredChart()" class="ctrl-select" style="font-size:.78rem;padding:5px 9px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--sans);">
+              <option value="bar">Bar</option>
+              <option value="line" selected>Line / Trend</option>
+              <option value="scatter">Scatter</option>
+              <option value="doughnut">Doughnut</option>
+            </select>
+          </div>
+        </div>
+        <div style="height:280px;position:relative;"><canvas id="pred-chart-canvas"></canvas></div>
+      </div>
+
+      <!-- Table -->
+      <div class="twrap">
+        <table id="predictions-table"></table>
+      </div>
+      <div id="predictions-empty" class="empty-state hidden">
+        <div class="empty-state-icon">🎯</div>
+        <div class="empty-state-text">No predictions returned yet.</div>
+        <div id="pred-warn-box" style="display:none;margin-top:16px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:14px 16px;text-align:left;max-width:600px;margin-left:auto;margin-right:auto;">
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--warning);margin-bottom:8px;">⚠️ Engine Log</div>
+          <div id="pred-warn-text" style="font-size:.79rem;color:var(--text-dim);line-height:1.7;font-family:var(--mono);white-space:pre-wrap;word-break:break-all;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RCA tab -->
+    <div id="rca-tab" class="tab-content">
+      <div class="slbl" data-ae-t="tab_rca">Root Cause Analysis</div>
+      <div id="rca-priority-actions"></div>
+      <div id="rca-container"></div>
+      <div id="rca-empty" class="empty-state hidden">
+        <div class="empty-state-icon">🔍</div>
+        <div class="empty-state-text">No RCA data returned by the pipeline.</div>
+      </div>
+    </div>
+
+    <!-- Data tab -->
+    <div id="data-tab" class="tab-content">
+      <div class="slbl" data-ae-t="tab_data">Data Preview</div>
+      <div class="twrap">
+        <table id="preview-table"></table>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="card" style="margin-top:28px;">
+      <div class="slbl" style="margin-top:0;">Save &amp; Export</div>
+      <div class="export-grid">
+        <label class="checkbox-item"><input type="checkbox" id="save-narrative" checked/><span>Executive Narrative</span></label>
+        <label class="checkbox-item"><input type="checkbox" id="save-insights" checked/><span>Insights</span></label>
+        <label class="checkbox-item"><input type="checkbox" id="save-charts" checked/><span>Charts Config</span></label>
+        <label class="checkbox-item"><input type="checkbox" id="save-predictions" checked/><span>Predictions / Assignments</span></label>
+        <label class="checkbox-item"><input type="checkbox" id="save-rca" checked/><span>RCA Report</span></label>
+        <label class="checkbox-item"><input type="checkbox" id="save-data" checked/><span>Data Preview</span></label>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="btn btn-ghost" style="flex:1;font-size:.82rem;" onclick="openReportBuilder()">📄 Report Builder</button>
+      </div>
+      <button class="btn btn-primary btn-full" style="font-size:.9rem;" onclick="exportSelected()">
+        ⬇️ Download Complete Analysis JSON
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Global state ──────────────────────────────────────────────
+let currentData   = null;
+let charts        = {};
+let chartConfigs  = {};
+let _ldInterval   = null;
+let _ldPct        = 6;
+let isAnalyzing   = false;
+let pendingNavUrl = null;
+window.currentAnalysisData = null;
+// Remember where user came from — read once on load, persists for the session
+let _navSource = sessionStorage.getItem('basira_nav_source') || '';
+
+// ── Navigation guard ─────────────────────────────────────────
+function safeNavigate(url) {
+  // Resolve cross-port navigation
+  let resolvedUrl = url;
+  if (url === '/' || url === '/index.html') {
+    // If user came from preprocessor, go back there. Otherwise go to main app.
+    if (_navSource === 'preprocess') {
+      const lang  = localStorage.getItem('basira_lang')  || 'en';
+      const theme = localStorage.getItem('basira_theme') || 'light';
+      resolvedUrl = `http://127.0.0.1:5050/basira_preprocessor.html?bs_lang=${lang}&bs_theme=${theme}`;
+    } else {
+      resolvedUrl = 'http://127.0.0.1:5001/';
+    }
+  } else if (url === '/basira_preprocessor.html') {
+    const lang  = localStorage.getItem('basira_lang')  || 'en';
+    const theme = localStorage.getItem('basira_theme') || 'light';
+    resolvedUrl = `http://127.0.0.1:5050/basira_preprocessor.html?bs_lang=${lang}&bs_theme=${theme}`;
+  }
+  if (isAnalyzing) {
+    pendingNavUrl = resolvedUrl;
+    document.getElementById('nav-warn-title').textContent = 'Analysis in progress';
+    document.getElementById('nav-warn-desc').textContent  = 'The analysis is still running. If you leave now, the process will be interrupted and results will be lost.';
+    document.getElementById('nav-warn-go-btn').onclick    = () => { window.location.href = pendingNavUrl; };
+    document.getElementById('nav-warn-modal').classList.remove('hidden');
+  } else {
+    window.location.href = resolvedUrl;
+  }
+}
+
+function closeNavWarn() {
+  document.getElementById('nav-warn-modal').classList.add('hidden');
+  pendingNavUrl = null;
+}
+
+window.addEventListener('beforeunload', e => {
+  if (isAnalyzing) { e.preventDefault(); e.returnValue = ''; }
+});
+
+// ── Loading popup animation ───────────────────────────────────
+const STEPS = [
+  'Initializing engines…',
+  'Reading your dataset…',
+  'Detecting features & target…',
+  'Training models…',
+  'Running RCA engine…',
+  'Generating insights…',
+  'Building visualizations…',
+  'Finalizing results…',
+];
+const NS = 'http://www.w3.org/2000/svg';
+
+function svgEl(tag, attrs) {
+  const e = document.createElementNS(NS, tag);
+  Object.entries(attrs || {}).forEach(([k, v]) => e.setAttribute(k, v));
+  return e;
+}
+
+function animSvgVal(el, attr, from, to, dur, begin) {
+  const a = svgEl('animate', { attributeName: attr, from, to, dur: dur + 's', begin: begin + 's', fill: 'freeze', calcMode: 'spline', keySplines: '0.4 0 0.2 1', keyTimes: '0;1' });
+  el.appendChild(a);
+}
+
+function drawMiniBar(svgId) {
+  const svg = document.getElementById(svgId); if (!svg) return; svg.innerHTML = '';
+  const data = [55, 82, 38, 94, 67, 78];
+  const bw = 9, gap = 4, ch = 46;
+  data.forEach((v, i) => {
+    const x = 4 + i * (bw + gap), h = (v / 100) * ch, y = 50 - h;
+    const r = svgEl('rect', { x, y: 50, width: bw, height: 0, rx: 2, fill: `rgba(14,165,233,${0.4 + i * 0.1})` });
+    animSvgVal(r, 'height', 0, h, 0.4, i * 0.05);
+    animSvgVal(r, 'y', 50, y, 0.4, i * 0.05);
+    svg.appendChild(r);
+  });
+}
+
+function drawMiniLine(svgId) {
+  const svg = document.getElementById(svgId); if (!svg) return; svg.innerHTML = '';
+  const pts = [[4,48],[16,35],[28,42],[40,22],[52,30],[64,18],[76,10]];
+  const d = 'M ' + pts.map(p => p[0] + ',' + p[1]).join(' L ');
+  const line = svgEl('path', { d, fill: 'none', stroke: '#22c55e', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-dasharray': '200', 'stroke-dashoffset': '200' });
+  animSvgVal(line, 'stroke-dashoffset', 200, 0, 0.8, 0);
+  svg.appendChild(line);
+}
+
+function drawMiniPie(svgId) {
+  const svg = document.getElementById(svgId); if (!svg) return; svg.innerHTML = '';
+  const colors = ['#0ea5e9', '#6366f1', '#22c55e', '#f59e0b'];
+  const data = [38, 26, 22, 14];
+  const total = data.reduce((a, b) => a + b, 0);
+  let ang = -Math.PI / 2;
+  const cx = 40, cy = 30, r = 22;
+  data.forEach((v, i) => {
+    const a = (v / total) * Math.PI * 2, ea = ang + a;
+    const x1 = cx + r * Math.cos(ang), y1 = cy + r * Math.sin(ang);
+    const x2 = cx + r * Math.cos(ea), y2 = cy + r * Math.sin(ea);
+    const lg = a > Math.PI ? 1 : 0;
+    const p = svgEl('path', { d: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${lg} 1 ${x2} ${y2} Z`, fill: colors[i], stroke: '#fff', 'stroke-width': '1.5', opacity: 0 });
+    animSvgVal(p, 'opacity', 0, 0.9, 0.3, i * 0.1);
+    svg.appendChild(p);
+    ang = ea;
+  });
+  svg.appendChild(svgEl('circle', { cx, cy, r: r * 0.42, fill: '#fff' }));
+}
+
+let _animLoop = null;
+let _stepIdx  = 0;
+
+function startLoadingAnim() {
+  _ldPct = 6;
+  _updateLdBar(_ldPct);
+  const steps  = aeT('loading_steps')  || AE_I18N.en.loading_steps;
+  const labels = aeT('loading_labels') || AE_I18N.en.loading_labels;
+  const isAR   = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+  // Set initial loading-sub text
+  const subEl = document.getElementById('loading-sub');
+  if (subEl) subEl.textContent = isAR ? 'جاري تحليل بياناتك…' : 'Running AI analysis pipeline…';
+  let step = 0;
+  _ldInterval = setInterval(() => {
+    step = Math.min(step + 1, steps.length - 1);
+    _ldPct = Math.min(_ldPct + Math.random() * 10 + 4, 90);
+    _updateLdBar(_ldPct);
+    const stepEl = document.getElementById('loading-step-text');
+    const lblEl  = document.getElementById('loading-label');
+    if (stepEl) stepEl.textContent = steps[step];
+    if (lblEl)  lblEl.textContent  = labels[step];
+  }, 1400);
+}
+function _updateLdBar(pct) {
+  const bar = document.getElementById('ld-bar');
+  if (bar) bar.style.width = pct + '%';
+}
+function stopLoadingAnim() {
+  if (_ldInterval) { clearInterval(_ldInterval); _ldInterval = null; }
+  _updateLdBar(100);
+}
+
+function showLoading(show) {
+  const modal = document.getElementById('loading-modal');
+  if (show) {
+    modal.style.display = 'flex';
+    isAnalyzing = true;
+    startLoadingAnim();
+  } else {
+    modal.style.display = 'none';
+    isAnalyzing = false;
+    stopLoadingAnim();
+  }
+}
+
+// ── Drag & drop ───────────────────────────────────────────────
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const fi = document.getElementById('file-input');
+    // set the file on the input and trigger smart upload
+    const dt = new DataTransfer(); dt.items.add(file);
+    fi.files = dt.files;
+    smartUploadAndAnalyze();
+  }
+});
+
+// ── File select ───────────────────────────────────────────────
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) {
+    currentData = { file };
+    document.getElementById('analyze-btn').classList.remove('hidden');
+    toast('✓ File selected: ' + file.name);
+  }
+}
+
+// ── Run analysis ──────────────────────────────────────────────
+async function runAnalysis() {
+  if (!currentData) return;
+  showLoading(true);
+  const fd = new FormData();
+  fd.append('file', currentData.file);
+  try {
+    const res = await fetch('http://127.0.0.1:5055/analyze', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(aeT('error_generic'));
+    const data = await res.json();
+    if (data.status === 'error') throw new Error(data.message || 'Unknown error');
+    currentData.analysis = data;
+    window.currentAnalysisData = data;
+    try {
+      localStorage.setItem('basiraCurrentData', JSON.stringify(data));
+      localStorage.setItem('basira_analysis_result', JSON.stringify(data));
+      // new analysis = reset deleted charts state
+      localStorage.removeItem('basiraDeletedCharts');
+    } catch(e) {}
+    displayResults(data);
+    document.getElementById('upload-section').classList.add('hidden');
+    document.getElementById('results-area').classList.remove('hidden');
+    toast('✅ Analysis complete!');
+  } catch(err) {
+    showAnalysisError(err.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// ══════════════════════════════════════
+// PAYLOAD NORMALISATION (unchanged logic)
+// ══════════════════════════════════════
+function normalizeNarrative(data) {
+  // Priority 1: dashboard_payload.narrative (dict with all fields)
+  const dash = data.dashboard_payload || {};
+  const rel  = dash.reliability || {};
+  const n    = dash.narrative;
+  if (n && typeof n === 'object') {
+    return {
+      headline:            n.headline             || dash.best_model || dash.best_algorithm || 'Analysis Complete',
+      summary:             n.summary              || n.text || '',
+      key_finding:         n.key_finding          || rel.reason || '',
+      recommended_action:  n.recommended_action   || rel.recommended_next_step || '',
+      risk_alert:          n.risk_alert           || (rel.caution_notes||[]).join(' ') || '',
+    };
+  }
+  // Priority 2: insight_result.narrative_summary
+  if (data.insight_result && data.insight_result.narrative_summary) {
+    const ns = data.insight_result.narrative_summary;
+    if (typeof ns === 'object') {
+      return {
+        headline:           ns.headline            || dash.best_model || 'Analysis Complete',
+        summary:            ns.summary             || ns.text || '',
+        key_finding:        ns.key_finding         || rel.reason || '',
+        recommended_action: ns.recommended_action  || rel.recommended_next_step || '',
+        risk_alert:         ns.risk_alert          || (rel.caution_notes||[]).join(' ') || '',
+      };
+    }
+    // string summary
+    return { headline: dash.best_model || 'Analysis Complete', summary: String(ns), key_finding: rel.reason||'', recommended_action: rel.recommended_next_step||'', risk_alert: (rel.caution_notes||[]).join(' ')||'' };
+  }
+  // Priority 3: decision_narrative
+  if (data.decision_narrative) {
+    const dn = data.decision_narrative;
+    return { headline: dn.headline||'', summary: dn.summary||'', key_finding: dn.key_finding||'', recommended_action: dn.recommended_action||'', risk_alert: dn.risk_alert||'' };
+  }
+  // Priority 4: build from reliability alone
+  if (rel.reason || rel.recommended_next_step) {
+    return { headline: dash.best_model || dash.best_algorithm || 'Analysis Complete', summary: rel.reason||'', key_finding: rel.reason||'', recommended_action: rel.recommended_next_step||'', risk_alert: (rel.caution_notes||[]).join(' ')||'' };
+  }
+  return null;
+}
+
+function normalizeInsights(data) {
+  let raw = [];
+  if (data.insight_result && Array.isArray(data.insight_result.insights)) raw = data.insight_result.insights;
+  else if (data.dashboard_payload && Array.isArray(data.dashboard_payload.insights)) raw = data.dashboard_payload.insights;
+  else if (Array.isArray(data.advanced_insights)) raw = data.advanced_insights;
+  return raw.map(ins => {
+    if (!ins || typeof ins !== 'object') return null;
+    if (ins.narrative !== undefined) {
+      const mv = ins.metric_values || {};
+      const fv = Object.values(mv)[0];
+      return { id: ins.id || 'insight', title: ins.title || 'Insight', value: fv !== undefined ? String(fv) : (ins.severity || '—').toUpperCase(), metric: ins.layer || '', desc: ins.narrative || '', action: ins.recommended_action || '', severity: ins.severity || 'info', layer: ins.layer || '' };
+    }
+    return { id: ins.id || 'insight', title: ins.title || '', value: ins.value || '—', metric: ins.metric || '', desc: ins.desc || '', action: ins.action || '', severity: ins.severity || 'info', layer: ins.layer || '' };
+  }).filter(Boolean);
+}
+
+function normalizeCharts(data) {
+  if (data.dashboard_payload && Array.isArray(data.dashboard_payload.chart_recommendations)) return data.dashboard_payload.chart_recommendations;
+  if (Array.isArray(data.chart_recommendations)) return data.chart_recommendations;
+  return [];
+}
+
+function normalizeFeatureImportance(data) {
+  let raw = [];
+  if (data.dashboard_payload && Array.isArray(data.dashboard_payload.feature_importance)) raw = data.dashboard_payload.feature_importance;
+  else if (Array.isArray(data.feature_importance)) raw = data.feature_importance;
+  else if (Array.isArray(data.xai_report)) raw = data.xai_report;
+  return raw.map(f => {
+    if (!f || typeof f !== 'object') return null;
+    const val = parseFloat(f.impact_pct ?? f.impact ?? f.importance ?? 0) || 0;
+    return { feature: String(f.feature || f.name || 'unknown'), impact: val, impact_pct: val, importance: val, direction: f.direction || 'unknown' };
+  }).filter(Boolean);
+}
+
+function normalizePredictionsOrAssignments(data) {
+  // Check all known prediction locations
+  const predsRaw = data.predictions
+    || (data.dashboard_payload && data.dashboard_payload.predictions)
+    || (data.model_result      && data.model_result.predictions)
+    || null;
+  if (predsRaw && Array.isArray(predsRaw) && predsRaw.length > 0)
+    return { mode:'predictions', rows:predsRaw };
+
+  // Check all known assignment locations
+  const assignRaw = data.assigned_clusters
+    || data.cluster_assignments
+    || (data.dashboard_payload && data.dashboard_payload.assigned_clusters)
+    || null;
+  if (assignRaw && Array.isArray(assignRaw) && assignRaw.length > 0)
+    return { mode:'assignments', rows:assignRaw };
+
+  const warns = (data.predictions_warnings || []);
+  return { mode:'none', rows:[], warnings:warns };
+}
+
+function normalizeRCA(data) {
+  const rcaObj = data.rca_result || data.rca_ready_payload || null;
+  if (rcaObj) return { executive_summary: rcaObj.executive_summary || '', findings: Array.isArray(rcaObj.findings) ? rcaObj.findings : [], priority_actions: Array.isArray(rcaObj.priority_actions) ? rcaObj.priority_actions : [] };
+  if (Array.isArray(data.rca_report)) return { executive_summary: '', findings: data.rca_report, priority_actions: [] };
+  return null;
+}
+
+function normalizePreview(data) {
+  const raw = data.preview || data.data_preview || [];
+  return Array.isArray(raw) ? raw : [];
+}
+
+// ── Display results ───────────────────────────────────────────
+function displayResults(data) {
+  window._lastAnalysisData = data;
+  window.currentAnalysisData = data;
+  if(!currentData || !currentData.analysis) currentData = { analysis: data };
+
+  // Meta bar
+  const meta = document.getElementById('results-meta');
+  meta.innerHTML = [
+    { lbl: 'Rows', val: data.n_rows || '—' },
+    { lbl: 'Columns', val: data.n_columns || '—' },
+    { lbl: 'Strategy', val: data.strategy || '—' },
+    { lbl: 'Task', val: data.task_type || '—' },
+    { lbl: 'Target', val: data.target_column || '—' },
+    { lbl: 'File', val: data.uploaded_file || '—' },
+  ].map(x => {
+    const cls = x.lbl === 'File' ? 'fi-item file-meta' : 'fi-item';
+    const safeVal = String(x.val ?? '—')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;');
+    return `<div class="${cls}" title="${safeVal}"><div class="fi-lbl">${x.lbl}</div><div class="fi-val">${safeVal}</div></div>`;
+  }).join('');
+
+  updateAnalysisOverview(data);
+
+  // Narrative
+  const narrative = normalizeNarrative(data);
+  if (narrative) {
+    document.getElementById('narrative-headline').textContent = narrative.headline || '';
+    document.getElementById('narrative-summary').textContent  = narrative.summary  || '';
+    const _setBox = (boxId, elId, val) => {
+      const box = document.getElementById(boxId);
+      const el  = document.getElementById(elId);
+      if (el) el.textContent = val || '';
+      if (box) box.style.display = val ? '' : 'none';
+    };
+    _setBox('box-key-finding', 'narrative-key',    narrative.key_finding);
+    _setBox('box-action',      'narrative-action',  narrative.recommended_action);
+    _setBox('box-risk',        'narrative-risk',    narrative.risk_alert);
+  }
+
+  // Insights
+  const insights = normalizeInsights(data);
+  if (insights.length > 0) displayInsightCards(insights);
+
+  // Charts
+  const chartRecs  = normalizeCharts(data);
+  const featureImp = normalizeFeatureImportance(data);
+  if (chartRecs.length > 0) displayCharts(chartRecs, data, featureImp);
+  else if (featureImp.length > 0) displayCharts([buildFallbackImpactChart(featureImp)], data, featureImp);
+
+  // Predictions
+  const _pr = normalizePredictionsOrAssignments(data);
+  if (data.predictions_warnings && data.predictions_warnings.length)
+    _pr.warnings = (_pr.warnings||[]).concat(data.predictions_warnings);
+  displayPredictionsOrAssignments(_pr);
+
+  // RCA
+  const rcaData = normalizeRCA(data);
+  if (rcaData) displayRCA(rcaData);
+  else document.getElementById('rca-empty').classList.remove('hidden');
+
+  // Preview
+  const preview = normalizePreview(data);
+  if (preview.length > 0) displayPreview(preview);
+
+  // Forecast
+  initForecastTab(data);
+}
+
+
+function _num(v, fallback=0){
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function estimateDataQualityScore(data){
+  const rows = _num(data.n_rows || data.rows || (data.summary&&data.summary.rows), 0);
+  const cols = _num(data.n_columns || data.columns || (data.summary&&data.summary.columns), 0);
+  const missing = _num(data.missing_pct || data.missing_ratio || (data.summary&&data.summary.missing_pct), 0);
+  const duplicate = _num(data.duplicate_pct || data.duplicate_ratio || (data.summary&&data.summary.duplicate_pct), 0);
+  const rel = data.dashboard_payload && data.dashboard_payload.reliability ? data.dashboard_payload.reliability : {};
+  const relScore = _num(rel.score || rel.reliability_score || rel.confidence, NaN);
+
+  if(Number.isFinite(relScore) && relScore > 0){
+    return relScore <= 1 ? Math.round(relScore * 100) : Math.round(Math.min(relScore,100));
+  }
+
+  let score = 88;
+  if(rows && rows < 30) score -= 25;
+  else if(rows && rows < 100) score -= 10;
+  if(cols && cols < 3) score -= 8;
+  score -= Math.min(35, missing > 1 ? missing : missing * 100);
+  score -= Math.min(20, duplicate > 1 ? duplicate : duplicate * 100);
+  return Math.max(35, Math.min(98, Math.round(score)));
+}
+
+function estimateTargetConfidence(data){
+  const candidates = [
+    data.target_confidence,
+    data.target_detection_confidence,
+    data.confidence,
+    data.dashboard_payload && data.dashboard_payload.target_confidence,
+    data.dashboard_payload && data.dashboard_payload.reliability && data.dashboard_payload.reliability.confidence,
+    data.dashboard_payload && data.dashboard_payload.reliability && data.dashboard_payload.reliability.score
+  ];
+  let raw = candidates.find(v => v !== undefined && v !== null && v !== '');
+  let val = _num(raw, NaN);
+  if(!Number.isFinite(val)){
+    if(data.target_column) val = 0.82;
+    else val = 0;
+  }
+  return val <= 1 ? Math.round(val * 100) : Math.round(Math.min(val,100));
+}
+
+function updateAnalysisOverview(data){
+  const q = estimateDataQualityScore(data);
+  const ring = document.getElementById('quality-score-ring');
+  const qVal = document.getElementById('quality-score-value');
+  const qSub = document.getElementById('quality-score-sub');
+  if(ring) ring.style.setProperty('--score', q + '%');
+  if(qVal) qVal.textContent = q + '%';
+  if(qSub) qSub.textContent = q >= 85 ? 'Strong quality for analysis' : q >= 70 ? 'Usable, review warnings' : 'Needs careful review';
+
+  const tc = estimateTargetConfidence(data);
+  const tcVal = document.getElementById('target-confidence-value');
+  const tcSub = document.getElementById('target-confidence-sub');
+  if(tcVal) tcVal.textContent = data.target_column ? (tc + '%') : '—';
+  if(tcSub) tcSub.textContent = data.target_column ? ('Detected target: ' + data.target_column) : 'No target detected';
+
+  const strategy = data.strategy || '—';
+  const task = data.task_type || '—';
+  const target = data.target_column || '—';
+  const explainStrategy = document.getElementById('explain-strategy');
+  const explainTask = document.getElementById('explain-task');
+  const explainTarget = document.getElementById('explain-target');
+  if(explainStrategy) explainStrategy.textContent = strategy === 'supervised'
+    ? 'Supervised analysis means the engine found a target column and trained models to explain or predict it.'
+    : strategy === 'unsupervised'
+      ? 'Unsupervised analysis means the engine is looking for patterns, groups, or anomalies without a target column.'
+      : 'The strategy describes how Basira selected the analysis path.';
+  if(explainTask) explainTask.textContent = task === 'classification'
+    ? 'Classification predicts categories or labels, such as pass/fail, city, risk group, or status.'
+    : task === 'regression'
+      ? 'Regression predicts numeric values, such as score, amount, duration, or rate.'
+      : task === 'clustering'
+        ? 'Clustering groups similar records together so patterns can be compared.'
+        : 'The task describes the model objective selected by the engine.';
+  if(explainTarget) explainTarget.textContent = target !== '—'
+    ? 'The target is the column the model tries to predict or explain: ' + target + '.'
+    : 'No target column was selected, so the engine focuses on structure and patterns.';
+}
+
+function toggleExplainPanel(){
+  const p = document.getElementById('explain-panel');
+  if(p) p.classList.toggle('open');
+}
+
+function _safeHTML(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+function collectChartImages(scale){
+  scale = scale || 3;
+  return Object.keys(charts).map(id => {
+    const canvas = document.getElementById(id);
+    if(!canvas) return null;
+    const title = canvas.closest('.chart-card')?.querySelector('.chart-title')?.textContent?.trim() || id;
+    try {
+      const w = canvas.width || canvas.clientWidth || 900;
+      const h = canvas.height || canvas.clientHeight || 420;
+      const hi = document.createElement('canvas');
+      hi.width = Math.max(900, w * scale);
+      hi.height = Math.max(520, h * scale);
+      const ctx = hi.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0,0,hi.width,hi.height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(canvas, 0, 0, hi.width, hi.height);
+      return { title, img: hi.toDataURL('image/png', 1), width: hi.width, height: hi.height };
+    } catch(e) {
+      try { return { title, img: canvas.toDataURL('image/png', 1), width: canvas.width, height: canvas.height }; }
+      catch(_) { return null; }
+    }
+  }).filter(Boolean);
+}
+
+function buildReportHTML(){
+  const data = window._lastAnalysisData || (currentData && currentData.analysis) || {};
+  const narrative = normalizeNarrative(data) || {};
+  const insights = normalizeInsights(data).slice(0,10);
+  const pred = normalizePredictionsOrAssignments(data);
+  const q = estimateDataQualityScore(data);
+  const tc = estimateTargetConfidence(data);
+  const chartImgs = collectChartImages(3);
+
+  const insightHtml = insights.length
+    ? insights.map(i => `<div class="insight"><h3>${_safeHTML(i.title || 'Insight')}</h3><p>${_safeHTML(i.desc || i.value || '')}</p>${i.action ? `<div class="action">Recommended action: ${_safeHTML(i.action)}</div>` : ''}</div>`).join('')
+    : '<p class="muted">No insights available.</p>';
+
+  const chartHtml = chartImgs.length
+    ? chartImgs.map(c => `<div class="chart-block"><h3>${_safeHTML(c.title)}</h3><img src="${c.img}" alt="${_safeHTML(c.title)}"/></div>`).join('')
+    : '<p class="muted">No chart images available.</p>';
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Basira Analysis Report</title>
+<style>
+  @page{size:A4;margin:16mm}
+  *{box-sizing:border-box}
+  body{font-family:Arial,'Noto Sans Arabic',sans-serif;background:#f1f5f9;color:#0f172a;margin:0;padding:32px;line-height:1.65}
+  .report{max-width:1100px;margin:0 auto}
+  .cover{background:linear-gradient(135deg,#0284c7,#38bdf8);color:#fff;border-radius:26px;padding:34px 38px;margin-bottom:22px;box-shadow:0 16px 42px rgba(14,165,233,.24)}
+  .brand{font-size:30px;font-weight:900;letter-spacing:.4px;margin-bottom:8px}
+  .subtitle{opacity:.9;font-size:15px}
+  .meta-line{margin-top:18px;font-size:13px;opacity:.88}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:18px 0}
+  .metric{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:18px 20px;box-shadow:0 4px 16px rgba(15,23,42,.06)}
+  .label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:900;letter-spacing:.8px;margin-bottom:8px}
+  .value{font-size:24px;font-weight:900;color:#0284c7;overflow-wrap:anywhere}
+  .section{background:#fff;border:1px solid #e2e8f0;border-radius:22px;padding:24px;margin:18px 0;box-shadow:0 4px 18px rgba(15,23,42,.05)}
+  h1,h2,h3{margin:0 0 10px}
+  h2{font-size:18px;color:#0f172a;border-bottom:1px solid #e2e8f0;padding-bottom:10px;margin-bottom:16px}
+  h3{font-size:14px;color:#0284c7}
+  .muted{color:#64748b}
+  .context{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .context div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px}
+  .insight{border-left:4px solid #0ea5e9;background:#f8fafc;border-radius:14px;padding:14px 16px;margin:10px 0}
+  .action{margin-top:8px;color:#0369a1;font-weight:700;font-size:13px}
+  .chart-block{break-inside:avoid;background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:16px;margin:14px 0}
+  .chart-block img{width:100%;max-height:520px;object-fit:contain;background:#fff;border-radius:12px;border:1px solid #e2e8f0;image-rendering:auto}
+  .footer{font-size:12px;color:#64748b;text-align:center;margin-top:22px}
+  @media print{body{background:#fff;padding:0}.cover,.section,.metric{box-shadow:none}.chart-block{page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="report">
+  <div class="cover">
+    <div class="brand">Basira Analysis Report</div>
+    <div class="subtitle">Results, insights, predictions, and chart summary generated from the Analysis Engine.</div>
+    <div class="meta-line">Generated: ${new Date().toLocaleString()} · File: ${_safeHTML(data.uploaded_file || '—')}</div>
+  </div>
+
+  <div class="grid">
+    <div class="metric"><div class="label">Rows</div><div class="value">${_safeHTML(data.n_rows || '—')}</div></div>
+    <div class="metric"><div class="label">Columns</div><div class="value">${_safeHTML(data.n_columns || '—')}</div></div>
+    <div class="metric"><div class="label">Data Quality</div><div class="value">${q}%</div></div>
+    <div class="metric"><div class="label">Target Confidence</div><div class="value">${data.target_column ? tc + '%' : '—'}</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Executive Summary</h2>
+    <p>${_safeHTML(narrative.summary || narrative.headline || 'Analysis complete.')}</p>
+  </div>
+
+  <div class="section">
+    <h2>Model Context</h2>
+    <div class="context">
+      <div><b>Strategy</b><br>${_safeHTML(data.strategy || '—')}</div>
+      <div><b>Task</b><br>${_safeHTML(data.task_type || '—')}</div>
+      <div><b>Target</b><br>${_safeHTML(data.target_column || '—')}</div>
+      <div><b>Predictions</b><br>${_safeHTML(pred.mode || '—')} · ${_safeHTML((pred.rows || []).length)} rows</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Top Insights</h2>
+    ${insightHtml}
+  </div>
+
+  <div class="section">
+    <h2>Charts and Visual Results</h2>
+    ${chartHtml}
+  </div>
+
+  <div class="footer">Basira Intelligence · Exported report</div>
+</div>
+</body>
+</html>`;
+}
+
+function exportReportHTML(){
+  const html = buildReportHTML();
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'basira_report_results_charts_' + new Date().toISOString().slice(0,10) + '.html';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },0);
+  toast('✅ HTML report exported');
+}
+
+
+// ── Insight cards ─────────────────────────────────────────────
+const INSIGHT_ICONS = { performance:'🎯',feature:'🔥',population:'📊',pattern:'📈',segment:'🗂️',anomaly:'⚠️',temporal:'📅',risk:'🚨',data_quality:'🔎',model_performance:'🎯',top_driver:'🔥',feature_concentration:'📈' };
+
+function displayInsightCards(insights) {
+  document.getElementById('insights-grid').innerHTML = insights.map(ins => {
+    const icon = INSIGHT_ICONS[ins.layer] || INSIGHT_ICONS[ins.id] || '💡';
+    const sev  = (ins.severity || 'info').toLowerCase();
+    return `<div class="insight-card sev-${sev}">
+      <div class="insight-icon">${icon}</div>
+      <div class="insight-label">${(ins.title||'').toUpperCase()}</div>
+      <div class="insight-value" title="${ins.value||'—'}">${ins.value||'—'}</div>
+      <div class="insight-metric">${ins.metric||''}</div>
+      <div class="insight-desc">${ins.desc||''}</div>
+      ${ins.action ? `<div class="insight-action">💡 ${ins.action}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Charts ────────────────────────────────────────────────────
+function buildFallbackImpactChart(fi) {
+  return { id:'impact_ranking', type:'horizontalBar', title:'Feature Impact Ranking', reason:'Generated from feature importance data', chartData:'impact', data_source:'impact', labels:fi.map(f=>f.feature), datasets:[{ label:'Impact %', data:fi.map(f=>f.impact), backgroundColor:fi.map((_,i)=>`rgba(14,165,233,${Math.max(0.3,0.9-i*0.08)})`), borderColor:'rgba(14,165,233,1)', borderWidth:1 }], editable:true };
+}
+
+function displayCharts(recs, data, featureImp) {
+  const container = document.getElementById('charts-container');
+  container.innerHTML = '';
+  Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} });
+  charts = {}; chartConfigs = {};
+  recs.forEach((rec, idx) => {
+    if (!rec || typeof rec !== 'object') return;
+    addChartCard(idx, rec, data, featureImp);
+  });
+}
+
+function addChartCard(idx, rec, data, featureImp) {
+  const container = document.getElementById('charts-container');
+  const cardId = `card-chart-${idx}`;
+  const canvasId = `chart-${idx}`;
+  const div = document.createElement('div');
+  div.className = 'chart-card';
+  div.id = cardId;
+  div.innerHTML = `
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">${rec.title||'Chart'}</div>
+        <div class="chart-reason">${rec.reason||''}</div>
+      </div>
+      <div class="chart-card-btns">
+        <button class="chart-card-btn chart-card-btn-refresh" onclick="refreshChart(${idx})" title="Refresh this chart">↺ Refresh</button>
+      </div>
+    </div>
+    <div class="chart-container"><canvas id="${canvasId}"></canvas></div>`;
+  container.appendChild(div);
+  chartConfigs[canvasId] = { recommendation: rec, data, featureImp: featureImp||[] };
+  setTimeout(() => createChart(idx, rec, data, featureImp), 120 * (idx + 1));
+}
+
+// Silent delete — used programmatically (from studio sync, opener call)
+// store deleted configs so restore can bring them back
+const _deletedConfigs = {};
+
+function _doDeleteChart(idx) {
+  const canvasId = `chart-${idx}`;
+  const cardId   = `card-chart-${idx}`;
+  const card     = document.getElementById(cardId);
+  if (!card) return;
+  // destroy Chart.js instance
+  if (charts[canvasId]) { try { charts[canvasId].destroy(); } catch(e){} delete charts[canvasId]; }
+  // save config for potential restore — don't delete it
+  if (chartConfigs[canvasId]) {
+    _deletedConfigs[canvasId] = chartConfigs[canvasId];
+    delete chartConfigs[canvasId];
+  }
+  // animate out then remove card
+  void card.offsetHeight;
+  card.classList.add('removing');
+  setTimeout(() => card.remove(), 300);
+}
+
+
+
+function refreshChart(idx) {
+  const canvasId = `chart-${idx}`;
+  const cfg = chartConfigs[canvasId];
+  if (!cfg) return;
+  if (charts[canvasId]) { try { charts[canvasId].destroy(); } catch(e){} delete charts[canvasId]; }
+  // brief spinner
+  const canvas = document.getElementById(canvasId);
+  if (canvas) {
+    const ctx2d = canvas.getContext('2d');
+    ctx2d.clearRect(0,0,canvas.width,canvas.height);
+  }
+  setTimeout(() => createChart(idx, cfg.recommendation, cfg.data, cfg.featureImp||[]), 120);
+}
+
+function createChart(idx, rec, data, featureImp) {
+  const ctx = document.getElementById(`chart-${idx}`); if (!ctx) return;
+  let chartData = null;
+  const dsrc = rec.chartData || rec.data_source || 'impact';
+  if (rec.labels && rec.datasets) {
+    // Recolour embedded datasets with vivid palette
+    chartData = { labels: rec.labels, datasets: rec.datasets.map((ds,dsi) => {
+      const n=(ds.data||[]).length;
+      const bg=getChartColors(n,dsi);
+      return {...ds, backgroundColor:bg, borderColor:typeof bg==='string'?bg:bg[0], borderRadius:4};
+    })};
+  } else if (dsrc === 'impact' && featureImp.length > 0) {
+    const bg=getChartColors(featureImp.length,0);
+    chartData = { labels: featureImp.map(f=>f.feature), datasets:[{ label:'Impact %', data:featureImp.map(f=>f.impact), backgroundColor:bg, borderColor:BASIRA_PALETTES.vivid[0], borderWidth:1, borderRadius:4 }] };
+  } else if (dsrc === 'impact' && Array.isArray(data.xai_report)) {
+    const feats=data.xai_report.map(f=>f.feature), vals=data.xai_report.map(f=>parseFloat(f.impact||f.impact_pct||0));
+    const bg=getChartColors(feats.length,0);
+    chartData = { labels:feats, datasets:[{ label:'Impact %', data:vals, backgroundColor:bg, borderColor:BASIRA_PALETTES.vivid[0], borderWidth:1, borderRadius:4 }] };
+  }
+  if (!chartData || !chartData.datasets || chartData.datasets.length===0) return;
+  // Give variety when the backend sends repeated chart types.
+  const seriesLen = chartData.labels ? chartData.labels.length : 0;
+  const rawType = rec.type || 'bar';
+  const varietyTypes = ['bar','line','doughnut','radar','polarArea','bar'];
+  let recType = rawType === 'horizontalBar' ? 'bar' : rawType;
+  if(!rec._userForcedType && (!rawType || rawType === 'bar' || rawType === 'horizontalBar')){
+    recType = varietyTypes[idx % varietyTypes.length];
+    if(seriesLen > 18 && ['doughnut','polarArea','radar'].includes(recType)) recType = 'bar';
+  }
+  const isHoriz  = rawType==='horizontalBar' || (rec.config && rec.config.indexAxis==='y') || (recType==='bar' && idx % 3 === 0);
+  const noScales = ['pie','doughnut','radar','polarArea'].includes(recType);
+  const baseOpts = rec.config || {};
+  const options = {
+    ...baseOpts, indexAxis:isHoriz?'y':'x',
+    responsive:true, maintainAspectRatio:false, animation:{duration:700},
+    plugins:{ ...(baseOpts.plugins||{}),
+      legend:{ display:!!(baseOpts.plugins&&baseOpts.plugins.legend&&baseOpts.plugins.legend.display), labels:{color:'#334155'} },
+      tooltip:{ backgroundColor:'rgba(255,255,255,.96)', titleColor:'#0f172a', bodyColor:'#334155', borderColor:'#e2e8f0', borderWidth:1 },
+    },
+    scales: noScales ? {} : {
+      x:{ ticks:{color:'#94a3b8'}, grid:{color:'rgba(226,232,240,.6)'}, ...(baseOpts.scales&&baseOpts.scales.x?baseOpts.scales.x:{}) },
+      y:{ ticks:{color:'#94a3b8'}, grid:{color:'rgba(226,232,240,.6)'}, ...(baseOpts.scales&&baseOpts.scales.y?baseOpts.scales.y:{}) },
+    },
+  };
+  try {
+    charts[`chart-${idx}`] = new Chart(ctx, { type:recType, data:chartData, options });
+    // merge: keep existing featureImp/data from addChartCard if present
+    const _ex = chartConfigs[`chart-${idx}`];
+    chartConfigs[`chart-${idx}`] = { recommendation:rec, data:_ex?_ex.data:data, featureImp:_ex?(_ex.featureImp||featureImp):featureImp };
+  } catch(e) { /* chart render error handled silently */ }
+}
+
+// ── Predictions ───────────────────────────────────────────────
+let _predChart = null;
+let _predRows  = [];
+let _predMode  = 'none';
+
+function displayPredictionsOrAssignments(predResult) {
+  const table=document.getElementById('predictions-table'),emptyEl=document.getElementById('predictions-empty'),modeEl=document.getElementById('pred-mode-status'),titleEl=document.getElementById('predictions-tab-title');
+  _predRows = predResult.rows;
+  _predMode = predResult.mode;
+
+  if (predResult.mode==='none'||predResult.rows.length===0) {
+    table.innerHTML=''; emptyEl.classList.remove('hidden'); modeEl.textContent='—'; modeEl.style.color='var(--text-dim)';
+    const _wrap = document.getElementById('pred-chart-wrap');
+    if (_wrap) _wrap.classList.add('hidden');
+    const _sum = document.getElementById('pred-summary-grid');
+    if (_sum) _sum.classList.add('hidden');
+    const _wb = document.getElementById('pred-warn-box');
+    const _wt = document.getElementById('pred-warn-text');
+    const _ws = (predResult.warnings||[]);
+    if (_wb) _wb.style.display = _ws.length ? 'block' : 'none';
+    if (_wt) _wt.textContent = _ws.join('\n');
+    return;
+  }
+  emptyEl.classList.add('hidden');
+  updatePredictionSummary(predResult);
+
+  if (predResult.mode==='predictions') {
+    titleEl.textContent='Predictions'; modeEl.textContent='✓ Supervised'; modeEl.style.color='var(--success)';
+    displaySupervisedPredictions(predResult.rows,table);
+    buildPredChart(predResult.rows, 'supervised');
+    buildPredNarrative(predResult.rows, 'supervised');
+  } else {
+    titleEl.textContent='Cluster Assignments'; modeEl.textContent='✓ Unsupervised'; modeEl.style.color='var(--accent)';
+    displayClusterAssignments(predResult.rows,table);
+    buildPredChart(predResult.rows, 'unsupervised');
+    buildPredNarrative(predResult.rows, 'unsupervised');
+  }
+}
+
+
+function updatePredictionSummary(predResult){
+  const el = document.getElementById('pred-summary-grid');
+  if(!el) return;
+  const rows = predResult.rows || [];
+  if(!rows.length){ el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+
+  if(predResult.mode === 'predictions'){
+    const first = rows[0] || {};
+    const hasConf = first.confidence != null;
+    const avgConf = hasConf ? Math.round(rows.reduce((s,r)=>s + (parseFloat(r.confidence||0)*100),0) / rows.length) : null;
+    let main = '—', sub = '';
+    if('predicted_label' in first){
+      const counts = {};
+      rows.forEach(r=>{ const k=r.predicted_label||'?'; counts[k]=(counts[k]||0)+1; });
+      main = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0] || '—';
+      sub = 'Most frequent predicted class';
+    } else if('predicted_value' in first){
+      const vals = rows.map(r=>parseFloat(r.predicted_value)).filter(Number.isFinite);
+      main = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2) : '—';
+      sub = 'Average predicted value';
+    }
+    el.innerHTML = `
+      <div class="pred-summary-card"><div class="pred-summary-label">Prediction Type</div><div class="pred-summary-value">${'predicted_label' in first ? 'Classification' : 'Regression'}</div><div class="pred-summary-sub">${rows.length} rows predicted</div></div>
+      <div class="pred-summary-card"><div class="pred-summary-label">Main Result</div><div class="pred-summary-value">${main}</div><div class="pred-summary-sub">${sub}</div></div>
+      <div class="pred-summary-card"><div class="pred-summary-label">Confidence</div><div class="pred-summary-value">${avgConf !== null ? avgConf + '%' : 'N/A'}</div><div class="pred-summary-sub">Average confidence if available</div></div>`;
+  } else {
+    const counts = {};
+    rows.forEach(r=>{ const k=r.assigned_cluster??r.cluster_id??'?'; counts[k]=(counts[k]||0)+1; });
+    const clusters = Object.keys(counts).length;
+    const largest = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0] || ['—','—'];
+    el.innerHTML = `
+      <div class="pred-summary-card"><div class="pred-summary-label">Assignment Type</div><div class="pred-summary-value">Clustering</div><div class="pred-summary-sub">${rows.length} records assigned</div></div>
+      <div class="pred-summary-card"><div class="pred-summary-label">Clusters</div><div class="pred-summary-value">${clusters}</div><div class="pred-summary-sub">Detected groups</div></div>
+      <div class="pred-summary-card"><div class="pred-summary-label">Largest Cluster</div><div class="pred-summary-value">Cluster ${largest[0]}</div><div class="pred-summary-sub">${largest[1]} records</div></div>`;
+  }
+}
+
+
+function buildPredChart(rows, mode) {
+  const wrap = document.getElementById('pred-chart-wrap');
+  if (!wrap) return;
+  wrap.classList.remove('hidden');
+
+  if (_predChart) { try{_predChart.destroy();}catch(e){} _predChart=null; }
+
+  const canvas = document.getElementById('pred-chart-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const VIVID = ['rgba(14,165,233,.85)','rgba(139,92,246,.85)','rgba(16,185,129,.85)','rgba(245,158,11,.85)','rgba(244,63,94,.85)','rgba(99,102,241,.85)','rgba(20,184,166,.85)','rgba(234,179,8,.85)'];
+  const maxShow = Math.min(rows.length, 80);
+  const slice   = rows.slice(0, maxShow);
+
+  let labels=[], datasets=[], titleTxt='', subTxt='', chartType='bar';
+
+  if (mode === 'supervised') {
+
+    // ── Classification ──
+    if (slice[0] && 'predicted_label' in slice[0]) {
+
+      // Chart 1: Class Distribution (doughnut)
+      const counts = {};
+      rows.forEach(r => { const k = r.predicted_label||'?'; counts[k]=(counts[k]||0)+1; });
+      labels = Object.keys(counts);
+
+      // Chart 2: Confidence trend (line) if confidence available
+      const hasConf = slice[0].confidence != null;
+      if (hasConf) {
+        labels    = slice.map(r => `#${r.row_index??''}`);
+        const confVals = slice.map(r => Math.round(parseFloat(r.confidence||0)*1000)/10);
+        // Colour points by class
+        const classColors = {};
+        Object.keys(counts).forEach((k,i) => { classColors[k]=VIVID[i%VIVID.length]; });
+        datasets = [
+          {
+            label: 'Confidence %',
+            data: confVals,
+            backgroundColor: 'rgba(14,165,233,.12)',
+            borderColor: '#0ea5e9',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: slice.map(r => classColors[r.predicted_label||'?']||VIVID[0]),
+            pointRadius: 4,
+            pointHoverRadius: 6,
+          },
+          {
+            label: 'Threshold (50%)',
+            data: slice.map(() => 50),
+            borderColor: 'rgba(239,68,68,.4)',
+            borderWidth: 1.5,
+            borderDash: [6,4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+          }
+        ];
+        titleTxt = 'Prediction Confidence Trend';
+        subTxt   = `${rows.length} predictions — coloured by class`;
+        chartType = 'line';
+      } else {
+        // fallback: bar distribution
+        datasets = [{
+          label:'Count', data:Object.values(counts),
+          backgroundColor:labels.map((_,i)=>VIVID[i%VIVID.length]),
+          borderRadius:6, borderColor:'transparent',
+        }];
+        titleTxt = 'Predicted Class Distribution';
+        subTxt   = `${rows.length} predictions across ${labels.length} classes`;
+        chartType = 'bar';
+      }
+    }
+
+    // ── Regression ──
+    else if (slice[0] && 'predicted_value' in slice[0]) {
+      const preds   = slice.map(r => parseFloat(r.predicted_value||0));
+      const actuals = slice.map(r => r.actual!=null ? parseFloat(r.actual) : null);
+
+      // Smart label: use a meaningful column if available, otherwise row index
+      // Detect if values look like years
+      const avgPred = preds.reduce((a,b)=>a+b,0)/(preds.length||1);
+      const looksLikeYears = avgPred > 1900 && avgPred < 2200;
+
+      labels = slice.map((r,i) => {
+        // Try to use a date/year column for labels
+        const keys = Object.keys(r);
+        const dateKey = keys.find(k => /year|date|month|time|period|سنة|تاريخ/i.test(k) && k !== 'predicted_value' && k !== 'actual');
+        if(dateKey && r[dateKey]) return String(r[dateKey]).substring(0,10);
+        return looksLikeYears ? `Row ${r.row_index??i+1}` : `#${r.row_index??i}`;
+      });
+
+      datasets = [{
+        label: looksLikeYears ? 'Predicted Year' : 'Predicted',
+        data: preds,
+        backgroundColor:'rgba(14,165,233,.12)', borderColor:'#0ea5e9',
+        borderWidth:2.5, fill:true, tension:.4, pointRadius:3, pointHoverRadius:5,
+      }];
+      if (actuals.some(v=>v!=null)) {
+        datasets.push({
+          label: looksLikeYears ? 'Actual Year' : 'Actual',
+          data: actuals,
+          borderColor:'rgba(34,197,94,.9)', backgroundColor:'transparent',
+          borderWidth:2, borderDash:[5,4], tension:.4, pointRadius:3,
+        });
+      }
+      titleTxt = looksLikeYears ? 'Predicted Year Distribution' : 'Predicted vs Actual Values';
+      subTxt   = looksLikeYears
+        ? `Year range: ${Math.min(...preds).toFixed(0)} – ${Math.max(...preds).toFixed(0)} · ${preds.length} records`
+        : `Top ${maxShow} rows · avg: ${avgPred.toFixed(2)}`;
+      chartType = 'line';
+    }
+
+  } else {
+    // ── Unsupervised / Clustering ──
+    const counts = {};
+    rows.forEach(r=>{ const k='Cluster '+(r.assigned_cluster??r.cluster_id??'?'); counts[k]=(counts[k]||0)+1; });
+    labels = Object.keys(counts).sort();
+    datasets = [{
+      label:'Records', data:labels.map(k=>counts[k]),
+      backgroundColor:labels.map((_,i)=>VIVID[i%VIVID.length]),
+      borderRadius:8, borderColor:'transparent',
+    }];
+    titleTxt = 'Cluster Size Distribution';
+    subTxt   = `${rows.length} records — ${labels.length} clusters`;
+    chartType = 'bar';
+  }
+
+  const selEl = document.getElementById('pred-chart-type');
+  if (selEl && selEl.value && selEl.value !== chartType) {
+    chartType = selEl.value;
+    if(chartType === 'doughnut' && datasets.length > 1) datasets = [datasets[0]];
+  } else if (selEl) {
+    selEl.value = chartType;
+  }
+
+  document.getElementById('pred-chart-title').textContent = titleTxt;
+  document.getElementById('pred-chart-sub').textContent   = subTxt;
+
+  const noScales = ['doughnut','pie','polarArea'].includes(chartType);
+  try {
+    _predChart = new Chart(ctx, {
+      type: chartType,
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 700 },
+        plugins: {
+          legend: { display: datasets.length > 1 || chartType === 'doughnut', labels: { color:'#334155', font:{size:11}, padding:14 } },
+          tooltip: { backgroundColor:'rgba(255,255,255,.97)', titleColor:'#0f172a', bodyColor:'#334155', borderColor:'#e2e8f0', borderWidth:1, cornerRadius:8, padding:10 },
+        },
+        scales: noScales ? {} : {
+          x: { ticks:{color:'#94a3b8',font:{size:10},maxRotation:0,maxTicksLimit:20}, grid:{color:'rgba(226,232,240,.5)'} },
+          y: { ticks:{color:'#94a3b8',font:{size:10}}, grid:{color:'rgba(226,232,240,.5)'}, beginAtZero:true },
+        },
+      }
+    });
+  } catch(e) { /* prediction chart render handled silently */ }
+}
+
+function switchPredChart() {
+  if (_predRows.length>0) buildPredChart(_predRows, _predMode);
+}
+
+function buildPredNarrative(rows, mode) {
+  // Generate smart textual insights about the predictions
+  const isAR = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+  var box = document.getElementById('pred-narrative-box');
+  if(!box || !rows || !rows.length) return;
+
+  var lines = [];
+  var n = rows.length;
+
+  if(mode === 'supervised'){
+    var first = rows[0]||{};
+    if('predicted_label' in first){
+      // Classification insights
+      var counts = {};
+      rows.forEach(function(r){ var k=r.predicted_label||'?'; counts[k]=(counts[k]||0)+1; });
+      var entries = Object.entries(counts).sort(function(a,b){return b[1]-a[1];});
+      var topClass = entries[0]||['?',0];
+      var topPct = Math.round(topClass[1]/n*100);
+      var avgConf = null;
+      if(rows[0].confidence != null){
+        avgConf = Math.round(rows.reduce(function(s,r){return s+parseFloat(r.confidence||0)*100;},0)/n);
+      }
+      if(isAR){
+        lines.push('📊 تم تحليل <strong>'+n+'</strong> سجلاً.');
+        lines.push('🏆 الفئة الأكثر توقعاً: <strong>'+topClass[0]+'</strong> بنسبة '+topPct+'%.');
+        if(entries.length>1) lines.push('📈 الفئة الثانية: <strong>'+entries[1][0]+'</strong> ('+Math.round(entries[1][1]/n*100)+'%).');
+        if(avgConf!==null) lines.push((avgConf>=80?'✅':'⚠️')+' متوسط الثقة: <strong>'+avgConf+'%</strong> — '+(avgConf>=90?'ممتاز':avgConf>=75?'جيد':'مقبول')+'.');
+        if(entries.length>1){
+          var ratio = topClass[1]/(entries[1][1]||1);
+          if(ratio>3) lines.push('⚡ توزيع الفئات غير متوازن — الفئة الأولى مسيطرة بفارق كبير.');
+        }
+      } else {
+        lines.push('📊 Analyzed <strong>'+n+'</strong> records.');
+        lines.push('🏆 Most predicted class: <strong>'+topClass[0]+'</strong> at '+topPct+'%.');
+        if(entries.length>1) lines.push('📈 Second class: <strong>'+entries[1][0]+'</strong> ('+Math.round(entries[1][1]/n*100)+'%).');
+        if(avgConf!==null) lines.push((avgConf>=80?'✅':'⚠️')+' Average confidence: <strong>'+avgConf+'%</strong> — '+(avgConf>=90?'Excellent':avgConf>=75?'Good':'Fair')+'.');
+        if(entries.length>1){
+          var ratio2 = topClass[1]/(entries[1][1]||1);
+          if(ratio2>3) lines.push('⚡ Imbalanced prediction distribution — dominant class detected.');
+        }
+      }
+    } else if('predicted_value' in first){
+      // Regression insights
+      var vals = rows.map(function(r){return parseFloat(r.predicted_value);}).filter(function(v){return Number.isFinite(v);});
+      var avg = vals.reduce(function(a,b){return a+b;},0)/vals.length;
+      var mn = Math.min.apply(null,vals), mx = Math.max.apply(null,vals);
+      var actuals = rows.map(function(r){return r.actual!=null?parseFloat(r.actual):null;}).filter(function(v){return v!=null;});
+      // Detect if values look like years (between 1900 and 2200)
+      var looksLikeYears = avg>1900 && avg<2200;
+      // Detect trend
+      var firstHalf = vals.slice(0, Math.floor(vals.length/2));
+      var secondHalf = vals.slice(Math.floor(vals.length/2));
+      var avgFirst = firstHalf.reduce(function(a,b){return a+b;},0)/(firstHalf.length||1);
+      var avgSecond = secondHalf.reduce(function(a,b){return a+b;},0)/(secondHalf.length||1);
+      var trendPct = avgFirst>0 ? Math.round((avgSecond-avgFirst)/avgFirst*100) : 0;
+      var trendDir = trendPct>2?'📈':trendPct<-2?'📉':'➡️';
+      if(isAR){
+        lines.push('📊 تم التنبؤ بـ <strong>'+n+'</strong> قيمة.');
+        if(looksLikeYears){
+          lines.push('📅 متوسط القيمة المتوقعة: <strong>'+Math.round(avg)+'</strong> — يبدو أن البيانات تحتوي على سنوات.');
+          lines.push(trendDir+' الاتجاه العام: '+(trendPct>2?'تصاعدي (+'+trendPct+'%)':trendPct<-2?'تنازلي ('+trendPct+'%)':'مستقر نسبياً')+'.');
+        } else {
+          lines.push('📏 المتوسط: <strong>'+(avg%1===0?avg:avg.toFixed(2))+'</strong> — النطاق: '+mn.toFixed(2)+' إلى '+mx.toFixed(2)+'.');
+          lines.push(trendDir+' الاتجاه: '+(trendPct>2?'تصاعدي (+'+trendPct+'%)':trendPct<-2?'تنازلي ('+trendPct+'%)':'مستقر')+'.');
+        }
+        if(actuals.length>0){
+          var avAct = actuals.reduce(function(a,b){return a+b;},0)/actuals.length;
+          var mae = vals.slice(0,actuals.length).reduce(function(s,v,i){return s+Math.abs(v-actuals[i]);},0)/actuals.length;
+          lines.push('🎯 متوسط الخطأ المطلق (MAE): <strong>'+(mae%1===0?mae:mae.toFixed(2))+'</strong> — '+(mae/Math.abs(avAct||1)<0.1?'دقة عالية':'دقة معقولة')+'.');
+        }
+      } else {
+        lines.push('📊 Predicted <strong>'+n+'</strong> values.');
+        if(looksLikeYears){
+          lines.push('📅 Average predicted value: <strong>'+Math.round(avg)+'</strong> — data appears to contain years.');
+          lines.push(trendDir+' Overall trend: '+(trendPct>2?'Upward (+'+trendPct+'%)':trendPct<-2?'Downward ('+trendPct+'%)':'Relatively stable')+'.');
+        } else {
+          lines.push('📏 Average: <strong>'+(avg%1===0?avg:avg.toFixed(2))+'</strong> — Range: '+mn.toFixed(2)+' to '+mx.toFixed(2)+'.');
+          lines.push(trendDir+' Trend: '+(trendPct>2?'Upward (+'+trendPct+'%)':trendPct<-2?'Downward ('+trendPct+'%)':'Stable')+'.');
+        }
+        if(actuals.length>0){
+          var avAct2 = actuals.reduce(function(a,b){return a+b;},0)/actuals.length;
+          var mae2 = vals.slice(0,actuals.length).reduce(function(s,v,i){return s+Math.abs(v-actuals[i]);},0)/actuals.length;
+          lines.push('🎯 Mean Absolute Error (MAE): <strong>'+(mae2%1===0?mae2:mae2.toFixed(2))+'</strong> — '+(mae2/Math.abs(avAct2||1)<0.1?'High accuracy':'Reasonable accuracy')+'.');
+        }
+      }
+    }
+  } else {
+    // Clustering
+    var clusterCounts = {};
+    rows.forEach(function(r){ var k=r.assigned_cluster??r.cluster_id??'?'; clusterCounts[k]=(clusterCounts[k]||0)+1; });
+    var clusterEntries = Object.entries(clusterCounts).sort(function(a,b){return b[1]-a[1];});
+    var numClusters = clusterEntries.length;
+    if(isAR){
+      lines.push('📊 تم تصنيف <strong>'+n+'</strong> سجلاً في <strong>'+numClusters+'</strong> مجموعات.');
+      lines.push('🏆 أكبر مجموعة: <strong>Cluster '+clusterEntries[0][0]+'</strong> بـ '+clusterEntries[0][1]+' سجلاً ('+Math.round(clusterEntries[0][1]/n*100)+'%).');
+      if(clusterEntries.length>1) lines.push('📌 أصغر مجموعة: <strong>Cluster '+clusterEntries[clusterEntries.length-1][0]+'</strong> بـ '+clusterEntries[clusterEntries.length-1][1]+' سجلاً.');
+    } else {
+      lines.push('📊 Assigned <strong>'+n+'</strong> records into <strong>'+numClusters+'</strong> clusters.');
+      lines.push('🏆 Largest cluster: <strong>Cluster '+clusterEntries[0][0]+'</strong> with '+clusterEntries[0][1]+' records ('+Math.round(clusterEntries[0][1]/n*100)+'%).');
+      if(clusterEntries.length>1) lines.push('📌 Smallest cluster: <strong>Cluster '+clusterEntries[clusterEntries.length-1][0]+'</strong> with '+clusterEntries[clusterEntries.length-1][1]+' records.');
+    }
+  }
+
+  if(lines.length){
+    box.style.display='block';
+    box.innerHTML = '<div style="font-size:.78rem;font-weight:800;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">'+(isAR?'رؤى التنبؤ':'Prediction Insights')+'</div>'+
+      lines.map(function(l){return '<div style="font-size:.83rem;color:var(--text);line-height:1.7;padding:3px 0;">'+l+'</div>';}).join('');
+  } else {
+    box.style.display='none';
+  }
+}
+
+function displaySupervisedPredictions(predictions, table) {
+  const first=predictions[0]||{},hasConf='confidence' in first||'confidence_available' in first,hasLabel='predicted_label' in first,hasValue='predicted_value' in first,hasActual='actual' in first,hasTopFeature='top_features' in first,hasShap='shap_values' in first,hasAnomaly='anomaly_score' in first;
+  let html='<thead><tr><th>Index</th>';
+  if(hasLabel) html+='<th>Predicted Label</th>';
+  if(hasValue) html+='<th>Predicted Value</th>';
+  if(hasActual) html+='<th>Actual</th>';
+  if(hasConf) html+='<th>Confidence</th>';
+  if(hasAnomaly) html+='<th>Anomaly</th>';
+  if(hasTopFeature) html+='<th>Top Driver</th>';
+  if(hasShap) html+='<th>SHAP</th>';
+  html+='</tr></thead><tbody>';
+  predictions.forEach(pred => {
+    const ri=pred.row_index??pred.index??'?',lbl=pred.predicted_label??pred.prediction??'',val=pred.predicted_value!==undefined?parseFloat(pred.predicted_value):null,act=pred.actual!==undefined&&pred.actual!==null?parseFloat(pred.actual):null,conf=parseFloat(pred.confidence||0)*100,confAvail=pred.confidence_available!==false&&pred.confidence!==undefined,anomaly=parseFloat(pred.anomaly_score||0),topFeat=(pred.top_features&&pred.top_features[0])?pred.top_features[0].feature:'N/A',shapVal=(pred.shap_values&&Object.keys(pred.shap_values).length>0)?Object.values(pred.shap_values)[0].toFixed(3):'N/A';
+    html+=`<tr><td class="pred-index">#${ri}</td>`;
+    if(hasLabel) html+=`<td><span class="pred-value-label">${lbl}</span></td>`;
+    if(hasValue) html+=`<td class="pred-value">${val!==null?val.toFixed(3):'—'}</td>`;
+    if(hasActual) html+=`<td style="color:var(--text-dim);">${act!==null?act.toFixed(3):'—'}</td>`;
+    if(hasConf) { if(confAvail) html+=`<td class="confidence-cell"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-weight:700;">${conf.toFixed(1)}%</span><span style="color:var(--text-dim);font-size:.75rem;">${conf>=90?'Excellent':conf>=75?'Good':'Fair'}</span></div><div class="confidence-bar-container"><div class="confidence-bar" style="width:${conf.toFixed(0)}%;"></div></div></td>`; else html+=`<td style="color:var(--text-dim);">N/A</td>`; }
+    if(hasAnomaly) html+=`<td style="color:${anomaly>0.5?'var(--danger)':'var(--success)'};font-weight:700;">${anomaly>0.5?'⚠️ '+(anomaly*100).toFixed(0)+'%':'✓ Normal'}</td>`;
+    if(hasTopFeature) html+=`<td style="font-family:var(--mono);font-size:.75rem;">${topFeat}</td>`;
+    if(hasShap) html+=`<td style="font-family:var(--mono);font-size:.75rem;color:${parseFloat(shapVal)>0?'var(--success)':'var(--danger)'};">${shapVal}</td>`;
+    html+='</tr>';
+  });
+  html+='</tbody>'; table.innerHTML=html;
+}
+
+function displayClusterAssignments(assignments, table) {
+  let html='<thead><tr><th>Row Index</th><th>Assigned Cluster</th></tr></thead><tbody>';
+  assignments.forEach(a => { html+=`<tr><td class="pred-index">#${a.row_index??'?'}</td><td class="pred-value" style="color:var(--purple);">Cluster ${a.assigned_cluster??a.cluster_id??'?'}</td></tr>`; });
+  html+='</tbody>'; table.innerHTML=html;
+}
+
+// ── RCA ───────────────────────────────────────────────────────
+function displayRCA(rcaData) {
+  const container=document.getElementById('rca-container'),actionsEl=document.getElementById('rca-priority-actions'),emptyEl=document.getElementById('rca-empty');
+  let actionsHtml='';
+  if(rcaData.executive_summary) actionsHtml+=`<div class="narrative-box" style="margin-bottom:16px;"><div class="narrative-box-title">📋 Executive Summary</div><p style="font-size:.86rem;color:var(--text-2);line-height:1.65;">${rcaData.executive_summary}</p></div>`;
+  if(rcaData.priority_actions.length>0) actionsHtml+=`<div class="priority-actions"><div class="priority-actions-title">🎯 Priority Actions</div>${rcaData.priority_actions.map((a,i)=>`<div class="priority-action-item"><div class="priority-action-num">${i+1}</div><span>${a}</span></div>`).join('')}</div>`;
+  actionsEl.innerHTML=actionsHtml;
+  if(!rcaData.findings||rcaData.findings.length===0) { emptyEl.classList.remove('hidden'); container.innerHTML=''; return; }
+  emptyEl.classList.add('hidden');
+  container.innerHTML=rcaData.findings.map(renderRCAFinding).join('');
+}
+
+function renderRCAFinding(item) {
+  if(!item||typeof item!=='object') return '';
+  const sev=(item.severity||'info').toLowerCase(),sevClass=['critical','high','medium','low','info'].includes(sev)?sev:'standard';
+  const isNew=item.explanation!==undefined||item.causal_chain!==undefined;
+  let causesHtml='';
+  if(isNew) { const chain=Array.isArray(item.causal_chain)?item.causal_chain:[]; if(chain.length>0) causesHtml=`<div class="causal-chain"><div style="font-size:.78rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🔗 Causal Chain</div>${chain.map((step,i)=>`<div class="causal-step"><div class="causal-step-num">${i+1}</div><span>${step}</span></div>`).join('')}</div>`; }
+  else { const causes=Array.isArray(item.causes)?item.causes:[]; if(causes.length>0) causesHtml=`<div style="margin:12px 0;"><div style="font-size:.78rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🔍 Root Causes</div>${causes.map(c=>`<span class="cause-tag">${c}</span>`).join('')}</div>`; }
+  const explanation=item.explanation||item.desc||'',action=item.recommended_action||item.recommendation||'';
+  return `<div class="rca-node rca-${sevClass}">
+    <div class="rca-header">
+      <div><div class="rca-title">${item.title||'Finding'}</div><span class="severity-badge severity-${sevClass}">${(item.severity||'info').toUpperCase()}</span></div>
+      <div class="rca-id">${item.id||''}</div>
+    </div>
+    ${explanation?`<p style="color:var(--text-dim);font-size:.85rem;line-height:1.65;margin-bottom:12px;">${explanation}</p>`:''}
+    ${causesHtml}
+    ${action?`<div class="recommendation-box"><div class="recommendation-label">💡 Recommended Action</div><div style="font-size:.85rem;color:var(--text-2);line-height:1.65;">${action}</div></div>`:''}
+  </div>`;
+}
+
+// ── Preview ───────────────────────────────────────────────────
+function displayPreview(preview) {
+  const table=document.getElementById('preview-table');
+  if(!Array.isArray(preview)||preview.length===0) { table.innerHTML='<tbody><tr><td style="color:var(--text-dim);">No preview data.</td></tr></tbody>'; return; }
+  const cols=Object.keys(preview[0]);
+  let html='<thead><tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  preview.forEach(row=>{ html+='<tr>'+cols.map(c=>`<td>${row[c]===null||row[c]===undefined?'—':row[c]}</td>`).join('')+'</tr>'; });
+  html+='</tbody>'; table.innerHTML=html;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// BASIRA FORECAST ENGINE (Frontend)
+// ══════════════════════════════════════════════════════════════════════════
+let _fcChart   = null;
+let _fcPayload = null;    // full forecast object from bridge
+let _fcData    = null;    // current selected col data
+let _fcIsAR    = false;
+
+function initForecastTab(data) {
+  const fc = data && (data.forecast || data.forecast_payload);
+  _fcIsAR = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+
+  // i18n labels
+  document.getElementById('forecast-tab-title').textContent  = _fcIsAR ? '📈 التوقعات' : '📈 Forecast';
+  document.getElementById('forecast-col-label').textContent  = _fcIsAR ? 'العمود:' : 'Column:';
+  document.getElementById('forecast-horizon-label').textContent = _fcIsAR ? 'الأفق:' : 'Horizon:';
+  document.getElementById('forecast-apply-lbl').textContent  = _fcIsAR ? 'تطبيق' : 'Apply';
+  document.getElementById('fc-legend-hist').textContent     = _fcIsAR ? 'البيانات التاريخية' : 'Historical';
+  document.getElementById('fc-legend-forecast').textContent = _fcIsAR ? 'التوقعات' : 'Forecast';
+  document.getElementById('fc-legend-ci').textContent       = _fcIsAR ? 'فترة ثقة 90%' : '90% Confidence';
+  document.getElementById('fc-summary-lbl').textContent     = _fcIsAR ? 'ملخص التوقعات' : 'FORECAST SUMMARY';
+
+  // Hide/show forecast tab button based on availability
+  const btn = document.getElementById('tab-forecast-btn');
+  if (!fc || !fc.available) {
+    if (btn) btn.style.display = 'none';
+    document.getElementById('forecast-unavailable').classList.remove('hidden');
+    document.getElementById('forecast-chart-wrap').style.display = 'none';
+    document.getElementById('forecast-summary-card').style.display = 'none';
+    const msg = fc ? (fc.reason_ar || fc.reason_en || 'Not available') : 'No forecast data.';
+    document.getElementById('forecast-unavailable-text').textContent = msg;
+    return;
+  }
+
+  if (btn) btn.style.display = '';
+  _fcPayload = fc;
+  document.getElementById('forecast-unavailable').classList.add('hidden');
+  document.getElementById('forecast-chart-wrap').style.display = '';
+  document.getElementById('forecast-summary-card').style.display = '';
+
+  // Method label
+  const method = _fcIsAR ? (fc.method_ar || fc.method) : fc.method;
+  document.getElementById('forecast-method-label').textContent =
+    (_fcIsAR ? 'الطريقة: ' : 'Method: ') + method;
+
+  // Populate column select
+  const sel = document.getElementById('forecast-col-select');
+  sel.innerHTML = '';
+  const cols = fc.numeric_cols || [fc.value_col];
+  cols.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    if (c === fc.value_col) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  renderForecastChart(fc);
+}
+
+function onForecastSlider(val) {
+  document.getElementById('forecast-horizon-val').textContent = val;
+}
+
+function onForecastColChange() {
+  // User changed column — re-request forecast from bridge with new col
+  // (for now re-render with existing data, same column handling)
+  applyForecast();
+}
+
+async function applyForecast() {
+  if (!_fcPayload) return;
+  const horizon  = parseInt(document.getElementById('forecast-slider').value) || 12;
+  const colSel   = document.getElementById('forecast-col-select').value;
+  document.getElementById('forecast-horizon-val').textContent = horizon;
+
+  // If bridge exposed all numeric cols data, re-forecast client-side
+  // Otherwise use stored payload with adjusted horizon (extrapolate)
+  const fc = _fcPayload;
+  const hist = fc.historical || [];
+  if (!hist.length) return;
+
+  // Simple client-side re-forecast with new horizon using Holt
+  const alpha = 0.4, beta = 0.3;
+  let l = hist[0], b = hist.length > 1 ? hist[1] - hist[0] : 0;
+  for (let v of hist.slice(1)) {
+    const lp = l, bp = b;
+    l = alpha * v + (1 - alpha) * (lp + bp);
+    b = beta  * (l - lp) + (1 - beta) * bp;
+  }
+  const slope = (hist[hist.length-1] - hist[0]) / Math.max(hist.length - 1, 1);
+  const relSlope = Math.abs(slope) / (Math.abs(hist.reduce((a,b)=>a+b,0)/hist.length) + 1e-9);
+  const useHolt = relSlope > 0.01;
+
+  const forecast = [];
+  for (let i = 0; i < horizon; i++) {
+    forecast.push(useHolt ? l + b*(i+1) : hist[hist.length-1] + slope*(i+1));
+  }
+
+  // Residual std
+  const smoothed = [hist[0]];
+  for (let i = 1; i < hist.length; i++) {
+    smoothed.push(alpha * hist[i] + (1-alpha) * smoothed[i-1]);
+  }
+  const resid = hist.map((v,i) => v - smoothed[i]);
+  const std = Math.sqrt(resid.reduce((s,r)=>s+r*r,0)/Math.max(resid.length,1));
+  const lower = forecast.map((v,i) => v - 1.645*std*(1+0.05*(i+1)));
+  const upper = forecast.map((v,i) => v + 1.645*std*(1+0.05*(i+1)));
+
+  // Labels
+  const histLabels = fc.labels || hist.map((_,i)=>String(i+1));
+  const fcLabels   = Array.from({length:horizon},(_,i) => {
+    if (fc.forecast_labels && fc.forecast_labels[i]) return fc.forecast_labels[i];
+    return (_fcIsAR ? `+${i+1} خطوة` : `+${i+1}`);
+  });
+
+  const updated = {...fc, horizon, forecast, lower_bound:lower, upper_bound:upper,
+                   forecast_labels:fcLabels, labels:histLabels};
+
+  // Update summary
+  const last  = hist[hist.length-1];
+  const fcEnd = forecast[forecast.length-1];
+  const pct   = ((fcEnd - last) / (Math.abs(last)+1e-9)) * 100;
+  const dir   = pct > 1 ? (_fcIsAR?'صاعد':'upward') : (pct < -1 ? (_fcIsAR?'هابط':'downward') : (_fcIsAR?'مستقر':'stable'));
+  document.getElementById('forecast-summary-text').textContent =
+    _fcIsAR
+      ? `الاتجاه ${dir}. القيمة الحالية ${last.toFixed(2)}، والتوقع بعد ${horizon} خطوة ${fcEnd.toFixed(2)} (${pct>=0?'+':''}${pct.toFixed(1)}٪).`
+      : `Trend is ${dir}. Current: ${last.toFixed(2)}, after ${horizon} steps: ${fcEnd.toFixed(2)} (${pct>=0?'+':''}${pct.toFixed(1)}%).`;
+
+  renderForecastChart(updated);
+}
+
+function renderForecastChart(fc) {
+  const canvas = document.getElementById('forecast-canvas');
+  if (!canvas) return;
+  if (_fcChart) { try{_fcChart.destroy();}catch(e){} _fcChart=null; }
+
+  const hist     = fc.historical || [];
+  const histSmth = fc.historical_smooth || hist;
+  const forecast = fc.forecast || [];
+  const lower    = fc.lower_bound || forecast.map(v=>v);
+  const upper    = fc.upper_bound || forecast.map(v=>v);
+  const hLabels  = fc.labels || hist.map((_,i)=>String(i+1));
+  const fLabels  = fc.forecast_labels || forecast.map((_,i)=>`+${i+1}`);
+
+  // Separator label
+  const sepLabel = _fcIsAR ? '← التوقعات | التاريخ →' : '← History | Forecast →';
+  const allLabels = [...hLabels, sepLabel, ...fLabels];
+
+  // historical = actual, separator = null, forecast = null
+  const histData  = [...hist.map(v=>v),    null, ...new Array(forecast.length).fill(null)];
+  const fcData    = [...new Array(hist.length).fill(null), null, ...forecast];
+  const lowerData = [...new Array(hist.length).fill(null), null, ...lower];
+  const upperData = [...new Array(hist.length).fill(null), null, ...upper];
+  const smoothData= [...histSmth.map(v=>v), null, ...new Array(forecast.length).fill(null)];
+
+  _fcChart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: allLabels,
+      datasets: [
+        {
+          label: _fcIsAR ? 'تاريخي' : 'Historical',
+          data:  histData,
+          borderColor:     '#2563eb',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5,
+          pointRadius:  2,
+          pointHoverRadius: 5,
+          tension: 0.3,
+          spanGaps: false,
+          order: 2,
+        },
+        {
+          label: _fcIsAR ? 'التوقع' : 'Forecast',
+          data:  fcData,
+          borderColor:     '#f59e0b',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5,
+          borderDash: [6, 4],
+          pointRadius:  3,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#f59e0b',
+          tension: 0.3,
+          spanGaps: false,
+          order: 1,
+        },
+        {
+          label: _fcIsAR ? 'الحد الأعلى' : 'Upper Bound',
+          data:  upperData,
+          borderColor:     'transparent',
+          backgroundColor: 'rgba(245,158,11,.12)',
+          fill:  '+1',
+          pointRadius:  0,
+          tension: 0.3,
+          spanGaps: false,
+          order: 3,
+        },
+        {
+          label: _fcIsAR ? 'الحد الأدنى' : 'Lower Bound',
+          data:  lowerData,
+          borderColor:     'transparent',
+          backgroundColor: 'rgba(245,158,11,.12)',
+          fill:  false,
+          pointRadius:  0,
+          tension: 0.3,
+          spanGaps: false,
+          order: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            filter: (item) => !item.text.includes('ound'),
+            color: '#334155',
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,.97)',
+          titleColor: '#0f172a',
+          bodyColor:  '#334155',
+          borderColor:'#e2e8f0',
+          borderWidth: 1,
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.parsed.y === null) return null;
+              const ds = ctx.dataset.label;
+              return `${ds}: ${Number(ctx.parsed.y).toLocaleString(undefined,{maximumFractionDigits:2})}`;
+            }
+          }
+        },
+        annotation: {
+          annotations: {
+            separatorLine: {
+              type: 'line',
+              xMin: hLabels.length,
+              xMax: hLabels.length,
+              borderColor: 'rgba(100,116,139,.35)',
+              borderWidth: 1.5,
+              borderDash: [4,3],
+              label: {
+                display: true,
+                content: _fcIsAR ? 'بداية التوقع' : 'Forecast Start',
+                position: 'start',
+                color: '#64748b',
+                font: { size: 10, weight: '700' },
+                backgroundColor: 'rgba(248,250,252,.9)',
+              }
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#94a3b8',
+            maxTicksLimit: 14,
+            maxRotation: 35,
+            callback: function(val, idx) {
+              const lbl = this.getLabelForValue(val);
+              if (lbl === sepLabel) return '';
+              return lbl;
+            }
+          },
+          grid: { color: 'rgba(226,232,240,.5)' }
+        },
+        y: {
+          ticks: { color: '#94a3b8', callback: (v) => Number(v).toLocaleString() },
+          grid:  { color: 'rgba(226,232,240,.5)' }
+        }
+      }
+    },
+    plugins: [Chart.registry.getPlugin('annotation') ? {} : {}],
+  });
+
+  // Update summary
+  const last  = hist[hist.length-1] || 0;
+  const fcEnd = forecast[forecast.length-1] || 0;
+  const pct   = ((fcEnd-last)/(Math.abs(last)+1e-9))*100;
+  const dir   = pct > 1 ? (_fcIsAR?'صاعد':'upward') : (pct<-1?(_fcIsAR?'هابط':'downward'):(_fcIsAR?'مستقر':'stable'));
+  const sumTxt = _fcIsAR
+    ? (fc.summary_ar || `الاتجاه ${dir}. القيمة الحالية ${last.toFixed(2)}، والتوقع بعد ${fc.horizon||12} خطوة ${fcEnd.toFixed(2)} (${pct>=0?'+':''}${pct.toFixed(1)}٪).`)
+    : (fc.summary_en || `Trend is ${dir}. Current: ${last.toFixed(2)}, forecast after ${fc.horizon||12} steps: ${fcEnd.toFixed(2)} (${pct>=0?'+':''}${pct.toFixed(1)}%).`);
+  const sumEl = document.getElementById('forecast-summary-text');
+  if (sumEl) sumEl.textContent = sumTxt;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ENHANCED REPORT BUILDER — Bilingual, Watermark, Chart Selection
+// ══════════════════════════════════════════════════════════════════════════
+
+function openReportBuilder() {
+  const isAR = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+  // Build modal if not exists
+  let modal = document.getElementById('report-builder-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'report-builder-modal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML=`
+    <div style="background:var(--surface);border-radius:18px;padding:32px;width:min(520px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);">
+      <div style="font-size:1.1rem;font-weight:800;color:var(--text);margin-bottom:4px;" id="rbm-title">📄 Report Builder</div>
+      <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:20px;" id="rbm-sub">Customize your analysis report</div>
+
+      <div style="display:grid;gap:14px;">
+        <label style="font-size:.78rem;font-weight:700;color:var(--text-muted);display:block;margin-bottom:4px;" id="rbm-lbl-wm">Watermark text (leave empty for none):</label>
+        <input id="rpt-watermark" type="text" placeholder="e.g. Confidential • Basira" style="width:100%;padding:9px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface-2);color:var(--text);font-size:.84rem;box-sizing:border-box;">
+
+        <label style="font-size:.78rem;font-weight:700;color:var(--text-muted);" id="rbm-lbl-sec">Include sections:</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="rpt-sections">
+          <label class="rpt-chk"><input type="checkbox" id="rpt-inc-overview" checked><span>Overview</span></label>
+          <label class="rpt-chk"><input type="checkbox" id="rpt-inc-insights" checked><span>Insights</span></label>
+          <label class="rpt-chk"><input type="checkbox" id="rpt-inc-rca"      checked><span>RCA</span></label>
+          <label class="rpt-chk"><input type="checkbox" id="rpt-inc-charts"   checked><span>Charts</span></label>
+          <label class="rpt-chk"><input type="checkbox" id="rpt-inc-forecast" checked><span>Forecast</span></label>
+          <label class="rpt-chk"><input type="checkbox" id="rpt-inc-preds"    checked><span>Predictions</span></label>
+        </div>
+
+        <label style="font-size:.78rem;font-weight:700;color:var(--text-muted);" id="rbm-lbl-charts">Chart types to include:</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;" id="rpt-chart-types">
+          <label class="rpt-chk"><input type="checkbox" class="rpt-chart-type" value="bar"    checked><span>Bar</span></label>
+          <label class="rpt-chk"><input type="checkbox" class="rpt-chart-type" value="line"   checked><span>Line</span></label>
+          <label class="rpt-chk"><input type="checkbox" class="rpt-chart-type" value="doughnut" checked><span>Doughnut</span></label>
+          <label class="rpt-chk"><input type="checkbox" class="rpt-chart-type" value="radar"  checked><span>Radar</span></label>
+          <label class="rpt-chk"><input type="checkbox" class="rpt-chart-type" value="scatter" checked><span>Scatter</span></label>
+          <label class="rpt-chk"><input type="checkbox" class="rpt-chart-type" value="horizontalBar" checked><span>H-Bar</span></label>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:6px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="generateBilingualReport()" id="rbm-gen-btn">📥 Generate PDF</button>
+          <button class="btn btn-ghost"   style="flex:1;" onclick="generateBilingualReportHTML()" id="rbm-html-btn">🌐 HTML</button>
+          <button class="btn btn-ghost"   style="padding:9px 14px;" onclick="document.getElementById('report-builder-modal').style.display='none'">✕</button>
+        </div>
+      </div>
+    </div>`;
+
+    // Add checkbox style
+    const style = document.createElement('style');
+    style.textContent='.rpt-chk{display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text);cursor:pointer;padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:var(--surface-2);}.rpt-chk:hover{border-color:var(--accent);}';
+    document.head.appendChild(style);
+    document.body.appendChild(modal);
+  }
+
+  // i18n
+  if (isAR) {
+    document.getElementById('rbm-title').textContent = '📄 منشئ التقارير';
+    document.getElementById('rbm-sub').textContent   = 'خصّص تقرير التحليل الخاص بك';
+    document.getElementById('rbm-lbl-wm').textContent = 'نص العلامة المائية (اتركه فارغاً للإلغاء):';
+    document.getElementById('rbm-lbl-sec').textContent = 'الأقسام المضمّنة:';
+    document.getElementById('rbm-lbl-charts').textContent = 'أنواع الشارتس في التقرير:';
+    document.getElementById('rbm-gen-btn').textContent = '📥 إنشاء PDF';
+    document.getElementById('rbm-html-btn').textContent = '🌐 HTML';
+    // Update checkbox labels
+    const labels = ['نظرة عامة','رؤى','تحليل الأسباب','الشارتس','التوقعات','التنبؤات'];
+    document.querySelectorAll('#rpt-sections .rpt-chk span').forEach((el,i)=>{ if(labels[i]) el.textContent=labels[i]; });
+  }
+
+  modal.style.display = 'flex';
+}
+
+function _getReportOptions() {
+  const allowedTypes = [...document.querySelectorAll('.rpt-chart-type:checked')].map(c=>c.value);
+  return {
+    watermark: document.getElementById('rpt-watermark').value.trim(),
+    incOverview:  document.getElementById('rpt-inc-overview').checked,
+    incInsights:  document.getElementById('rpt-inc-insights').checked,
+    incRca:       document.getElementById('rpt-inc-rca').checked,
+    incCharts:    document.getElementById('rpt-inc-charts').checked,
+    incForecast:  document.getElementById('rpt-inc-forecast').checked,
+    incPreds:     document.getElementById('rpt-inc-preds').checked,
+    allowedChartTypes: allowedTypes,
+  };
+}
+
+function generateBilingualReport() {
+  if (!window.jspdf) { toast('⚠️ PDF library not loaded.'); return; }
+  document.getElementById('report-builder-modal').style.display = 'none';
+  const opts   = _getReportOptions();
+  const isAR   = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+  const data   = window.currentAnalysisData;
+  if (!data)   { toast(isAR ? 'لا توجد بيانات.' : 'No data loaded.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const W     = 210, H = 297, M = 14;
+  let y       = M;
+  const theme = localStorage.getItem('basira_theme') || 'light';
+
+  function checkPage(need=20) {
+    if (y + need > H - 16) { doc.addPage(); y = M; if (opts.watermark) addWatermark(); }
+  }
+
+  function addWatermark() {
+    if (!opts.watermark) return;
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({opacity:.08}));
+    doc.setFontSize(28);
+    doc.setTextColor(100,100,100);
+    const angle = 38;
+    for (let wy=50; wy<H; wy+=55) {
+      doc.text(opts.watermark, W/2, wy, {align:'center', angle});
+    }
+    doc.restoreGraphicsState();
+    doc.setTextColor(0,0,0);
+  }
+
+  // Page 1: Header
+  doc.setFillColor(37,99,235);
+  doc.rect(0,0,W,38,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(20); doc.setFont('helvetica','bold');
+  doc.text(isAR ? 'تقرير بصيرة للتحليل' : 'Basira Analysis Report', M, 16);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  const dateStr = new Date().toLocaleDateString(isAR ? 'ar-SA' : 'en-US', {year:'numeric',month:'long',day:'numeric'});
+  doc.text((isAR ? 'التاريخ: ' : 'Date: ') + dateStr, M, 26);
+  doc.text((isAR ? 'الاستراتيجية: ' : 'Strategy: ') + (data.strategy||''), M, 32);
+  if (data.target_column) doc.text((isAR?'العمود الهدف: ':'Target: ') + data.target_column, W/2, 32);
+  doc.setTextColor(0,0,0);
+  y = 48;
+  addWatermark();
+
+  // Overview
+  if (opts.incOverview) {
+    checkPage(30);
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.setTextColor(37,99,235);
+    doc.text(isAR ? 'نظرة عامة' : 'Overview', M, y); y+=7;
+    doc.setDrawColor(37,99,235); doc.setLineWidth(.4);
+    doc.line(M, y, W-M, y); y+=4;
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    const dn = data.decision_narrative || {};
+    if (dn.headline) { doc.setFont('helvetica','bold'); doc.text(dn.headline, M, y); y+=5; doc.setFont('helvetica','normal'); }
+    if (dn.summary)  { const lines=doc.splitTextToSize(dn.summary, W-M*2); doc.text(lines,M,y); y+=lines.length*4+3; }
+    const perf = data.model_performance || {};
+    const bm   = perf.best_model || perf.best_algorithm || (data.strategy==='supervised'?'Supervised':'Clustering');
+    doc.setFont('helvetica','bold');
+    doc.text((isAR?'أفضل نموذج: ':'Best Model: ')+bm, M, y); y+=5;
+    doc.setFont('helvetica','normal');
+    doc.text((isAR?'الصفوف: ':'Rows: ')+(data.n_rows||'—')+' | '+(isAR?'الأعمدة: ':'Columns: ')+(data.n_columns||'—'), M, y); y+=8;
+  }
+
+  // Insights
+  if (opts.incInsights) {
+    const ins = data.advanced_insights || [];
+    if (ins.length) {
+      checkPage(20);
+      doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(37,99,235);
+      doc.text(isAR ? 'الرؤى الرئيسية' : 'Key Insights', M, y); y+=7;
+      doc.setDrawColor(37,99,235); doc.line(M,y,W-M,y); y+=4;
+      doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      ins.slice(0,6).forEach(ins=>{
+        checkPage(14);
+        const title = (isAR && ins.title_ar) ? ins.title_ar : ins.title;
+        const val   = (isAR && ins.value_ar)  ? ins.value_ar  : ins.value;
+        doc.setFont('helvetica','bold');
+        doc.text(`• ${title} [${val}]`, M, y); y+=4;
+        if (ins.desc) {
+          doc.setFont('helvetica','normal');
+          const lines=doc.splitTextToSize(ins.desc, W-M*2-4);
+          doc.text(lines, M+4, y); y+=lines.length*3.5+2;
+        }
+      });
+      y+=3;
+    }
+  }
+
+  // RCA
+  if (opts.incRca) {
+    const rca = data.rca_report || [];
+    if (rca.length) {
+      checkPage(20);
+      doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(239,68,68);
+      doc.text(isAR ? 'تحليل الأسباب الجذرية' : 'Root Cause Analysis', M, y); y+=7;
+      doc.setDrawColor(239,68,68); doc.line(M,y,W-M,y); y+=4;
+      doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      rca.slice(0,5).forEach(f=>{
+        checkPage(18);
+        const title = (isAR && f.title_ar) ? f.title_ar : f.title;
+        const sev   = (isAR && f.severity_label) ? f.severity_label : f.severity;
+        doc.setFont('helvetica','bold');
+        doc.text(`▸ ${title}`, M, y); y+=4;
+        doc.setFont('helvetica','normal');
+        doc.text(`  ${isAR?'الخطورة:':'Severity:'} ${sev}`, M, y); y+=3.5;
+        const rec = (isAR && f.recommendation_ar) ? f.recommendation_ar : (f.recommended_action||f.recommendation||'');
+        if (rec) { const lines=doc.splitTextToSize(`  ${isAR?'التوصية:':'Rec:'} ${rec}`, W-M*2-2); doc.text(lines,M,y); y+=lines.length*3.5+2; }
+      });
+      y+=3;
+    }
+  }
+
+  // Forecast
+  if (opts.incForecast && _fcPayload && _fcPayload.available) {
+    checkPage(30);
+    doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(245,158,11);
+    doc.text(isAR?'التوقعات':'Forecast', M, y); y+=7;
+    doc.setDrawColor(245,158,11); doc.line(M,y,W-M,y); y+=4;
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    const fc  = _fcPayload;
+    const sum = isAR ? (fc.summary_ar||'') : (fc.summary_en||'');
+    if (sum) { const lines=doc.splitTextToSize(sum, W-M*2); doc.text(lines,M,y); y+=lines.length*4+2; }
+    doc.text(`${isAR?'الطريقة:':'Method:'} ${isAR?(fc.method_ar||fc.method):fc.method}`, M, y); y+=4;
+    doc.text(`${isAR?'الأفق:':'Horizon:'} ${fc.horizon||12} ${isAR?'خطوة':'steps'}`, M, y); y+=8;
+  }
+
+  // Footer
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let p=1; p<=totalPages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7.5); doc.setTextColor(148,163,184);
+    doc.text(`Basira Analytics • ${isAR?'تم الإنشاء بواسطة بصيرة':'Generated by Basira'} • ${new Date().toISOString().slice(0,10)}`, M, H-6);
+    doc.text(`${p} / ${totalPages}`, W-M, H-6, {align:'right'});
+  }
+
+  doc.save(`basira_report_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast(isAR ? '✅ تم تحميل التقرير' : '✅ Report downloaded');
+}
+
+function generateBilingualReportHTML() {
+  document.getElementById('report-builder-modal').style.display = 'none';
+  const opts = _getReportOptions();
+  const isAR = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+  const data = window.currentAnalysisData;
+  if (!data) { toast(isAR?'لا توجد بيانات.':'No data.'); return; }
+
+  const dir   = isAR ? 'rtl' : 'ltr';
+  const title = isAR ? 'تقرير بصيرة للتحليل' : 'Basira Analysis Report';
+  const wm    = opts.watermark ? `<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.06;font-size:48px;font-weight:900;color:#334155;transform:rotate(-38deg);z-index:0;">${opts.watermark}</div>` : '';
+
+  const dn  = data.decision_narrative || {};
+  const ins = data.advanced_insights  || [];
+  const rca = data.rca_report         || [];
+  const fc  = _fcPayload;
+
+  let sections = '';
+
+  if (opts.incOverview) sections += `
+    <section><h2>${isAR?'نظرة عامة':'Overview'}</h2>
+    <p><strong>${dn.headline||''}</strong></p>
+    <p>${dn.summary||''}</p>
+    <p>${isAR?'الصفوف:':'Rows:'} ${data.n_rows||'—'} &nbsp;|&nbsp; ${isAR?'الأعمدة:':'Columns:'} ${data.n_columns||'—'}</p></section>`;
+
+  if (opts.incInsights && ins.length) sections += `
+    <section><h2>${isAR?'الرؤى الرئيسية':'Key Insights'}</h2>
+    ${ins.slice(0,6).map(i=>`<div class="card"><strong>${(isAR&&i.title_ar)?i.title_ar:i.title}</strong> <span class="badge">${(isAR&&i.value_ar)?i.value_ar:i.value}</span><p>${i.desc||''}</p></div>`).join('')}</section>`;
+
+  if (opts.incRca && rca.length) sections += `
+    <section><h2 style="color:#dc2626">${isAR?'تحليل الأسباب الجذرية':'Root Cause Analysis'}</h2>
+    ${rca.slice(0,5).map(f=>`<div class="card rca-card"><strong>${(isAR&&f.title_ar)?f.title_ar:f.title}</strong> <span class="badge sev-${(f.severity||'info').toLowerCase()}">${(isAR&&f.severity_label)?f.severity_label:f.severity}</span><p>${(isAR&&f.recommendation_ar)?f.recommendation_ar:(f.recommended_action||f.recommendation||'')}</p></div>`).join('')}</section>`;
+
+  if (opts.incForecast && fc && fc.available) sections += `
+    <section><h2>${isAR?'التوقعات':'Forecast'}</h2>
+    <p>${isAR?(fc.summary_ar||''):(fc.summary_en||'')}</p>
+    <p>${isAR?'الطريقة:':'Method:'} ${isAR?(fc.method_ar||fc.method):fc.method}</p></section>`;
+
+  const html = `<!DOCTYPE html><html dir="${dir}" lang="${isAR?'ar':'en'}"><head><meta charset="UTF-8">
+  <title>${title}</title><style>
+  body{font-family:${isAR?"'Segoe UI','Tahoma',sans-serif":"'Inter','Segoe UI',sans-serif"};margin:0;padding:32px;color:#1e293b;background:#f8fafc;direction:${dir};}
+  h1{color:#1e3a8a;border-bottom:3px solid #2563eb;padding-bottom:10px;}
+  h2{color:#1e3a8a;margin-top:28px;}
+  section{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+  .card{border:1px solid #e2e8f0;border-radius:8px;padding:12px 16px;margin:8px 0;}
+  .rca-card{border-left:3px solid #dc2626;}
+  .badge{display:inline-block;padding:2px 9px;border-radius:99px;background:#dbeafe;color:#1d4ed8;font-size:.78rem;font-weight:700;margin-${isAR?'right':'left'}:8px;}
+  .sev-critical,.sev-high{background:#fee2e2;color:#b91c1c;}
+  .sev-medium{background:#fef3c7;color:#b45309;}
+  footer{text-align:center;color:#94a3b8;font-size:.75rem;margin-top:32px;}
+  @media print{body{background:#fff;padding:0;}.card,.section{break-inside:avoid;}}
+  </style></head><body>
+  ${wm}
+  <h1>${title}</h1>
+  <p style="color:#64748b">${isAR?'التاريخ:':'Date:'} ${new Date().toLocaleDateString(isAR?'ar-SA':'en-US',{year:'numeric',month:'long',day:'numeric'})}</p>
+  ${sections}
+  <footer>Basira Analytics &bull; ${new Date().toISOString().slice(0,10)}</footer>
+  </body></html>`;
+
+  const a   = document.createElement('a');
+  a.href    = URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+  a.download= `basira_report_${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
+  toast(isAR?'✅ تم تصدير التقرير HTML':'✅ HTML Report exported');
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+function switchTab(tabName, event) {
+  document.querySelectorAll('.tab-content').forEach(t=>{t.classList.remove('active'); t.style.display='none';});
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const tabEl=document.getElementById(tabName+'-tab');
+  if(tabEl){ tabEl.classList.add('active'); tabEl.style.display=''; }
+  if(event&&event.target) event.target.classList.add('active');
+}
+
+// ── Chart management ──────────────────────────────────────────
+function openChartManagement() {
+  if(window.currentAnalysisData) {
+    try {
+      localStorage.setItem('basiraCurrentData',JSON.stringify(window.currentAnalysisData));
+      localStorage.setItem('basira_analysis_result',JSON.stringify(window.currentAnalysisData));
+      localStorage.setItem('basira_chart_configs',JSON.stringify(chartConfigs));
+      localStorage.setItem('basira_chart_configs',JSON.stringify(chartConfigs));
+    } catch(e) {}
+  }
+  const mgmt=window.open('chart_management.html','chartManagement','width=1400,height=900');
+  if(!mgmt) toast('⚠️ Please allow popups for chart management');
+}
+
+window.updateChartsFromManagement=function(updatedConfigs, deletedIds) {
+  if(!updatedConfigs||typeof updatedConfigs!=='object') return;
+
+  // ── Handle deletions first ──
+  if(Array.isArray(deletedIds) && deletedIds.length>0){
+    deletedIds.forEach(chartId=>{
+      const idx=parseInt(chartId.replace('chart-',''));
+      if(!isNaN(idx)) _doDeleteChart(idx);
+    });
+  }
+
+  const SCHEME_COLORS = {
+    'Basira Blue':    {bg:['rgba(14,165,233,.80)','rgba(56,189,248,.70)','rgba(125,211,252,.60)','rgba(186,230,253,.50)','rgba(224,242,254,.40)'],border:'#0ea5e9'},
+    'Indigo Purple':  {bg:['rgba(99,102,241,.82)','rgba(139,92,246,.75)','rgba(167,139,250,.65)','rgba(196,181,253,.55)','rgba(221,214,254,.45)'],border:'#6366f1'},
+    'Emerald Green':  {bg:['rgba(16,185,129,.80)','rgba(34,197,94,.70)','rgba(74,222,128,.60)','rgba(134,239,172,.50)','rgba(187,247,208,.40)'],border:'#10b981'},
+    'Amber Orange':   {bg:['rgba(245,158,11,.82)','rgba(251,191,36,.72)','rgba(252,211,77,.62)','rgba(253,230,138,.52)'],border:'#f59e0b'},
+    'Rose Pink':      {bg:['rgba(244,63,94,.80)','rgba(251,113,133,.70)','rgba(253,164,175,.60)','rgba(254,205,211,.50)'],border:'#f43f5e'},
+    'Multi Vivid':    {bg:['rgba(14,165,233,.82)','rgba(139,92,246,.82)','rgba(16,185,129,.82)','rgba(245,158,11,.82)','rgba(244,63,94,.82)','rgba(99,102,241,.82)','rgba(20,184,166,.82)','rgba(234,179,8,.82)'],border:'#0ea5e9'},
+    'Teal Cyan':      {bg:['rgba(20,184,166,.80)','rgba(6,182,212,.72)','rgba(34,211,238,.62)','rgba(103,232,249,.52)'],border:'#14b8a6'},
+    'Sunset Warm':    {bg:['rgba(239,68,68,.80)','rgba(249,115,22,.75)','rgba(245,158,11,.70)','rgba(234,179,8,.65)','rgba(163,230,53,.55)'],border:'#ef4444'},
+  };
+
+  Object.keys(updatedConfigs).forEach(chartId=>{
+    const cfg=updatedConfigs[chartId];
+    const original=chartConfigs[chartId];
+    if(!original) return;
+
+    // destroy existing
+    if(charts[chartId]){try{charts[chartId].destroy();}catch(e){}}
+
+    // update title in DOM
+    const card=document.getElementById(`card-${chartId}`);
+    const titleEl=card?.querySelector('.chart-title');
+    if(titleEl&&cfg.title) titleEl.textContent=cfg.title;
+
+    // rebuild recommendation with new type/title
+    const rec={
+      ...original.recommendation,
+      type: cfg.type||original.recommendation.type,
+      title: cfg.title||original.recommendation.title,
+    };
+
+    // apply color scheme to datasets
+    const scheme=SCHEME_COLORS[cfg.colorScheme]||SCHEME_COLORS['Multi Vivid'];
+    if(rec.datasets){
+      rec.datasets=rec.datasets.map((ds,i)=>{
+        const n=(ds.data||[]).length;
+        const bg=n>1?Array.from({length:n},(_,j)=>scheme.bg[j%scheme.bg.length]):scheme.bg[i%scheme.bg.length];
+        return{...ds,backgroundColor:bg,borderColor:scheme.border,borderRadius:4};
+      });
+    }
+
+    const idx=parseInt(chartId.split('-')[1]);
+    createChart(idx, rec, original.data, original.featureImp||[]);
+
+    // apply legend + animation post-creation
+    setTimeout(()=>{
+      const c=charts[chartId]; if(!c) return;
+      c.options.plugins.legend.display=!!cfg.showLegend;
+      c.options.animation.duration=cfg.animation?700:0;
+      c.update();
+    },100);
+  });
+
+  // flash success banner briefly
+  const banner=document.createElement('div');
+  banner.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #e2e8f0;border-left:4px solid #22c55e;padding:12px 22px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:9999;font-size:.86rem;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:10px;';
+  banner.innerHTML='<span style="color:#22c55e;font-size:1.1rem;">✓</span> Charts updated from Studio';
+  document.body.appendChild(banner);
+  setTimeout(()=>banner.remove(),2800);
+};
+
+// ── Export ────────────────────────────────────────────────────
+function exportSelected() {
+  const sel={narrative:document.getElementById('save-narrative').checked,insights:document.getElementById('save-insights').checked,charts:document.getElementById('save-charts').checked,predictions:document.getElementById('save-predictions').checked,rca:document.getElementById('save-rca').checked,data:document.getElementById('save-data').checked};
+  const exportData={exported_at:new Date().toISOString(),basira_version:'pipeline-v1'};
+  const d=(currentData&&currentData.analysis)?currentData.analysis:{};
+  if(sel.narrative) exportData.narrative=normalizeNarrative(d);
+  if(sel.insights) exportData.insights=normalizeInsights(d);
+  if(sel.charts) exportData.chart_recommendations=normalizeCharts(d);
+  if(sel.predictions) exportData.predictions=normalizePredictionsOrAssignments(d);
+  if(sel.rca) exportData.rca=normalizeRCA(d);
+  if(sel.data) exportData.preview=normalizePreview(d);
+  const blob=new Blob([JSON.stringify(exportData,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url; a.download=`basira_analysis_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url);
+  toast('✅ Exported successfully!');
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function toast(message, type) {
+  // type: 'success' | 'warning' | 'error' | 'info' (optional, default info)
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = message;
+  const colors = { success:'#22c55e', warning:'#f59e0b', error:'#ef4444', info:'var(--accent,#0ea5e9)' };
+  el.style.borderLeftColor = colors[type] || colors.info;
+  el.style.display = 'block';
+  el.style.opacity = '1';
+  clearTimeout(el._tTimeout);
+  var dur = type === 'error' ? 6000 : 3500;
+  el._tTimeout = setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => { el.style.display = 'none'; el.style.opacity = '1'; }, 250);
+  }, dur);
+}
+
+// ── Rich color palettes for charts ───────────────────────────
+const BASIRA_PALETTES = {
+  vivid:  ['rgba(14,165,233,.80)','rgba(139,92,246,.80)','rgba(16,185,129,.80)','rgba(245,158,11,.80)','rgba(244,63,94,.80)','rgba(99,102,241,.80)','rgba(20,184,166,.80)','rgba(234,179,8,.80)'],
+  blue:   ['rgba(14,165,233,.82)','rgba(56,189,248,.72)','rgba(125,211,252,.62)','rgba(186,230,253,.52)','rgba(224,242,254,.42)'],
+  green:  ['rgba(16,185,129,.82)','rgba(52,211,153,.72)','rgba(110,231,183,.62)','rgba(167,243,208,.52)','rgba(209,250,229,.42)'],
+  purple: ['rgba(139,92,246,.82)','rgba(167,139,250,.72)','rgba(196,181,253,.62)','rgba(221,214,254,.52)','rgba(237,233,254,.42)'],
+  warm:   ['rgba(239,68,68,.80)','rgba(249,115,22,.78)','rgba(245,158,11,.76)','rgba(234,179,8,.74)','rgba(163,230,53,.70)'],
+};
+
+function getChartColors(n, datasetIndex) {
+  const palette = BASIRA_PALETTES.vivid;
+  // Rotate starting color per dataset so charts look different
+  const offset = datasetIndex * 2;
+  if (n <= 1) return palette[(datasetIndex) % palette.length];
+  return Array.from({length:n}, (_,i) => palette[(i + offset) % palette.length]);
+}
+
+
+function exportQuickReportPDF() {
+  if (!window.jspdf) { toast('⚠️ PDF library not loaded. Try again in a moment.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const W = doc.internal.pageSize.getWidth();
+  const margin = 16;
+  let y = 18;
+
+  const data = window._lastAnalysisData || (currentData && currentData.analysis) || {};
+  const narrative = normalizeNarrative(data) || {};
+  const q = estimateDataQualityScore(data);
+  const tc = estimateTargetConfidence(data);
+
+  doc.setFillColor(14,165,233);
+  doc.roundedRect(margin, y, W - margin*2, 36, 5, 5, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.text('Basira Executive Summary', margin + 8, y + 14);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.text('Quick PDF summary generated from the Analysis Engine', margin + 8, y + 24);
+  y += 48;
+
+  function miniBox(x, y0, w, label, value){
+    doc.setFillColor(248,250,252);
+    doc.setDrawColor(226,232,240);
+    doc.roundedRect(x,y0,w,24,3,3,'FD');
+    doc.setTextColor(100,116,139);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(7);
+    doc.text(label.toUpperCase(), x+4, y0+8);
+    doc.setTextColor(14,165,233);
+    doc.setFontSize(12);
+    doc.text(String(value || '—').slice(0,24), x+4, y0+18);
+  }
+
+  const bw = (W - margin*2 - 6) / 2;
+  miniBox(margin, y, bw, 'Rows', data.n_rows || '—');
+  miniBox(margin + bw + 6, y, bw, 'Columns', data.n_columns || '—');
+  y += 30;
+  miniBox(margin, y, bw, 'Data Quality', q + '%');
+  miniBox(margin + bw + 6, y, bw, 'Target Confidence', data.target_column ? tc + '%' : '—');
+  y += 34;
+
+  doc.setTextColor(15,23,42);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(12);
+  doc.text('Summary', margin, y);
+  y += 7;
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(51,65,85);
+  doc.setFontSize(8.5);
+  const lines = doc.splitTextToSize(narrative.summary || narrative.headline || 'Analysis complete.', W - margin*2);
+  doc.text(lines.slice(0,8), margin, y);
+  y += lines.slice(0,8).length * 4.2 + 8;
+
+  doc.setFont('helvetica','bold');
+  doc.setTextColor(15,23,42);
+  doc.setFontSize(12);
+  doc.text('Model Context', margin, y);
+  y += 7;
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(51,65,85);
+  doc.setFontSize(8.5);
+  doc.text([
+    'Strategy: ' + (data.strategy || '—'),
+    'Task: ' + (data.task_type || '—'),
+    'Target: ' + (data.target_column || '—'),
+    'File: ' + (data.uploaded_file || '—')
+  ], margin, y);
+
+  doc.save('basira_executive_summary_' + new Date().toISOString().slice(0,10) + '.pdf');
+  toast('✅ PDF summary downloaded');
+}
+
+
+// ── PDF Export from analysis engine ──────────────────────────
+function exportAnalysisPDF() {
+  if (!window.jspdf) { toast('⚠️ PDF library not loaded. Try again in a moment.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const margin = 16;
+  let y = margin;
+
+  const data = window._lastAnalysisData || (currentData && currentData.analysis) || {};
+  const narrative = normalizeNarrative(data) || {};
+  const insights = normalizeInsights(data).slice(0,6);
+  const q = estimateDataQualityScore(data);
+  const tc = estimateTargetConfidence(data);
+  const chartImgs = collectChartImages(4);
+
+  function pageHeader(title){
+    doc.setFillColor(14,165,233);
+    doc.rect(0,0,W,22,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(15);
+    doc.text('Basira', margin, 14);
+    doc.setFontSize(10);
+    doc.text(title || 'Analysis Report', W - margin, 14, {align:'right'});
+    y = 32;
+  }
+  function sectionTitle(t){
+    if(y > H - 28){ doc.addPage(); pageHeader('Analysis Report'); }
+    doc.setTextColor(15,23,42);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(12);
+    doc.text(t, margin, y);
+    doc.setDrawColor(226,232,240);
+    doc.line(margin, y+3, W-margin, y+3);
+    y += 10;
+  }
+  function wrapped(txt, size=8, color=[51,65,85]){
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(size);
+    doc.setTextColor(color[0],color[1],color[2]);
+    const lines = doc.splitTextToSize(String(txt || '—'), W - margin*2);
+    doc.text(lines, margin, y);
+    y += lines.length * (size * .45) + 5;
+  }
+  function metricBox(x, y0, w, label, value){
+    doc.setFillColor(248,250,252);
+    doc.setDrawColor(226,232,240);
+    doc.roundedRect(x,y0,w,22,3,3,'FD');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(6.8);
+    doc.setTextColor(100,116,139);
+    doc.text(label.toUpperCase(), x+4, y0+7);
+    doc.setFontSize(12);
+    doc.setTextColor(14,165,233);
+    doc.text(String(value || '—').slice(0,26), x+4, y0+16);
+  }
+
+  pageHeader('Styled PDF Report');
+
+  doc.setTextColor(15,23,42);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.text('Analysis Report', margin, y);
+  y += 8;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100,116,139);
+  doc.text('Generated: ' + new Date().toLocaleString(), margin, y);
+  y += 12;
+
+  const boxW = (W - margin*2 - 6) / 2;
+  metricBox(margin, y, boxW, 'Rows', data.n_rows || '—');
+  metricBox(margin + boxW + 6, y, boxW, 'Columns', data.n_columns || '—');
+  y += 28;
+  metricBox(margin, y, boxW, 'Data Quality', q + '%');
+  metricBox(margin + boxW + 6, y, boxW, 'Target Confidence', data.target_column ? tc + '%' : '—');
+  y += 32;
+
+  sectionTitle('Executive Summary');
+  wrapped(narrative.summary || narrative.headline || 'Analysis complete.', 8.5);
+
+  sectionTitle('Model Context');
+  wrapped('Strategy: ' + (data.strategy || '—') + '    Task: ' + (data.task_type || '—') + '    Target: ' + (data.target_column || '—') + '\nFile: ' + (data.uploaded_file || '—'), 8);
+
+  if(insights.length){
+    sectionTitle('Top Insights');
+    insights.forEach((i, idx) => {
+      if(y > H - 35){ doc.addPage(); pageHeader('Top Insights'); }
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(14,165,233);
+      doc.setFontSize(9);
+      doc.text((idx+1) + '. ' + String(i.title || 'Insight').slice(0,70), margin, y);
+      y += 5;
+      wrapped(i.desc || i.value || '', 7.8);
+    });
+  }
+
+  if(chartImgs.length){
+    doc.addPage();
+    pageHeader('Charts and Visual Results');
+    chartImgs.forEach((c, idx) => {
+      if(y > H - 95){ doc.addPage(); pageHeader('Charts and Visual Results'); }
+      doc.setFont('helvetica','bold');
+      doc.setTextColor(15,23,42);
+      doc.setFontSize(9);
+      doc.text(String(c.title || ('Chart ' + (idx+1))).slice(0,80), margin, y);
+      y += 4;
+      try{
+        const maxW = W - margin*2;
+        const maxH = 92;
+        const ratio = c.width && c.height ? c.width / c.height : 1.8;
+        let imgW = maxW;
+        let imgH = imgW / ratio;
+        if(imgH > maxH){ imgH = maxH; imgW = imgH * ratio; }
+        const imgX = margin + (maxW - imgW) / 2;
+        doc.addImage(c.img, 'PNG', imgX, y, imgW, imgH, undefined, 'FAST');
+        y += imgH + 12;
+      }catch(e){
+        wrapped('[Chart unavailable]', 8);
+      }
+    });
+  }
+
+  doc.save('basira_report_results_charts_' + new Date().toISOString().slice(0,10) + '.pdf');
+  toast('✅ PDF report downloaded');
+}
+
+
+
+
+
+// ── Called from chart_management removeChart (immediate) ──
+window.deleteChartFromStudio = function(chartId) {
+  const idx = parseInt(chartId.replace('chart-',''));
+  if (!isNaN(idx)) _doDeleteChart(idx);
+};
+
+// ── Called from chart_management restoreChart (immediate) ──
+window.restoreChartFromStudio = function(chartId) {
+  const idx      = parseInt(chartId.replace('chart-',''));
+  if (isNaN(idx)) return;
+  const canvasId = `chart-${idx}`;
+  // find config: check deleted store first, then live configs
+  const cfg = _deletedConfigs[canvasId] || chartConfigs[canvasId];
+  if (!cfg) return;
+  // restore config to live store
+  chartConfigs[canvasId] = cfg;
+  delete _deletedConfigs[canvasId];
+  // re-add card if removed from DOM
+  if (!document.getElementById(`card-chart-${idx}`)) {
+    addChartCard(idx, cfg.recommendation, cfg.data, cfg.featureImp||[]);
+  }
+};
+
+// ── Analysis error modal ──────────────────────────────────────
+const DIRTY_DATA_SIGNALS = [
+  'empty','no numeric','all null','cannot convert','mixed types',
+  'parse error','utf','encoding','decode','unicode','codec',
+  'no columns','no rows','dtype','invalid','corrupt','malformed',
+  'zero variance','constant','inf','nan','not enough','too few',
+];
+
+function isDirtyDataError(msg) {
+  const m = (msg||'').toLowerCase();
+  return DIRTY_DATA_SIGNALS.some(s => m.includes(s));
+}
+
+function showAnalysisError(msg) {
+  const modal   = document.getElementById('error-modal');
+  const titleEl = document.getElementById('error-modal-title');
+  const descEl  = document.getElementById('error-modal-desc');
+  const sugEl   = document.getElementById('preprocess-suggestion');
+  const iconEl  = document.getElementById('error-modal-icon');
+  const isAR    = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+
+  const isDirty = isDirtyDataError(msg || '');
+  const rawMsg  = (msg || '').toLowerCase();
+
+  // Sanitize: never show stack traces, Python errors, or internal details
+  const technicalPatterns = /traceback|exception|attributeerror|typeerror|keyerror|valueerror|syntaxerror|none type|ndef|undefined|null|nan\b|stack|http \d{3}|internal server/i;
+  let userMsg;
+  if (isDirty) {
+    userMsg = isAR
+      ? 'البيانات غير جاهزة للتحليل. يرجى مراجعة القيم المفقودة أو أنواع الأعمدة أو اختيار عمود مستهدف.'
+      : 'The data is not ready for analysis. Please review missing values, column types, or select a target column.';
+  } else if (technicalPatterns.test(rawMsg) || rawMsg.length > 200) {
+    userMsg = isAR
+      ? 'تعذّر إكمال التحليل. يرجى التحقق من البيانات والمحاولة مرة أخرى.'
+      : 'Analysis could not be completed. Please check your data and try again.';
+  } else if (/no data|empty|no file/i.test(rawMsg)) {
+    userMsg = isAR
+      ? 'لا توجد بيانات محملة حاليًا. يرجى رفع بيانات أو إرسالها من المعالجة المسبقة.'
+      : 'No dataset is currently loaded. Please upload data or send data from Preprocess.';
+  } else if (/connect|network|refused|fetch/i.test(rawMsg)) {
+    userMsg = isAR
+      ? 'تعذّر الاتصال بمحرك التحليل. تأكد أن التطبيق يعمل وأعد المحاولة.'
+      : 'Could not connect to the analysis engine. Make sure the app is running and try again.';
+  } else {
+    userMsg = msg || (isAR ? 'حدث خطأ غير متوقع.' : 'An unexpected error occurred.');
+    if (technicalPatterns.test(userMsg)) {
+      userMsg = isAR ? 'تعذّر إكمال التحليل.' : 'Analysis could not be completed.';
+    }
+  }
+
+  iconEl.textContent      = isDirty ? 'i' : '!';
+  iconEl.style.background = isDirty ? 'rgba(245,158,11,.08)' : 'rgba(239,68,68,.08)';
+  iconEl.style.color      = isDirty ? 'var(--warning)' : 'var(--danger,#ef4444)';
+  titleEl.textContent     = isDirty
+    ? (isAR ? 'البيانات تحتاج مراجعة' : 'Data Needs Review')
+    : (isAR ? 'تعذّر التحليل' : 'Analysis Failed');
+  descEl.textContent      = userMsg;
+  sugEl.classList.remove('hidden');
+  modal.classList.remove('hidden');
+}
+
+function closeErrorModal() {
+  document.getElementById('error-modal').classList.add('hidden');
+}
+
+function goToPreprocessor() {
+  closeErrorModal();
+  // save the file so user doesn't lose it
+  safeNavigate('/basira_preprocessor.html');
+}
+
+
+
+// Basira storage key migration: keep one canonical chart-config key.
+(function(){
+  try {
+    if (!localStorage.getItem('basira_chart_configs') && localStorage.getItem('basiraChartConfigs')) {
+      localStorage.setItem('basira_chart_configs', localStorage.getItem('basiraChartConfigs'));
+    }
+    localStorage.removeItem('basiraChartConfigs');
+  } catch(e) {}
+})();
+
+// ── Listen for messages from Chart Studio popup ──────────────────
+window.addEventListener('message', function(e) {
+  if (!e.data) return;
+  if (e.data.type === 'basira_chart_sync') {
+    const { updated, deletedIds } = e.data;
+    if (typeof window.updateChartsFromManagement === 'function') {
+      window.updateChartsFromManagement(updated || {}, deletedIds || []);
+    }
+  } else if (e.data.type === 'basira_chart_restore') {
+    if (typeof window.restoreChartFromStudio === 'function') {
+      window.restoreChartFromStudio(e.data.id);
+    }
+  }
+});
+
+// ── Auto-load result when opened from Preprocessor ──────────────
+(function() {
+  // Run after all functions are defined
+  window.addEventListener('DOMContentLoaded', function() {
+    applyAEi18n();
+    try {
+      var qs = new URLSearchParams(window.location.search || '');
+      var runId = qs.get('run_id');
+      if (runId) {
+        fetch('/api/analysis-result/' + encodeURIComponent(runId))
+          .then(function(r){ return r.json().then(function(payload){ return {ok:r.ok, payload:payload}; }); })
+          .then(function(res){
+            if (!res.ok || !res.payload || res.payload.status !== 'success') { throw new Error((res.payload && res.payload.message) || 'No result'); }
+            var data = res.payload.result || res.payload.data || res.payload;
+            data.target_column = data.target_column || data.target_col || null;
+            currentData = { analysis: data };
+            window.currentAnalysisData = data;
+            var up = document.getElementById('upload-section');
+            var rs = document.getElementById('results-area');
+            if (up) up.classList.add('hidden');
+            if (rs) rs.classList.remove('hidden');
+            displayResults(data);
+            try { localStorage.setItem('basiraCurrentData', JSON.stringify(data)); } catch(e) {}
+          })
+          .catch(function(){
+            var notice = document.getElementById('ae-no-data-notice');
+            var noticeText = document.getElementById('ae-no-data-text');
+            if (notice && noticeText) {
+              noticeText.textContent = 'Could not load the analysis result for this run. Please send the data again from Preprocess.';
+              notice.style.display = 'block';
+            }
+          });
+        return;
+      }
+      // ── Source-aware auto-load ──────────────────────────────────────────
+      // Only auto-load results when arriving from Preprocess or Web Scraping.
+      // Opening the page directly must show an empty upload state.
+      var source = sessionStorage.getItem('basira_nav_source');
+      var validSources = ['preprocess', 'web_scraping'];
+      var fromValidSource = validSources.indexOf(source) !== -1;
+
+      // Always clear the source flag so it's not reused across refreshes
+      sessionStorage.removeItem('basira_nav_source');
+
+      if (!fromValidSource) {
+        // Direct access — always show empty state, never load old results
+        var notice = document.getElementById('ae-no-data-notice');
+        var noticeText = document.getElementById('ae-no-data-text');
+        if (notice && noticeText) {
+          var isAR2 = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+          noticeText.textContent = isAR2
+            ? 'لا توجد بيانات محملة حاليًا. يرجى رفع بيانات أو إرسالها من المعالجة المسبقة.'
+            : 'No dataset is currently loaded. Please upload data or send data from Preprocess.';
+          notice.style.display = 'block';
+        }
+        return;
+      }
+
+      // Arrived from a valid source — try to load the result (sessionStorage first, then localStorage)
+      var keys = ['basira_analysis_result', 'basiraCurrentData'];
+      var _loaded = false;
+      for (var i = 0; i < keys.length; i++) {
+        var raw = null;
+        try{ raw = sessionStorage.getItem(keys[i]); }catch(e){}
+        if(!raw){ try{ raw = localStorage.getItem(keys[i]); }catch(e){} }
+        if (!raw) continue;
+        try{
+          var data = JSON.parse(raw);
+          if (data && data.status === 'success') {
+            data.target_column = data.target_column || data.target_col || null;
+            currentData = { analysis: data };
+            window.currentAnalysisData = data;
+            var up = document.getElementById('upload-section');
+            var rs = document.getElementById('results-area');
+            if (up) up.classList.add('hidden');
+            if (rs) rs.classList.remove('hidden');
+            displayResults(data);
+            try { localStorage.setItem('basiraCurrentData', JSON.stringify(data)); } catch(e) {}
+            try { sessionStorage.removeItem(keys[i]); } catch(e) {}
+            var _sbtn2 = document.getElementById('save-record-btn'); if(_sbtn2) _sbtn2.style.display='';
+            // Show source-aware toast
+            var isAR = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+            if (source === 'preprocess') {
+              toast(isAR ? 'تم استلام البيانات من المعالجة المسبقة.' : 'Dataset received from Preprocess.');
+            } else if (source === 'web_scraping') {
+              toast(isAR ? 'تم استلام البيانات من Web Scraping.' : 'Dataset received from Web Scraping.');
+            }
+            _loaded = true;
+            break;
+          }
+        }catch(e){}
+      }
+      if(!_loaded){
+        // Data was expected but not found — show notice
+        var notice2 = document.getElementById('ae-no-data-notice');
+        var noticeText2 = document.getElementById('ae-no-data-text');
+        if(notice2 && noticeText2){
+          var isAR3 = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+          noticeText2.textContent = isAR3
+            ? 'لم يتم العثور على بيانات التحليل. يرجى العودة وإعادة المحاولة.'
+            : 'Analysis data not found. Please go back and try again.';
+          notice2.style.display = 'block';
+        }
+      }
+    } catch(e) { /* auto-load handled silently */ }
+  });
+})();
+
+// ── Smart Reset — goes back to upload without full reload ─────────────
+function resetToUpload() {
+  currentData = null;
+  window.currentAnalysisData = null;
+  if (_predChart) { try{_predChart.destroy();}catch(e){} _predChart=null; }
+  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});
+  charts={}; chartConfigs={};
+  const fi = document.getElementById('file-input');
+  if (fi) fi.value='';
+  document.getElementById('analyze-btn').classList.add('hidden');
+  document.getElementById('results-area').classList.add('hidden');
+  document.getElementById('upload-section').classList.remove('hidden');
+  ['insights-grid','charts-container','predictions-table','rca-container','rca-priority-actions'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.innerHTML='';
+  });
+}
+
+// ── Smart upload: auto-analyze on file select ─────────────────────────
+async function smartUploadAndAnalyze() {
+  const fi = document.getElementById('file-input');
+  if (!fi || !fi.files[0]) return;
+  const file = fi.files[0];
+  currentData = { file };
+  showLoading(true);
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res  = await fetch('http://127.0.0.1:5055/analyze', {method:'POST', body:fd});
+    const data = await res.json();
+    if (data.status === 'error') {
+      showAnalysisError(data.message || aeT('error_generic'));
+      return;
+    }
+    currentData.analysis = data;
+    window.currentAnalysisData = data;
+    try {
+      localStorage.setItem('basiraCurrentData', JSON.stringify(data));
+      localStorage.setItem('basira_analysis_result', JSON.stringify(data));
+      localStorage.removeItem('basiraDeletedCharts');
+    } catch(e){}
+    displayResults(data);
+    document.getElementById('upload-section').classList.add('hidden');
+    document.getElementById('results-area').classList.remove('hidden');
+    const _isAR = (localStorage.getItem('basira_lang')||'en').startsWith('ar');
+    toast(_isAR ? 'اكتمل التحليل.' : 'Analysis complete.', 'success');
+  } catch(err) {
+    showAnalysisError(err.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+
+// ══════════════════════════════════════════
+// RECORDS SYSTEM
+// ══════════════════════════════════════════
+const RECORDS_KEY = 'basira_saved_records';
+
+
+// Delete Account — redirects to cloud account deletion page
+function confirmDeleteAccount() {
+  document.getElementById('del-account-modal').style.display = 'none';
+  // Clear local data
+  localStorage.clear();
+  sessionStorage.clear();
+  // Redirect to cloud deletion page
+  window.location.href = 'https://basira.basira-toolmodel.workers.dev/delete-account';
+}
+
+function _recordDataSource(){
+  return window.currentAnalysisData
+    || window._lastAnalysisData
+    || (currentData && currentData.analysis)
+    || null;
+}
+
+function _compactForStorage(data){
+  // Keep the full analysis by default. If the browser storage is full, remove only heavy preview-like fields.
+  try {
+    const clone = JSON.parse(JSON.stringify(data));
+    if (clone.preview && Array.isArray(clone.preview) && clone.preview.length > 150) clone.preview = clone.preview.slice(0,150);
+    if (clone.data_preview && Array.isArray(clone.data_preview) && clone.data_preview.length > 150) clone.data_preview = clone.data_preview.slice(0,150);
+    if (clone.dashboard_payload && Array.isArray(clone.dashboard_payload.preview) && clone.dashboard_payload.preview.length > 150) {
+      clone.dashboard_payload.preview = clone.dashboard_payload.preview.slice(0,150);
+    }
+    return clone;
+  } catch(e) {
+    return data;
+  }
+}
+
+function _saveRecordsToStorage(records, dataForFallback){
+  try {
+    localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+    return true;
+  } catch(e) {
+    // Fallback: compact the newest record instead of truncating JSON.
+    try {
+      if(records[0] && dataForFallback){
+        records[0].snapshot = JSON.stringify(_compactForStorage(dataForFallback));
+      }
+      while(records.length > 8) records.pop();
+      localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+      return true;
+    } catch(err) {
+      toast('Storage is full. Delete old records, then save again.');
+      return false;
+    }
+  }
+}
+
+function saveToRecords() {
+  const data = _recordDataSource();
+  if (!data) { toast('No analysis to save.'); return; }
+
+  const records = getRecords();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+  const timeStr = now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+
+  const meta = data.dashboard_payload || data;
+  const dsMeta = meta.dataset_meta || data.dataset_meta || {};
+  const taskType  = data.task_type || meta.task_type || data.strategy || 'analysis';
+  const rows      = data.n_rows || data.rows || dsMeta.rows || meta.n_rows || '—';
+  const cols      = data.n_columns || data.columns || dsMeta.cols || dsMeta.columns || meta.n_columns || '—';
+  const score     = data.model_score || meta.model_score || (meta.reliability && (meta.reliability.score || meta.reliability.confidence)) || '—';
+  const fileName  = data.uploaded_file || data.source_file || dsMeta.source_file || meta.uploaded_file || 'dataset';
+  const narrativeObj = normalizeNarrative(data) || {};
+  const headline = narrativeObj.headline || narrativeObj.summary || '';
+
+  let snapshot = '';
+  try {
+    // Important: do not slice the JSON. Truncating made saved records impossible to reopen.
+    snapshot = JSON.stringify(data);
+  } catch(e) {
+    toast('Could not serialize this analysis for Records.');
+    return;
+  }
+
+  const record = {
+    id:        now.getTime(),
+    date:      dateStr,
+    time:      timeStr,
+    fileName:  fileName,
+    taskType:  taskType,
+    rows:      rows,
+    cols:      cols,
+    score:     score,
+    headline:  headline,
+    snapshot:  snapshot,
+    size:      Math.round(snapshot.length / 1024) + ' KB'
+  };
+
+  records.unshift(record);
+  if (records.length > 20) records.splice(20);
+
+  if(!_saveRecordsToStorage(records, data)) return;
+
+  const btn = document.getElementById('save-record-btn');
+  if (btn) {
+    btn.textContent = '✓ Saved';
+    btn.style.background = '#22c55e';
+    btn.style.borderColor = '#22c55e';
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+    }, 2000);
+  }
+  toast('✅ Result saved to Records');
+}
+
+function getRecords() {
+  try { return JSON.parse(localStorage.getItem(RECORDS_KEY) || '[]'); } catch { return []; }
+}
+
+function showRecords() {
+  const records = getRecords();
+  const list = document.getElementById('records-list');
+  if (!list) return;
+
+  if (records.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:32px 16px;color:#94a3b8;font-size:.88rem;">No saved records yet.<br>Run an analysis and click <strong>Save</strong>.</div>';
+  } else {
+    const taskColors = { classification:'#0ea5e9', regression:'#f59e0b', unsupervised:'#22c55e', analysis:'#6366f1' };
+    list.innerHTML = records.map(r => {
+      const clr = taskColors[r.taskType] || '#6366f1';
+      return `<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start;cursor:pointer;" onclick="loadRecord(${r.id})" title="Click to view">
+        <div style="flex-shrink:0;width:40px;height:40px;border-radius:10px;background:${clr}18;border:1.5px solid ${clr}33;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📊</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:.88rem;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_safeHTML(r.fileName)}</div>
+          <div style="font-size:.75rem;color:#64748b;margin-top:2px;">${r.date} ${r.time} · <span style="color:${clr};font-weight:700;text-transform:capitalize;">${_safeHTML(r.taskType)}</span> · ${r.rows} rows × ${r.cols} cols${r.score && r.score !== '—' ? ' · Score: <strong>' + _safeHTML(r.score) + '</strong>' : ''}${r.size ? ' · ' + r.size : ''}</div>
+          ${r.headline ? '<div style="font-size:.78rem;color:#475569;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + _safeHTML(r.headline) + '</div>' : ''}
+        </div>
+        <button onclick="event.stopPropagation();loadRecord(${r.id})" style="flex-shrink:0;background:#0ea5e9;border:1px solid #0ea5e9;color:#fff;cursor:pointer;font-size:.76rem;font-weight:800;padding:6px 10px;border-radius:9px;" title="Open">Open</button>
+        <button onclick="event.stopPropagation();deleteRecord(${r.id})" style="flex-shrink:0;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem;padding:2px 6px;" title="Delete">✕</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('records-modal').style.display = 'flex';
+}
+
+function loadRecord(id) {
+  const records = getRecords();
+  const rec = records.find(r => r.id === id);
+  if (!rec || !rec.snapshot) { toast('Record data not available.'); return; }
+  try {
+    const data = typeof rec.snapshot === 'string' ? JSON.parse(rec.snapshot) : rec.snapshot;
+    window.currentAnalysisData = data;
+    window._lastAnalysisData = data;
+    currentData = { analysis: data };
+
+    try {
+      const full = JSON.stringify(data);
+      localStorage.setItem('basiraCurrentData', full);
+      localStorage.setItem('basira_analysis_result', full);
+    } catch(e) {}
+
+    document.getElementById('upload-section').classList.add('hidden');
+    document.getElementById('results-area').classList.remove('hidden');
+    var btn = document.getElementById('save-record-btn'); if(btn) btn.style.display='';
+    displayResults(data);
+    document.getElementById('records-modal').style.display = 'none';
+    window.scrollTo({top:0, behavior:'smooth'});
+    toast('✅ Record opened');
+  } catch(e) {
+    toast('This old record is incomplete. Save the analysis again to reopen it later.');
+  }
+}
+
+function deleteRecord(id) {
+  let records = getRecords().filter(r => r.id !== id);
+  localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+  showRecords(); // refresh
+}
+
+function clearAllRecords() {
+  if (!confirm('Clear all saved records?')) return;
+  localStorage.removeItem(RECORDS_KEY);
+  showRecords();
+}
+
+</script>
+
+<!-- ════ RECORDS MODAL ════ -->
+<div id="records-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.48);backdrop-filter:blur(5px);z-index:9997;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;padding:28px 30px;max-width:700px;width:100%;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.22);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div>
+        <div style="font-size:1.05rem;font-weight:800;color:#0f172a;">📁 Saved Records</div>
+        <div style="font-size:.8rem;color:#64748b;margin-top:2px;">Your saved analysis results</div>
+      </div>
+      <button onclick="document.getElementById('records-modal').style.display='none'" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:#94a3b8;padding:4px;">✕</button>
+    </div>
+    <div id="records-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;min-height:100px;">
+      <!-- filled by JS -->
+    </div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px;">
+      <button onclick="clearAllRecords()" style="padding:8px 16px;border-radius:10px;border:1.5px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#dc2626;font-weight:700;font-size:.82rem;cursor:pointer;">Clear All</button>
+      <button onclick="document.getElementById('records-modal').style.display='none'" style="padding:8px 18px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#64748b;font-weight:700;font-size:.82rem;cursor:pointer;">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════ DELETE ACCOUNT MODAL (opens cloud) ════ -->
+<div id="del-account-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.52);backdrop-filter:blur(5px);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;padding:32px 30px;max-width:420px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.25);">
+    <div style="width:52px;height:52px;background:rgba(239,68,68,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 16px;">⚠️</div>
+    <div style="font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:8px;">Delete Account?</div>
+    <div style="font-size:.86rem;color:#64748b;line-height:1.65;margin-bottom:22px;">This will permanently delete your account and all associated data.<br>This action <strong>cannot be undone</strong>.</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="document.getElementById('del-account-modal').style.display='none'" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#64748b;font-weight:700;font-size:.88rem;cursor:pointer;">Cancel</button>
+      <button onclick="confirmDeleteAccount()" style="flex:1;padding:11px;border-radius:10px;border:none;background:#ef4444;color:#fff;font-weight:700;font-size:.88rem;cursor:pointer;">Delete Account</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

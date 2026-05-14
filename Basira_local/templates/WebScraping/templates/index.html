@@ -1,0 +1,3209 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basira Web Scraping Local</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+    
+    <style>
+    /* System fonts — consistent with Basira preprocessor */
+    
+    :root{
+      /* ── Basira palette — matches preprocessor & main app ── */
+      --bg:#f0f4f8;--surface:#ffffff;--surface-2:#f8fafc;
+      --surface-glass:rgba(255,255,255,0.96);
+      --accent:#0ea5e9;--accent-2:#6366f1;
+      --accent-dim:rgba(14,165,233,0.09);--accent-glow:rgba(14,165,233,0.18);
+      --success:#22c55e;--warning:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+      --text:#0f172a;--text-2:#334155;--text-dim:#64748b;--text-muted:#94a3b8;
+      --border:#e2e8f0;--border-2:#cbd5e1;
+      --mono:'JetBrains Mono','Courier New',monospace;
+      --sans:'Plus Jakarta Sans','Noto Sans Arabic',system-ui,sans-serif;
+      --r:12px;--r-lg:18px;--r-xl:24px;
+      --shadow:0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+      --shadow-md:0 4px 16px rgba(0,0,0,.09);
+      --shadow-lg:0 12px 40px rgba(0,0,0,.10);
+      --tr:.15s ease;
+    }
+    [data-theme="dark"]{
+      --bg:#080e1a;--surface:#111827;--surface-2:#1a2332;
+      --surface-glass:rgba(17,24,39,0.92);
+      --accent:#38bdf8;--accent-dim:rgba(56,189,248,0.12);--accent-glow:rgba(56,189,248,0.22);
+      --text:#f1f5f9;--text-2:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;
+      --border:rgba(255,255,255,0.07);--border-2:rgba(255,255,255,0.13);
+      --shadow:0 1px 3px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.2);
+      --shadow-md:0 4px 20px rgba(0,0,0,.35);--shadow-lg:0 12px 48px rgba(0,0,0,.45);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;outline:none;}
+    html{font-size:16px;-webkit-font-smoothing:antialiased;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);transition:background var(--tr),color var(--tr);}
+    
+    .bs-nav{
+      height:64px;display:flex;align-items:center;justify-content:space-between;
+      padding:0 5%;background:var(--surface-glass);backdrop-filter:blur(28px);
+      border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1000;gap:16px;
+    }
+    .bs-brand{font-weight:800;color:var(--accent);font-size:1.45rem;letter-spacing:-1px;font-family:var(--mono);}
+    [dir="rtl"] .bs-brand{font-size:1.55rem;letter-spacing:0;font-family:'Noto Sans Arabic',var(--sans);}
+    .bs-nav-actions{display:flex;align-items:center;gap:8px;}
+    .bs-icon-btn{
+      width:36px;height:36px;border-radius:10px;border:1px solid var(--border);
+      background:transparent;color:var(--text-dim);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;transition:var(--tr);
+      font-size:15px;
+    }
+    .bs-icon-btn:hover{background:var(--accent-dim);color:var(--accent);border-color:var(--accent);}
+    
+    .bs-page{min-height:calc(100vh - 64px);padding:36px 5% 48px;display:flex;flex-direction:column;gap:24px;}
+    
+    .bs-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--r-lg);padding:24px 28px;box-shadow:var(--shadow);
+    }
+    
+    .bs-btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:11px 22px;border-radius:var(--r);font-family:var(--sans);
+      font-weight:700;font-size:.9rem;cursor:pointer;
+      border:1.5px solid transparent;transition:var(--tr);white-space:nowrap;
+    }
+    .bs-btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .bs-btn-primary:hover{filter:brightness(1.08);}
+    .bs-btn-primary:active{transform:scale(.98);}
+    .bs-btn-ghost{background:var(--surface-2);border-color:var(--border-2);color:var(--text-dim);}
+    .bs-btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+    .bs-btn-full{width:100%;}
+    
+    .bs-input{
+      width:100%;padding:12px 16px;border-radius:var(--r);
+      background:var(--surface-2);border:1.5px solid var(--border);
+      color:var(--text);font-family:var(--sans);font-size:.95rem;transition:var(--tr);
+    }
+    .bs-input:focus{border-color:var(--accent);}
+    .bs-input.error{border-color:var(--danger);}
+    .bs-input-sm{padding:10px 14px;font-size:.86rem;}
+    
+    .bs-error-banner{
+      display:flex;align-items:center;gap:10px;
+      padding:11px 16px;background:rgba(239,68,68,.07);
+      border:1px solid rgba(239,68,68,.22);border-radius:var(--r);
+      font-size:.83rem;color:var(--danger);font-weight:600;
+    }
+    
+    .bs-section-title{
+      font-size:.72rem;font-weight:800;color:var(--text-muted);
+      letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;
+    }
+    
+    .bs-spinner{
+      width:56px;height:56px;border-radius:50%;
+      border:3px solid var(--border);border-top-color:var(--accent);
+      animation:bs-spin 1s linear infinite;margin:0 auto;
+    }
+    @keyframes bs-spin{to{transform:rotate(360deg)}}
+    
+    .bs-loading-box{
+      flex:1;display:flex;align-items:center;justify-content:center;min-height:400px;
+    }
+    .bs-loading-inner{text-align:center;max-width:420px;padding:48px 24px;}
+    .bs-loading-title{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:10px;}
+    .bs-loading-sub{font-size:.86rem;color:var(--text-dim);line-height:1.7;}
+    
+    .bs-results-layout{display:flex;flex:1;overflow:hidden;height:calc(100vh - 64px);}
+    .bs-sidebar{
+      width:220px;min-width:220px;background:var(--surface);
+      border-inline-end:1px solid var(--border);
+      padding:20px 16px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;
+    }
+    .bs-results-main{flex:1;overflow:auto;padding:24px 28px;}
+    
+    .bs-stat-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:9px 12px;background:var(--surface-2);
+      border-radius:10px;border:1px solid var(--border);
+    }
+    .bs-stat-label{font-size:.75rem;color:var(--text-dim);}
+    .bs-stat-value{font-size:.88rem;font-weight:800;font-family:var(--mono);}
+    
+    .bs-field-chip{
+      padding:8px 12px;background:var(--surface-2);border-radius:10px;
+      border:1px solid var(--border);font-size:.78rem;color:var(--text);
+      display:flex;align-items:center;gap:8px;
+    }
+    
+    .bs-search-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+    .bs-count-badge{font-size:.75rem;color:var(--text-muted);font-family:var(--mono);flex-shrink:0;}
+    
+    .bs-table-wrap{border-radius:var(--r-lg);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow);}
+    .bs-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+    .bs-table th{
+      color:var(--accent);text-align:start;padding:11px 14px;
+      border-bottom:2px solid var(--border);font-family:var(--mono);font-size:.72rem;
+      background:var(--accent-dim);white-space:nowrap;cursor:pointer;user-select:none;
+    }
+    .bs-table th:hover{background:var(--accent-glow);}
+    .bs-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+    .bs-table tr:hover td{background:var(--accent-dim);}
+    .bs-table tr:last-child td{border-bottom:none;}
+    .bs-empty{padding:40px;text-align:center;color:var(--text-muted);font-size:.86rem;}
+    
+    .bs-tabs{display:flex;gap:8px;border-bottom:2px solid var(--border);margin-bottom:20px;}
+    .bs-tab{
+      padding:10px 20px;background:transparent;border:none;
+      color:var(--text-dim);font-weight:700;font-size:.85rem;
+      cursor:pointer;position:relative;transition:var(--tr);
+    }
+    .bs-tab:hover{color:var(--accent);}
+    .bs-tab.active{color:var(--accent);}
+    .bs-tab.active::after{
+      content:'';position:absolute;bottom:-2px;left:0;right:0;
+      height:2px;background:var(--accent);
+    }
+    
+    .bs-field-builder{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+    .bs-field-row{
+      display:flex;gap:10px;align-items:center;
+      padding:12px;background:var(--surface-2);border-radius:var(--r);
+      border:1px solid var(--border);
+    }
+    .bs-field-row input,.bs-field-row select{flex:1;}
+    .bs-field-remove{
+      width:32px;height:32px;border-radius:8px;
+      background:rgba(239,68,68,.1);color:var(--danger);
+      border:1px solid rgba(239,68,68,.2);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+    }
+    
+    .bs-toggle{
+      width:42px;height:24px;border-radius:99px;cursor:pointer;
+      position:relative;transition:background var(--tr);flex-shrink:0;border:none;
+    }
+    .bs-toggle-thumb{
+      position:absolute;top:3px;width:18px;height:18px;
+      border-radius:50%;background:white;transition:left var(--tr);
+    }
+    
+    .bs-suggestions{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+      gap:10px;margin-top:12px;
+    }
+    .bs-suggestion-card{
+      background:var(--surface-2);border:1px solid var(--border);
+      border-radius:var(--r);padding:12px;cursor:pointer;transition:var(--tr);
+    }
+    .bs-suggestion-card:hover{border-color:var(--accent);background:var(--accent-dim);}
+    .bs-suggestion-selector{
+      font-family:var(--mono);font-size:.72rem;color:var(--accent);
+      font-weight:700;margin-bottom:6px;
+    }
+    .bs-suggestion-sample{font-size:.7rem;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;}
+    .bs-suggestion-count{font-size:.65rem;color:var(--text-muted);margin-top:4px;}
+    
+    ::-webkit-scrollbar{width:5px;height:5px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:10px;}
+    ::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+    
+
+
+    .bs-hero{
+      position:relative;overflow:hidden;border:1px solid var(--border);
+      background:linear-gradient(135deg,var(--surface),var(--surface-2));
+      border-radius:var(--r-xl);padding:28px;box-shadow:var(--shadow-md);
+    }
+    .bs-hero::after{
+      content:'';position:absolute;inset:auto -80px -120px auto;width:320px;height:320px;
+      background:radial-gradient(circle,var(--accent-glow),transparent 68%);pointer-events:none;
+    }
+    .bs-kicker{font-size:.72rem;font-weight:900;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+    .bs-grid-2{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start;}
+    .bs-grid-visual{display:block;}
+    .bs-panel-visual{padding:0;}
+
+    .bs-modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,.72);backdrop-filter:blur(10px);z-index:5000;display:flex;align-items:center;justify-content:center;padding:24px;}
+    .bs-modal{width:min(1100px,96vw);max-height:90vh;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column;}
+    .bs-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);background:var(--surface-2);}
+    .bs-modal-title{font-weight:900;color:var(--text);}
+    .bs-modal-body{padding:18px;overflow:auto;}
+    .bs-visual-shell{
+      position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;gap:8px;
+      height:100dvh;width:100vw;padding:8px;background:var(--bg);overflow:hidden;
+    }
+    .bs-visual-topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;min-height:44px;flex:0 0 auto;}
+    .bs-visual-main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:8px;min-height:0;flex:1;width:100%;}
+    .bs-visual-framebox{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border);height:calc(100dvh - 68px);min-height:0;background:white;}
+    .bs-visual-side{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:10px;overflow:auto;height:calc(100dvh - 68px);min-width:0;}
+    .bs-grid-2.bs-grid-visual{max-width:none!important;width:100vw!important;margin:0!important;}
+    .bs-panel.bs-panel-visual{width:100vw!important;height:100dvh!important;}
+    .bs-page:has(.bs-visual-shell){padding:0!important;gap:0!important;min-height:100dvh!important;overflow:hidden!important;}
+    @media (max-width:1100px){.bs-visual-main{grid-template-columns:minmax(0,1fr) 280px}.bs-visual-side{height:calc(100dvh - 68px)}.bs-visual-framebox{height:calc(100dvh - 68px);min-height:0}}
+    @media (max-width:760px){.bs-visual-main{grid-template-columns:1fr}.bs-visual-side{position:absolute;right:8px;top:60px;width:min(320px,calc(100vw - 16px));max-height:45dvh;box-shadow:var(--shadow-lg)}.bs-visual-framebox{height:calc(100dvh - 68px);}}
+    .bs-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow);}
+    .bs-panel-title{font-size:1rem;font-weight:900;margin-bottom:4px;color:var(--text);}
+    .bs-panel-sub{font-size:.78rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px;}
+    .bs-help-list{display:flex;flex-direction:column;gap:10px;}
+    .bs-help-card{padding:12px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);line-height:1.55;}
+    .bs-help-title{font-weight:800;font-size:.82rem;color:var(--text);margin-bottom:3px;}
+    .bs-help-text{font-size:.74rem;color:var(--text-dim);}
+    .bs-option-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+    .bs-option-card{padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);}
+    .bs-toggle-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:var(--surface-2);border-radius:var(--r);border:1px solid var(--border);}
+    .bs-inline-note{padding:10px 12px;background:var(--accent-dim);border:1px solid var(--border);border-radius:var(--r);font-size:.76rem;color:var(--text-dim);line-height:1.55;}
+    .bs-warning-note{padding:10px 12px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.24);border-radius:var(--r);font-size:.76rem;color:var(--text);line-height:1.55;}
+    .bs-danger-note{padding:12px 14px;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.28);border-radius:var(--r);font-size:.8rem;color:var(--text);line-height:1.6;}
+    .bs-file-input{font-size:.78rem;color:var(--text-dim);}
+    .bs-file-input::file-selector-button{margin-inline-end:10px;border:1px solid var(--border-2);border-radius:10px;background:var(--surface-2);color:var(--text);padding:8px 12px;font-weight:800;cursor:pointer;}
+    .bs-btn:disabled{opacity:.55;cursor:not-allowed;filter:none;}
+    .bs-input[readonly]{opacity:.86;}
+
+
+
+    /* Basira professional workflow redesign */
+    .bs-tabs{display:none;}
+    .bs-panel{padding:0;background:transparent;border:0;box-shadow:none;}
+    .bs-grid-2{display:block;max-width:1180px;margin:0 auto;}
+    .bs-workflow-card{background:var(--surface);border:1px solid var(--border);border-radius:28px;box-shadow:var(--shadow-lg);overflow:hidden;}
+    .bs-workflow-head{padding:24px 26px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--surface),var(--surface-2));display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;}
+    .bs-workflow-title{font-size:1.35rem;font-weight:950;letter-spacing:-.04em;color:var(--text);}
+    .bs-workflow-sub{font-size:.84rem;color:var(--text-dim);margin-top:5px;line-height:1.6;max-width:720px;}
+    .bs-stepper{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .bs-step-pill{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text-dim);font-size:.75rem;font-weight:850;}
+    .bs-step-pill.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);}
+    .bs-step-num{width:22px;height:22px;border-radius:999px;background:var(--surface-2);display:grid;place-items:center;font-family:var(--mono);font-size:.7rem;color:var(--text-dim);}
+    .bs-step-pill.active .bs-step-num{background:var(--accent);color:#fff;}
+    .bs-workflow-body{padding:26px;display:flex;flex-direction:column;gap:18px;}
+    .bs-url-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;}
+    .bs-clean-card{background:var(--surface-2);border:1px solid var(--border);border-radius:22px;padding:18px;}
+    .bs-clean-title{font-size:.95rem;font-weight:900;margin-bottom:5px;color:var(--text);}
+    .bs-clean-desc{font-size:.78rem;color:var(--text-dim);line-height:1.6;}
+    .bs-action-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .bs-detected-card{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;background:linear-gradient(135deg,var(--accent-dim),transparent);border:1px solid var(--border);border-radius:22px;padding:18px;}
+    .bs-detected-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+
+    .bs-detect-success{margin-top:12px;padding:10px 12px;border:1px solid rgba(34,197,94,.28);background:rgba(34,197,94,.10);border-radius:14px;color:#22c55e;font-weight:850;font-size:.86rem;line-height:1.55;}
+    .bs-detect-panel{margin-top:14px;border:1px solid rgba(56,189,248,.25);background:rgba(56,189,248,.08);border-radius:18px;padding:16px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+    .bs-detect-label{font-size:1.05rem;font-weight:950;color:var(--text);margin-bottom:6px;}
+    .bs-detect-sub{font-size:.86rem;color:var(--text-dim);line-height:1.6;}
+    .bs-detect-sub code{color:#7dd3fc;background:rgba(15,23,42,.55);border:1px solid var(--border);border-radius:10px;padding:3px 7px;}
+    .bs-detect-fields{display:flex;gap:8px;flex-wrap:wrap;max-width:520px;}
+
+    .bs-chip{padding:6px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:.72rem;font-weight:800;color:var(--text-2);}
+    .bs-advanced-box{border:1px solid var(--border);border-radius:22px;background:var(--surface-2);overflow:hidden;}
+    .bs-advanced-box summary{cursor:pointer;list-style:none;padding:16px 18px;font-weight:900;display:flex;justify-content:space-between;align-items:center;color:var(--text);}
+    .bs-advanced-box summary::-webkit-details-marker{display:none;}
+    .bs-advanced-body{padding:0 18px 18px;display:flex;flex-direction:column;gap:14px;}
+    .bs-advanced-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+    .bs-field-row{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:10px;}
+    .bs-mini-note{font-size:.75rem;color:var(--text-dim);line-height:1.6;}
+    .bs-primary-footer{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;padding:18px 26px;border-top:1px solid var(--border);background:var(--surface-2);}
+    .bs-visual-shell{background:var(--surface);border:0;border-radius:0;box-shadow:none;overflow:hidden;}
+    @media(max-width:860px){.bs-url-row{grid-template-columns:1fr;}.bs-detected-card{grid-template-columns:1fr;}.bs-advanced-grid{grid-template-columns:1fr;}.bs-workflow-head,.bs-workflow-body,.bs-primary-footer{padding:18px;}}
+
+    @media(max-width:920px){
+      .bs-grid-2{grid-template-columns:1fr;}
+      .bs-option-grid{grid-template-columns:1fr;}
+      .bs-field-row{flex-direction:column;align-items:stretch;}
+    }
+    @media(max-width:640px){
+      .bs-page{padding:20px 4% 32px;}
+    }
+      @keyframes bs-scan {
+        0%  { opacity:0; top:40px; }
+        10% { opacity:1; }
+        90% { opacity:1; }
+        100%{ opacity:0; top:100%; }
+      }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    
+    <script>
+    const T = {
+      en: {
+        brand: 'Basira',
+        backLabel: 'Back',
+        subtitle: 'Extract structured data from websites',
+        tabs: {
+          scrape: 'Structured Data',
+          links: 'Link Scraping',
+          test: 'Test Selector',
+          analyze: 'Analyze Page',
+          visual: 'Visual Helper'
+        },
+        url: 'Website URL',
+        urlPlaceholder: 'https://example.com',
+        containerSelector: 'Container Selector (optional)',
+        itemSelector: 'Item Selector',
+        fields: 'Data Fields',
+        addField: 'Add Field',
+        fieldName: 'Field Name',
+        fieldSelector: 'CSS Selector',
+        dataType: 'Data Type',
+        maxRows: 'Max Rows',
+        startScrape: 'Start Scraping',
+        back: 'New Scrape',
+        loading: 'Loading',
+        extracting: 'Extracting data',
+        complete: 'Complete',
+        summary: 'Summary',
+        rows: 'Rows',
+        columns: 'Columns',
+        totalCells: 'Total Cells',
+        fillRate: 'Fill Rate',
+        export: 'Export',
+        dlCSV: 'Download CSV',
+        dlHTML: 'Download Web Page',
+        dlExcel: 'Download XLSX',
+        search: 'Search',
+        sortAsc: '↑',
+        sortDesc: '↓',
+        scrollMode: 'Enable Scroll Loading',
+        scrollDesc: 'Follow pagination links across multiple pages',
+        maxPages: 'Max Pages',
+        paginationSelector: 'Pagination Selector (optional)',
+        urlsPlaceholder: 'Enter URLs, one per line',
+        filterType: 'Filter Type',
+        allLinks: 'All Links',
+        internal: 'Internal Only',
+        external: 'External Only',
+        sameDomain: 'Same Domain Only',
+        removeDuplicates: 'Remove Duplicates',
+        maxLinks: 'Max Links',
+        startLinkScrape: 'Start Link Scraping',
+        sourceUrl: 'Source URL',
+        foundUrl: 'Found URL',
+        anchorText: 'Anchor Text',
+        linkType: 'Link Type',
+        testSelector: 'Test CSS Selector',
+        selectorToTest: 'CSS Selector to Test',
+        testButton: 'Test Selector',
+        elementsFound: 'elements found',
+        samples: 'Sample Results',
+        analyzePage: 'Analyze Page Structure',
+        analyzeButton: 'Analyze Page',
+        containerSuggestions: 'Container Suggestions',
+        itemSuggestions: 'Item Suggestions',
+        useAsContainer: 'Use as Container',
+        useAsItem: 'Use as Item',
+        useAsField: 'Use as Field',
+        noResults: 'No results found',
+        visualHelper: 'Visual Selector Helper',
+        visualDesc: 'Use this bookmarklet to visually select elements on any website',
+        dragBookmarklet: 'Drag this button to your bookmarks bar',
+        bookmarkletBtn: 'Basira Selector',
+        howToUse: 'How to use',
+        step1: '1. Drag the button above to your bookmarks bar',
+        step2: '2. Visit any website you want to scrape',
+        step3: '3. Click the bookmarklet in your bookmarks bar',
+        step4: '4. Click on elements to get their CSS selectors',
+        step5: '5. Use SHIFT+Click to mark elements as fields',
+        step6: '6. Copy selectors and paste them in Structured Data tab',
+        visualNote: 'Note: This works without opening a browser in Basira. You use it directly on the target website.',
+        openVisual: 'Open Visual Selector',
+        visualMode: 'Visual Selection Mode',
+        clickToSelect: 'Click on elements to select them',
+        closeVisual: 'Close Visual Mode',
+        corsWarning: 'Basira could not load the local visual preview. Try Analyze Page or Test Selector instead.',
+      },
+      ar: {
+        brand: 'بصيرة',
+        backLabel: 'رجوع',
+        subtitle: 'استخرج بيانات منظمة من المواقع',
+        tabs: {
+          scrape: 'بيانات منظمة',
+          links: 'كشط الروابط',
+          test: 'اختبار محدد',
+          analyze: 'تحليل الصفحة',
+          visual: 'مساعد بصري'
+        },
+        url: 'رابط الموقع',
+        urlPlaceholder: 'https://example.com',
+        containerSelector: 'محدد الحاوية (اختياري)',
+        itemSelector: 'محدد العنصر',
+        fields: 'حقول البيانات',
+        addField: 'إضافة حقل',
+        fieldName: 'اسم الحقل',
+        fieldSelector: 'محدد CSS',
+        dataType: 'نوع البيانات',
+        maxRows: 'الحد الأقصى',
+        startScrape: 'بدء الاستخراج',
+        back: 'كشط جديد',
+        loading: 'جاري التحميل',
+        extracting: 'جاري استخراج البيانات',
+        complete: 'اكتمل',
+        summary: 'ملخص',
+        rows: 'الصفوف',
+        columns: 'الأعمدة',
+        totalCells: 'إجمالي الخلايا',
+        fillRate: 'نسبة الاكتمال',
+        export: 'تصدير',
+        dlCSV: 'تنزيل CSV',
+        dlHTML: 'تنزيل صفحة ويب',
+        dlExcel: 'تنزيل XLSX',
+        search: 'بحث',
+        sortAsc: '↑',
+        sortDesc: '↓',
+        scrollMode: 'تفعيل تحميل الصفحات',
+        scrollDesc: 'متابعة روابط الصفحات المتعددة',
+        maxPages: 'أقصى عدد صفحات',
+        paginationSelector: 'محدد الصفحات (اختياري)',
+        urlsPlaceholder: 'أدخل الروابط، رابط واحد في كل سطر',
+        filterType: 'نوع التصفية',
+        allLinks: 'كل الروابط',
+        internal: 'داخلية فقط',
+        external: 'خارجية فقط',
+        sameDomain: 'نفس النطاق فقط',
+        removeDuplicates: 'إزالة المكرر',
+        maxLinks: 'أقصى عدد روابط',
+        startLinkScrape: 'بدء كشط الروابط',
+        sourceUrl: 'الرابط المصدر',
+        foundUrl: 'الرابط المكتشف',
+        anchorText: 'نص الرابط',
+        linkType: 'نوع الرابط',
+        testSelector: 'اختبار محدد CSS',
+        selectorToTest: 'محدد CSS للاختبار',
+        testButton: 'اختبار المحدد',
+        elementsFound: 'عنصر تم إيجاده',
+        samples: 'نماذج النتائج',
+        analyzePage: 'تحليل هيكل الصفحة',
+        analyzeButton: 'تحليل الصفحة',
+        containerSuggestions: 'مقترحات الحاوية',
+        itemSuggestions: 'مقترحات العناصر',
+        useAsContainer: 'استخدام كحاوية',
+        useAsItem: 'استخدام كعنصر',
+        useAsField: 'استخدام كحقل',
+        noResults: 'لا توجد نتائج',
+        visualHelper: 'المساعد البصري للمحددات',
+        visualDesc: 'استخدم هذه الأداة لاختيار العناصر بصريًا من أي موقع',
+        dragBookmarklet: 'اسحب هذا الزر إلى شريط الإشارات',
+        bookmarkletBtn: 'محدد بصيرة',
+        howToUse: 'طريقة الاستخدام',
+        step1: '1. اسحب الزر أعلاه إلى شريط الإشارات',
+        step2: '2. افتح أي موقع تريد كشطه',
+        step3: '3. اضغط على الأداة في شريط الإشارات',
+        step4: '4. انقر على العناصر للحصول على محددات CSS',
+        step5: '5. استخدم SHIFT+نقرة لتحديد العناصر كحقول',
+        step6: '6. انسخ المحددات والصقها في تبويب البيانات المنظمة',
+        visualNote: 'ملاحظة: هذه الأداة تعمل بدون فتح متصفح في بصيرة. تستخدمها مباشرة على الموقع المستهدف.',
+        openVisual: 'فتح المحدد البصري',
+        visualMode: 'وضع الاختيار البصري',
+        clickToSelect: 'انقر على العناصر لتحديدها',
+        closeVisual: 'إغلاق الوضع البصري',
+        corsWarning: 'تعذر تحميل المعاينة المحلية للموقع. جرّبي Analyze Page أو Test Selector بدلاً من ذلك.',
+      }
+    };
+    
+
+
+    const BASIRA_CONFIG = {
+      PREPROCESSOR_URL: 'http://127.0.0.1:5050/upload-process',
+      HOME_URL: 'http://127.0.0.1:5050/basira_preprocessor.html',
+      POST_TO_PARENT: true,
+      EMBED_MODE: new URLSearchParams(window.location.search).get('embed') === '1'
+    };
+
+    class BasiraApp {
+      constructor() {
+        const params = new URLSearchParams(window.location.search);
+        // Read from URL params first, then localStorage (unified Basira settings)
+        const savedLang  = (() => { try { return localStorage.getItem('basira_lang'); } catch(e) { return null; } })();
+        const savedTheme = (() => { try { return localStorage.getItem('basira_theme'); } catch(e) { return null; } })();
+        const initialLang  = (params.get('bs_lang') === 'ar' || (!params.get('bs_lang') && savedLang && savedLang.startsWith('ar'))) ? 'ar' : 'en';
+        const initialTheme = (params.get('bs_theme') === 'dark' || (!params.get('bs_theme') && savedTheme === 'dark')) ? 'dark' : 'light';
+        document.documentElement.setAttribute('lang', initialLang);
+        document.documentElement.setAttribute('dir', initialLang === 'ar' ? 'rtl' : 'ltr');
+        document.documentElement.setAttribute('data-theme', initialTheme);
+        this.state = {
+          lang: initialLang,
+          theme: initialTheme,
+          activeTab: 'scrape',
+          currentView: 'home',
+          
+          // Visual Selector Mode
+          visualMode: false,
+          visualUrl: '',
+          visualSelections: [],
+          visualPickerReady: false,
+          
+          // Structured Data Scraping
+          url: '',
+          multiMode: false,
+          multiUrls: '',
+          websites: [
+            {
+              name: 'Website 1',
+              url: '',
+              containerSelector: '',
+              itemSelector: '',
+              fields: [{name: '', selector: '', type: 'text'}],
+              maxRows: 100,
+              maxPages: 1,
+              paginationSelector: ''
+            }
+          ],
+          selectedDatasetIndex: 0,
+          containerSelector: '',
+          itemSelector: '',
+          fields: [{name: '', selector: '', type: 'text'}],
+          maxRows: 100,
+          scrollEnabled: false,
+          maxPages: 1,
+          paginationSelector: '',
+          autoDetecting: false,
+          autoDetectNote: '',
+          detectedSummary: null,
+          proxyEnabled: false,
+          proxyUrl: '',
+          renderEnabled: false,
+          loadMoreEnabled: false,
+          loadMoreSelector: '',
+          maxLoadMoreClicks: 5,
+          waitAfterLoad: 1200,
+          
+          // Link Scraping
+          urls: '',
+          filterType: 'all',
+          removeDuplicates: true,
+          maxLinks: 1000,
+          
+          // Test Selector
+          testUrl: '',
+          testSelector: '',
+          testResults: null,
+          
+          // Analyze Page
+          analyzeUrl: '',
+          analyzeResults: null,
+          
+          // Results
+          results: null,
+          jobHistory: this.loadJobHistory(),
+          previewMode: false,
+          search: '',
+          sortCol: null,
+          sortDir: 'asc',
+          lastError: null,
+          previewModal: null,
+          previewModalLoading: false,
+          columnEditorModal: null,
+          exportPreviewModal: null,
+          exportCleanOptions: {
+            trimSpaces: true,
+            removeDuplicates: false,
+            removeEmptyRows: true,
+            normalizePrices: false,
+            absoluteLinks: true
+          },
+        };
+        
+        this.render();
+
+        // Bridge used by the same-origin visual preview iframe.
+        window.basiraVisualBridge = (message) => {
+          if (!message || message.source !== 'basira-visual') return;
+          if (message.action === 'add-field') this.addVisualSelection(message.payload);
+          if (message.action === 'set-container') this.handleIframeSelector(message.selector, 'container');
+          if (message.action === 'set-item') this.handleIframeSelector(message.selector, 'item');
+        };
+
+        window.addEventListener('message', (event) => {
+          const message = event.data || {};
+          if (!message || message.source !== 'basira-visual') return;
+          window.basiraVisualBridge(message);
+        });
+      }
+      
+      get t() {
+        return T[this.state.lang];
+      }
+      
+      get isAR() {
+        return this.state.lang === 'ar';
+      }
+      
+      setState(updates) {
+        const keys = Object.keys(updates || {});
+        const visualOnlyUpdate = this.state.visualMode && keys.length > 0 && keys.every(k => k === 'visualSelections');
+        this.state = {...this.state, ...updates};
+        if (visualOnlyUpdate) {
+          this.renderVisualSidePanel();
+          this.syncVisualFieldHighlights();
+          return;
+        }
+        this.render();
+      }
+
+      renderVisualSidePanel() {
+        const side = document.getElementById('basira-visual-side');
+        if (!side) return;
+        side.innerHTML = this.renderVisualSideContent();
+        const count = document.getElementById('basira-visual-field-count');
+        if (count) count.textContent = 'Fields: ' + ((this.state.visualSelections || []).length);
+        this.fixFormAccessibility();
+      }
+
+      syncVisualFieldHighlights() {
+        const iframe = document.getElementById('basira-visual-frame');
+        if (!iframe || !iframe.contentWindow) return;
+        try {
+          const iframeDoc = iframe.contentWindow.document;
+          iframeDoc.querySelectorAll('.basira-visual-field').forEach(el => el.classList.remove('basira-visual-field'));
+          (this.state.visualSelections || []).forEach(item => {
+            let el = null;
+            if (item.visualId) {
+              el = iframeDoc.querySelector('[data-basira-visual-id="' + String(item.visualId).replace(/"/g, '\\"') + '"]');
+            }
+            if (!el && item.selector) {
+              try { el = iframeDoc.querySelector(item.selector); } catch (_) {}
+            }
+            if (el && el.classList) el.classList.add('basira-visual-field');
+          });
+        } catch (_) {}
+      }
+
+      renderVisualSideContent() {
+        const selected = this.state.visualSelections || [];
+        return `
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;">
+                  <div style="font-weight:800;color:var(--text);font-size:.9rem;">Fields</div>
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.clearVisualSelections()" style="padding:6px 9px;font-size:.72rem;">Clear</button>
+                </div>
+
+                ${selected.length ? selected.map((item, index) => `
+                  <div style="padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+                      <div style="font-family:var(--mono);font-size:.68rem;color:var(--accent);word-break:break-all;line-height:1.5;">${item.selector}</div>
+                      <button type="button" class="bs-field-remove" onclick="app.removeVisualSelection(${index})">×</button>
+                    </div>
+                    ${item.text ? `<div style="font-size:.7rem;color:var(--text-dim);line-height:1.5;">${String(item.text).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+                    <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;">
+                      <label style="display:none;" for="visual-field-name-${index}">Field name</label><input id="visual-field-name-${index}" name="visual-field-name-${index}" class="bs-input bs-input-sm" value="${item.name || ''}" placeholder="Field name" oninput="app.updateVisualSelection(${index}, 'name', event.target.value)">
+                      <label style="display:none;" for="visual-field-type-${index}">Field type</label><select id="visual-field-type-${index}" name="visual-field-type-${index}" class="bs-input bs-input-sm" onchange="app.updateVisualSelection(${index}, 'type', event.target.value)">
+                        <option value="text" ${item.type === 'text' ? 'selected' : ''}>text</option>
+                        <option value="link" ${item.type === 'link' ? 'selected' : ''}>link</option>
+                        <option value="image" ${item.type === 'image' ? 'selected' : ''}>image</option>
+                        <option value="price" ${item.type === 'price' ? 'selected' : ''}>price</option>
+                      </select>
+                    </div>
+                  </div>
+                `).join('') : `
+                  <div style="padding:14px;background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;color:var(--text-dim);font-size:.78rem;line-height:1.5;">
+                    No fields selected. Click an element in the page.
+                  </div>
+                `}
+
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                  <button type="button" class="bs-btn bs-btn-primary bs-btn-full" onclick="app.applyVisualSelectionsToFields()">Apply selected fields</button>
+                  <button type="button" class="bs-btn bs-btn-ghost bs-btn-full" onclick="app.closeVisualMode()">Back</button>
+                </div>
+        `;
+      }
+
+      setStateDraft(key, value) {
+        this.state[key] = value;
+      }
+
+      loadJobHistory() {
+        try { return JSON.parse(localStorage.getItem('basiraJobHistory') || '[]'); }
+        catch (_) { return []; }
+      }
+
+      saveJobHistory(entry) {
+        const history = [entry, ...this.loadJobHistory()].slice(0, 10);
+        localStorage.setItem('basiraJobHistory', JSON.stringify(history));
+        this.state.jobHistory = history;
+      }
+
+      validateUrlInput(value) {
+        const text = String(value || '').trim();
+        if (!text) return false;
+        return /^(https?:\/\/)?[^\s]+\.[^\s]+/i.test(text);
+      }
+
+      showFriendlyError(raw) {
+        const explained = this.explainBackendError(raw);
+        this.showError(explained.title, explained.message, explained.details);
+      }
+
+      showError(title, message, details) {
+        this.setState({
+          lastError: {title: title || 'Error', message: message || '', details: details || ''},
+          currentView: 'home'
+        });
+      }
+
+      clearError() {
+        this.setState({lastError: null});
+      }
+
+      explainBackendError(raw) {
+        const text = String(raw || 'Unknown error');
+        if (text.includes('requests-only')) {
+          return {
+            title: 'Option unavailable',
+            message: 'This option is unavailable for this page.',
+            details: 'Please use another loading option or check the page settings.'
+          };
+        }
+        if (text.includes('No items found with selector')) {
+          return {
+            title: 'No repeated items found',
+            message: 'The Item Selector does not match products or repeated cards on this page.',
+            details: 'Click Auto Detect, or leave Item Selector empty and start scraping. Basira will try to detect it automatically.'
+          };
+        }
+        if (text.includes('Failed to fetch page') || text.includes('403') || text.includes('Access Denied')) {
+          return {
+            title: 'The website blocked or rejected the request',
+            message: 'Some websites block simple HTTP requests or require JavaScript rendering.',
+            details: 'Try reducing pages, checking selectors, or enabling Proxy Settings with a valid proxy URL.'
+          };
+        }
+        return {title: 'Scraping failed', message: text, details: 'Review the URL, selectors, pagination settings, proxy, and browser options.'};
+      }
+      
+      toggleLang() {
+        const newLang = this.state.lang === 'en' ? 'ar' : 'en';
+        this.setState({lang: newLang});
+        document.documentElement.setAttribute('lang', newLang);
+        document.documentElement.setAttribute('dir', newLang === 'ar' ? 'rtl' : 'ltr');
+        try { localStorage.setItem('basira_lang', newLang); } catch(e) {}
+      }
+      
+      toggleTheme() {
+        const newTheme = this.state.theme === 'dark' ? 'light' : 'dark';
+        this.setState({theme: newTheme});
+        document.documentElement.setAttribute('data-theme', newTheme);
+        try { localStorage.setItem('basira_theme', newTheme); } catch(e) {}
+      }
+      
+      addField() {
+        this.setState({
+          fields: [...this.state.fields, {name: '', selector: '', type: 'text'}]
+        });
+      }
+      
+      removeField(index) {
+        const fields = this.state.fields.filter((_, i) => i !== index);
+        this.setState({fields: fields.length > 0 ? fields : [{name: '', selector: '', type: 'text'}]});
+      }
+      
+      updateField(index, key, value) {
+        const fields = [...this.state.fields];
+        if (!fields[index]) return;
+        fields[index] = {...fields[index], [key]: value};
+        this.setState({fields});
+      }
+
+      updateFieldDraft(index, key, value) {
+        const fields = [...this.state.fields];
+        if (!fields[index]) return;
+        fields[index] = {...fields[index], [key]: value};
+        this.state.fields = fields;
+      }
+
+      async importUrlsFile(input) {
+        const file = input && input.files && input.files[0];
+        if (!file) return;
+        const text = await file.text();
+        const urls = text
+          .split(/[\n,;]+/)
+          .map(x => x.trim())
+          .filter(Boolean)
+          .map(x => /^https?:\/\//i.test(x) ? x : 'https://' + x);
+        const websites = urls.map((url, index) => ({
+          ...this.createEmptyWebsite(index + 1),
+          url
+        }));
+        this.setState({multiMode: true, websites: websites.length ? websites : this.ensureWebsites()});
+      }
+
+      async autoDetectScrapeConfig(preserveUserFields = false) {
+        const {url} = this.state;
+        if (!url) {
+          app.showToast(app.isAR ? 'أدخل رابط الموقع أولاً.' : 'Please enter the website URL first.', 'warning');
+          return false;
+        }
+        this.setState({autoDetecting: true, autoDetectNote: 'Detecting repeated items and fields...', detectedSummary: null});
+        try {
+          const response = await fetch('/api/auto-detect', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url, proxyEnabled: this.state.proxyEnabled, proxyUrl: this.state.proxyUrl})
+          });
+          const data = await response.json();
+          if (!data.success) {
+            this.setState({autoDetecting: false, autoDetectNote: '', detectedSummary: null});
+            this.showFriendlyError(data.error);
+            return false;
+          }
+          const fieldNames = (data.fieldNames || (data.fields || []).map(f => f.name)).filter(Boolean);
+          const detectedSummary = {
+            group: data.detectedGroup || 'Repeated items',
+            itemSelector: data.itemSelector || '',
+            itemSelectorLabel: data.itemSelectorLabel || data.itemSelector || '',
+            itemCount: data.itemCount || 0,
+            fields: fieldNames,
+            paginationSelector: data.paginationSelector || ''
+          };
+          const nextState = {
+            containerSelector: data.containerSelector || this.state.containerSelector || '',
+            itemSelector: data.itemSelector || this.state.itemSelector || '',
+            paginationSelector: data.paginationSelector || this.state.paginationSelector,
+            autoDetecting: false,
+            detectedSummary,
+            autoDetectNote: `Detected: ${detectedSummary.group}. ${detectedSummary.itemCount} items found.`
+          };
+          if (!preserveUserFields) {
+            nextState.fields = (data.fields && data.fields.length) ? data.fields : this.state.fields;
+          }
+          this.setState(nextState);
+          return true;
+        } catch (e) {
+          this.setState({autoDetecting: false, autoDetectNote: '', detectedSummary: null});
+          this.showFriendlyError(e.message);
+          return false;
+        }
+      }
+
+      async previewScrape() {
+        const previousMaxRows = this.state.maxRows;
+        this.state.previewMode = true;
+        this.state.maxRows = 5;
+        await this.startScrape(true);
+        this.state.maxRows = previousMaxRows;
+        this.state.previewMode = false;
+      }
+
+      closePreviewModal() {
+        this.setState({previewModal: null, previewModalLoading: false});
+      }
+
+      async startScrape(isPreview = false) {
+        let {url, multiMode, containerSelector, itemSelector, fields, maxRows, scrollEnabled, maxPages, paginationSelector, proxyEnabled, proxyUrl, renderEnabled, loadMoreEnabled, loadMoreSelector, maxLoadMoreClicks, waitAfterLoad} = this.state;
+        if (multiMode) {
+          await this.startMultiScrape();
+          return;
+        }
+        
+        if (!this.validateUrlInput(url)) {
+          this.showError('Invalid URL', 'Enter a valid website URL before scraping.', 'Example: https://books.toscrape.com');
+          return;
+        }
+        
+        const hasUserFields = fields.some(f => f.name && f.selector);
+        if (!itemSelector || !hasUserFields) {
+          const ok = await this.autoDetectScrapeConfig(hasUserFields);
+          if (!ok) return;
+          ({url, containerSelector, itemSelector, fields, maxRows, scrollEnabled, maxPages, paginationSelector, proxyEnabled, proxyUrl, renderEnabled, loadMoreEnabled, loadMoreSelector, maxLoadMoreClicks, waitAfterLoad} = this.state);
+        }
+        
+        if (isPreview) {
+          this.setState({previewModalLoading: true, previewModal: null, previewMode: true});
+        } else {
+          this.setState({currentView: 'loading', previewMode: false});
+        }
+        
+        try {
+          const response = await fetch('/api/scrape', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              url,
+              containerSelector,
+              itemSelector,
+              fields: fields.filter(f => f.name),
+              maxRows,
+              scrollEnabled,
+              maxPages,
+              paginationSelector,
+              proxyEnabled,
+              proxyUrl,
+              renderEnabled: false,
+              loadMoreEnabled: false,
+              loadMoreSelector: '',
+              maxLoadMoreClicks: 0,
+              waitAfterLoad
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            const finalFields = (data.fieldsUsed && data.fieldsUsed.length) ? data.fieldsUsed : fields.filter(f => f.name && f.selector);
+            const resultObject = {
+              data: data.data,
+              fields: finalFields,
+              stats: data.stats,
+              failed: data.failed,
+              isPreview: isPreview
+            };
+            this.saveJobHistory({type: isPreview ? 'preview' : 'single', url, rows: data.data.length, at: new Date().toLocaleString()});
+            if (isPreview) {
+              this.setState({
+                currentView: 'home',
+                previewModal: resultObject,
+                previewModalLoading: false,
+                previewMode: false
+              });
+            } else {
+              this.setState({
+                currentView: 'results',
+                results: resultObject,
+                previewModalLoading: false,
+                previewMode: false
+              });
+            }
+          } else {
+            this.state.previewModalLoading = false;
+            this.showFriendlyError(data.error);
+          }
+        } catch (e) {
+          this.state.previewModalLoading = false;
+          this.showFriendlyError(e.message);
+        }
+      }
+      
+      createEmptyWebsite(index = 1) {
+        return {
+          name: 'Website ' + index,
+          url: '',
+          containerSelector: '',
+          itemSelector: '',
+          fields: [{name: '', selector: '', type: 'text'}],
+          maxRows: 100,
+          maxPages: 1,
+          paginationSelector: ''
+        };
+      }
+
+      ensureWebsites() {
+        if (Array.isArray(this.state.websites) && this.state.websites.length) return this.state.websites;
+        const first = this.createEmptyWebsite(1);
+        first.url = this.state.url || '';
+        first.containerSelector = this.state.containerSelector || '';
+        first.itemSelector = this.state.itemSelector || '';
+        first.fields = (this.state.fields && this.state.fields.length) ? JSON.parse(JSON.stringify(this.state.fields)) : [{name: '', selector: '', type: 'text'}];
+        first.maxRows = this.state.maxRows || 100;
+        first.maxPages = this.state.maxPages || 1;
+        first.paginationSelector = this.state.paginationSelector || '';
+        this.state.websites = [first];
+        return this.state.websites;
+      }
+
+      addWebsite() {
+        const websites = [...this.ensureWebsites(), this.createEmptyWebsite(this.ensureWebsites().length + 1)];
+        this.setState({websites});
+      }
+
+      removeWebsite(index) {
+        const websites = this.ensureWebsites().filter((_, i) => i !== index);
+        this.setState({websites: websites.length ? websites : [this.createEmptyWebsite(1)]});
+      }
+
+      updateWebsiteDraft(index, key, value) {
+        const websites = this.ensureWebsites();
+        if (!websites[index]) return;
+        websites[index][key] = value;
+      }
+
+      updateWebsite(index, key, value) {
+        const websites = [...this.ensureWebsites()];
+        if (!websites[index]) return;
+        websites[index] = {...websites[index], [key]: value};
+        this.setState({websites});
+      }
+
+      addWebsiteField(siteIndex) {
+        const websites = [...this.ensureWebsites()];
+        if (!websites[siteIndex]) return;
+        const fields = [...(websites[siteIndex].fields || [])];
+        fields.push({name: '', selector: '', type: 'text'});
+        websites[siteIndex] = {...websites[siteIndex], fields};
+        this.setState({websites});
+      }
+
+      removeWebsiteField(siteIndex, fieldIndex) {
+        const websites = [...this.ensureWebsites()];
+        if (!websites[siteIndex]) return;
+        const fields = (websites[siteIndex].fields || []).filter((_, i) => i !== fieldIndex);
+        websites[siteIndex] = {...websites[siteIndex], fields: fields.length ? fields : [{name: '', selector: '', type: 'text'}]};
+        this.setState({websites});
+      }
+
+      updateWebsiteFieldDraft(siteIndex, fieldIndex, key, value) {
+        const websites = this.ensureWebsites();
+        if (!websites[siteIndex] || !websites[siteIndex].fields || !websites[siteIndex].fields[fieldIndex]) return;
+        websites[siteIndex].fields[fieldIndex][key] = value;
+      }
+
+      updateWebsiteField(siteIndex, fieldIndex, key, value) {
+        const websites = [...this.ensureWebsites()];
+        if (!websites[siteIndex] || !websites[siteIndex].fields || !websites[siteIndex].fields[fieldIndex]) return;
+        const fields = [...websites[siteIndex].fields];
+        fields[fieldIndex] = {...fields[fieldIndex], [key]: value};
+        websites[siteIndex] = {...websites[siteIndex], fields};
+        this.setState({websites});
+      }
+
+      copyMainSettingsToWebsite(index) {
+        const websites = [...this.ensureWebsites()];
+        if (!websites[index]) return;
+        websites[index] = {
+          ...websites[index],
+          url: websites[index].url || this.state.url || '',
+          containerSelector: this.state.containerSelector || '',
+          itemSelector: this.state.itemSelector || '',
+          fields: JSON.parse(JSON.stringify((this.state.fields && this.state.fields.length) ? this.state.fields : [{name: '', selector: '', type: 'text'}])),
+          maxRows: this.state.maxRows || 100,
+          maxPages: this.state.maxPages || 1,
+          paginationSelector: this.state.paginationSelector || ''
+        };
+        this.setState({websites});
+      }
+
+      async autoDetectWebsiteConfig(index) {
+        const websites = [...this.ensureWebsites()];
+        const site = websites[index];
+        if (!site || !site.url) {
+          app.showToast(app.isAR ? 'أدخل رابط الموقع أولاً.' : 'Enter the website URL first.', 'warning');
+          return;
+        }
+        const cleanedUrl = /^https?:\/\//i.test(site.url) ? site.url : 'https://' + site.url;
+        try {
+          const response = await fetch('/api/auto-detect', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url: cleanedUrl, proxyEnabled: this.state.proxyEnabled, proxyUrl: this.state.proxyUrl})
+          });
+          const data = await response.json();
+          if (!data.success) {
+            this.showFriendlyError(data.error);
+            return;
+          }
+          websites[index] = {
+            ...site,
+            url: cleanedUrl,
+            containerSelector: data.containerSelector || site.containerSelector || '',
+            itemSelector: data.itemSelector || site.itemSelector || '',
+            fields: (data.fields && data.fields.length) ? data.fields : site.fields,
+            paginationSelector: data.paginationSelector || site.paginationSelector || ''
+          };
+          this.setState({websites});
+        } catch (e) {
+          this.showFriendlyError(e.message);
+        }
+      }
+
+      async previewWebsite(index) {
+        const websites = this.ensureWebsites();
+        const site = websites[index];
+        if (!site) return;
+        const cleanedUrl = /^https?:\/\//i.test(site.url || '') ? site.url : 'https://' + (site.url || '');
+        if (!this.validateUrlInput(cleanedUrl)) {
+          this.showError('Invalid URL', 'Enter a valid website URL before preview.', 'Example: https://books.toscrape.com');
+          return;
+        }
+        this.setState({previewModalLoading: true, previewModal: null, previewMode: true});
+        try {
+          const response = await fetch('/api/scrape', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              url: cleanedUrl,
+              containerSelector: site.containerSelector || '',
+              itemSelector: site.itemSelector || '',
+              fields: (site.fields || []).filter(f => f.name && f.selector),
+              maxRows: 5,
+              maxPages: site.maxPages || 1,
+              paginationSelector: site.paginationSelector || '',
+              proxyEnabled: this.state.proxyEnabled,
+              proxyUrl: this.state.proxyUrl,
+              renderEnabled: false,
+              loadMoreEnabled: false
+            })
+          });
+          const data = await response.json();
+          if (!data.success) {
+            this.state.previewModalLoading = false;
+            this.showFriendlyError(data.error);
+            return;
+          }
+          this.setState({
+            currentView: 'home',
+            previewModal: {
+              data: data.data,
+              fields: (data.fieldsUsed && data.fieldsUsed.length) ? data.fieldsUsed : ((site.fields || []).filter(f => f.name && f.selector)),
+              stats: data.stats,
+              failed: data.failed,
+              isPreview: true
+            },
+            previewModalLoading: false,
+            previewMode: false
+          });
+        } catch (e) {
+          this.state.previewModalLoading = false;
+          this.showFriendlyError(e.message);
+        }
+      }
+
+      renderWebsiteCards() {
+        const websites = this.ensureWebsites();
+        return `
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div style="font-weight:900;color:var(--text);">Websites</div>
+              <button type="button" class="bs-btn bs-btn-ghost" onclick="app.addWebsite()" style="padding:7px 12px;font-size:.8rem;">Add Website</button>
+            </div>
+            ${websites.map((site, siteIndex) => `
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                  <input class="bs-input bs-input-sm" style="max-width:220px;font-weight:800;" value="${site.name || ('Website ' + (siteIndex + 1))}" oninput="app.updateWebsiteDraft(${siteIndex}, 'name', event.target.value)">
+                  ${websites.length > 1 ? `<button type="button" class="bs-field-remove" onclick="app.removeWebsite(${siteIndex})">×</button>` : ''}
+                </div>
+                <div>
+                  <label class="bs-section-title" for="site-url-${siteIndex}">Website URL</label>
+                  <input id="site-url-${siteIndex}" class="bs-input" placeholder="https://example.com" value="${site.url || ''}" oninput="app.updateWebsiteDraft(${siteIndex}, 'url', event.target.value)">
+                </div>
+                <div class="bs-action-row">
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.autoDetectWebsiteConfig(${siteIndex})" style="padding:8px 12px;font-size:.8rem;">Auto Detect</button>
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.openColumnEditor('website', ${siteIndex})" style="padding:8px 12px;font-size:.8rem;">Edit Columns</button>
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.previewWebsite(${siteIndex})" style="padding:8px 12px;font-size:.8rem;">Preview</button>
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.copyMainSettingsToWebsite(${siteIndex})" style="padding:8px 12px;font-size:.8rem;">Copy Current Settings</button>
+                </div>
+                <div class="bs-advanced-grid">
+                  <div>
+                    <label class="bs-section-title" for="site-container-${siteIndex}">Container Selector</label>
+                    <input id="site-container-${siteIndex}" class="bs-input bs-input-sm" placeholder="Optional" value="${site.containerSelector || ''}" oninput="app.updateWebsiteDraft(${siteIndex}, 'containerSelector', event.target.value)">
+                  </div>
+                  <div>
+                    <label class="bs-section-title" for="site-item-${siteIndex}">Item Selector</label>
+                    <input id="site-item-${siteIndex}" class="bs-input bs-input-sm" placeholder="Auto, .product-card" value="${site.itemSelector || ''}" oninput="app.updateWebsiteDraft(${siteIndex}, 'itemSelector', event.target.value)">
+                  </div>
+                  <div>
+                    <label class="bs-section-title" for="site-max-rows-${siteIndex}">Max Rows</label>
+                    <input id="site-max-rows-${siteIndex}" type="number" min="1" max="50000" class="bs-input bs-input-sm" value="${site.maxRows || 100}" oninput="app.updateWebsiteDraft(${siteIndex}, 'maxRows', parseInt(event.target.value)||100)">
+                  </div>
+                  <div>
+                    <label class="bs-section-title" for="site-max-pages-${siteIndex}">Max Pages</label>
+                    <input id="site-max-pages-${siteIndex}" type="number" min="1" max="200" class="bs-input bs-input-sm" value="${site.maxPages || 1}" oninput="app.updateWebsiteDraft(${siteIndex}, 'maxPages', parseInt(event.target.value)||1)">
+                  </div>
+                  <div style="grid-column:1/-1;">
+                    <label class="bs-section-title" for="site-pagination-${siteIndex}">Next Page Selector</label>
+                    <input id="site-pagination-${siteIndex}" class="bs-input bs-input-sm" placeholder='Auto, a[rel="next"], .next a' value="${site.paginationSelector || ''}" oninput="app.updateWebsiteDraft(${siteIndex}, 'paginationSelector', event.target.value)">
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <label class="bs-section-title" style="margin:0;">Fields</label>
+                    <button type="button" class="bs-btn bs-btn-ghost" onclick="app.addWebsiteField(${siteIndex})" style="padding:6px 10px;font-size:.75rem;">Add Field</button>
+                  </div>
+                  <div class="bs-field-builder">
+                    ${(site.fields || [{name:'',selector:'',type:'text'}]).map((field, fieldIndex) => `
+                      <div class="bs-field-row">
+                        <input class="bs-input bs-input-sm" placeholder="Field Name" value="${field.name || ''}" oninput="app.updateWebsiteFieldDraft(${siteIndex}, ${fieldIndex}, 'name', event.target.value)">
+                        <input class="bs-input bs-input-sm" placeholder="CSS Selector" value="${field.selector || ''}" oninput="app.updateWebsiteFieldDraft(${siteIndex}, ${fieldIndex}, 'selector', event.target.value)">
+                        <select class="bs-input bs-input-sm" onchange="app.updateWebsiteField(${siteIndex}, ${fieldIndex}, 'type', event.target.value)">
+                          <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                          <option value="link" ${field.type === 'link' ? 'selected' : ''}>Link</option>
+                          <option value="image" ${field.type === 'image' ? 'selected' : ''}>Image</option>
+                          <option value="price" ${field.type === 'price' ? 'selected' : ''}>Price</option>
+                        </select>
+                        ${(site.fields || []).length > 1 ? `<button type="button" class="bs-field-remove" onclick="app.removeWebsiteField(${siteIndex}, ${fieldIndex})">×</button>` : ''}
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      async startMultiScrape() {
+        const websites = this.ensureWebsites().map((site, index) => ({
+          name: site.name || ('Website ' + (index + 1)),
+          url: /^https?:\/\//i.test(site.url || '') ? site.url : 'https://' + (site.url || ''),
+          containerSelector: site.containerSelector || '',
+          itemSelector: site.itemSelector || '',
+          fields: (site.fields || []).filter(f => f.name && f.selector),
+          maxRows: parseInt(site.maxRows || 100),
+          maxPages: parseInt(site.maxPages || 1),
+          paginationSelector: site.paginationSelector || ''
+        })).filter(site => site.url && site.url !== 'https://');
+
+        if (!websites.length) {
+          this.showError('No websites', 'Add at least one website URL.', 'Each website can have its own selectors and fields.');
+          return;
+        }
+        const invalid = websites.find(site => !this.validateUrlInput(site.url));
+        if (invalid) {
+          this.showError('Invalid URL', 'One of the website URLs is invalid.', invalid.url);
+          return;
+        }
+        this.setState({currentView: 'loading'});
+        try {
+          const response = await fetch('/api/multi-scrape', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              websites,
+              proxyEnabled: this.state.proxyEnabled,
+              proxyUrl: this.state.proxyUrl,
+              renderEnabled: false,
+              loadMoreEnabled: false
+            })
+          });
+          const data = await response.json();
+          if (data.success) {
+            this.saveJobHistory({type: 'multi-site', url: `${(data.datasets || []).length} websites`, rows: data.stats ? data.stats.total_items : 0, at: new Date().toLocaleString()});
+            this.setState({
+              currentView: 'results',
+              selectedDatasetIndex: 0,
+              results: {
+                datasets: data.datasets,
+                data: (data.datasets[0] && data.datasets[0].data) || [],
+                fields: (data.datasets[0] && data.datasets[0].fields) || [],
+                stats: data.stats,
+                errors: data.errors || [],
+                isMulti: true
+              }
+            });
+          } else {
+            this.state.previewModalLoading = false;
+            this.showFriendlyError(data.error || 'Scraping failed');
+          }
+        } catch (e) {
+          this.state.previewModalLoading = false;
+          this.showFriendlyError(e.message);
+        }
+      }
+
+      async startLinkScrape() {
+        const {urls, filterType, removeDuplicates, maxLinks} = this.state;
+        
+        if (!urls) {
+          app.showToast(app.isAR ? 'أدخل رابطاً واحداً على الأقل.' : 'Please enter at least one URL.', 'warning');
+          return;
+        }
+        
+        this.setState({currentView: 'loading'});
+        
+        try {
+          const response = await fetch('/api/link-scrape', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({urls, filterType, removeDuplicates, maxLinks})
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            this.setState({
+              currentView: 'results',
+              results: {
+                data: data.data,
+                fields: [
+                  {name: 'source_url', type: 'link'},
+                  {name: 'found_url', type: 'link'},
+                  {name: 'anchor_text', type: 'text'},
+                  {name: 'link_type', type: 'text'}
+                ],
+                stats: data.stats
+              }
+            });
+          } else {
+            app.showToast((app.isAR ? 'تعذّرت العملية. ' : 'Operation failed. ') + (data.error || ''), 'error');
+            this.setState({currentView: 'home'});
+          }
+        } catch (e) {
+          app.showToast(app.isAR ? 'حدث خطأ. حاول مرة أخرى.' : 'An error occurred. Please try again.', 'error');
+          this.setState({currentView: 'home'});
+        }
+      }
+      
+      async testSelector() {
+        const {testUrl, testSelector} = this.state;
+        
+        if (!testUrl || !testSelector) {
+          app.showToast(app.isAR ? 'أدخل الرابط والمحدد (Selector).' : 'Please fill in the URL and selector.', 'warning');
+          return;
+        }
+        
+        try {
+          const response = await fetch('/api/test-selector', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url: testUrl, selector: testSelector})
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            this.setState({testResults: data});
+          } else {
+            alert('Error: ' + data.error);
+          }
+        } catch (e) {
+          alert('Error: ' + e.message);
+        }
+      }
+      
+      async analyzePage() {
+        const {analyzeUrl} = this.state;
+        
+        if (!analyzeUrl) {
+          app.showToast(app.isAR ? 'أدخل رابط الموقع.' : 'Please enter a URL.', 'warning');
+          return;
+        }
+        
+        try {
+          const response = await fetch('/api/analyze-page', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({url: analyzeUrl})
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            this.setState({analyzeResults: data});
+          } else {
+            alert('Error: ' + data.error);
+          }
+        } catch (e) {
+          alert('Error: ' + e.message);
+        }
+      }
+      
+      toggleExportCleanOption(key) {
+        const current = this.state.exportCleanOptions || {};
+        this.setState({exportCleanOptions: {...current, [key]: !current[key]}});
+      }
+
+      getExportBaseUrl(dataset = null) {
+        const raw = (dataset && (dataset.url || dataset.name)) || this.state.url || '';
+        if (!raw) return '';
+        return /^https?:\/\//i.test(raw) ? raw : 'https://' + raw;
+      }
+
+      normalizePriceValue(value) {
+        const raw = String(value ?? '').trim();
+        if (!raw) return '';
+        const currencyMatch = raw.match(/(SAR|ريال|ر\.س|[$£€¥])/i);
+        const numberMatch = raw.replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
+        if (!numberMatch) return raw.replace(/\s+/g, ' ');
+        const number = numberMatch[0];
+        const currency = currencyMatch ? currencyMatch[0].toUpperCase().replace('ر.س', 'SAR').replace('ريال', 'SAR') : '';
+        return currency ? `${number} ${currency}` : number;
+      }
+
+      absolutizeValue(value, baseUrl) {
+        const text = String(value ?? '').trim();
+        if (!text || !baseUrl) return text;
+        if (/^(https?:|mailto:|tel:|data:|#)/i.test(text)) return text;
+        if (/^(\/|\.\/|\.\.\/|[A-Za-z0-9_-]+\/)/.test(text)) {
+          try { return new URL(text, baseUrl).href; } catch (_) { return text; }
+        }
+        return text;
+      }
+
+      openColumnEditor(mode = 'main', siteIndex = null) {
+        this.setState({columnEditorModal: {mode, siteIndex}});
+      }
+
+      closeColumnEditor() {
+        this.setState({columnEditorModal: null});
+      }
+
+      getColumnEditorFields() {
+        const modal = this.state.columnEditorModal;
+        if (modal && modal.mode === 'website') {
+          const site = this.ensureWebsites()[modal.siteIndex];
+          return (site && site.fields) ? site.fields : [];
+        }
+        return this.state.fields || [];
+      }
+
+      addColumnEditorField() {
+        const modal = this.state.columnEditorModal;
+        if (modal && modal.mode === 'website') {
+          this.addWebsiteField(modal.siteIndex);
+        } else {
+          this.addField();
+        }
+      }
+
+      updateColumnEditorField(index, key, value, rerender = false) {
+        const modal = this.state.columnEditorModal;
+        if (modal && modal.mode === 'website') {
+          if (rerender) this.updateWebsiteField(modal.siteIndex, index, key, value);
+          else this.updateWebsiteFieldDraft(modal.siteIndex, index, key, value);
+        } else {
+          if (rerender) this.updateField(index, key, value);
+          else this.updateFieldDraft(index, key, value);
+        }
+      }
+
+      removeColumnEditorField(index) {
+        const modal = this.state.columnEditorModal;
+        if (modal && modal.mode === 'website') {
+          this.removeWebsiteField(modal.siteIndex, index);
+        } else {
+          this.removeField(index);
+        }
+      }
+
+      previewFromColumnEditor() {
+        const modal = this.state.columnEditorModal;
+        this.closeColumnEditor();
+        window.setTimeout(() => {
+          if (modal && modal.mode === 'website') this.previewWebsite(modal.siteIndex);
+          else this.previewScrape();
+        }, 30);
+      }
+
+      cleanRowsForExport(rows, fields, baseUrl) {
+        const options = this.state.exportCleanOptions || {};
+        const fieldNames = (fields || []).map(f => f.name);
+        let cleaned = (rows || []).map(row => {
+          const out = {};
+          (fields || []).forEach(f => {
+            let value = row ? row[f.name] : '';
+            if (options.trimSpaces && typeof value === 'string') value = value.replace(/\s+/g, ' ').trim();
+            if (options.normalizePrices && (f.type === 'price' || /price|السعر|سعر/i.test(f.name || ''))) value = this.normalizePriceValue(value);
+            if (options.absoluteLinks && (f.type === 'link' || f.type === 'image' || /url|link|href|src|image|رابط|صورة/i.test(f.name || ''))) value = this.absolutizeValue(value, baseUrl);
+            out[f.name] = value ?? '';
+          });
+          return out;
+        });
+        if (options.removeEmptyRows) {
+          cleaned = cleaned.filter(row => fieldNames.some(name => String(row[name] ?? '').trim() !== ''));
+        }
+        if (options.removeDuplicates) {
+          const seen = new Set();
+          cleaned = cleaned.filter(row => {
+            const key = JSON.stringify(fieldNames.map(name => String(row[name] ?? '').trim().toLowerCase()));
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+        }
+        return cleaned;
+      }
+
+      buildExportPayload() {
+        const {results} = this.state;
+        if (!results) return null;
+        if (results.datasets && results.datasets.length) {
+          const datasets = results.datasets.map(dataset => {
+            const fields = dataset.fields || results.fields || [];
+            const data = this.cleanRowsForExport(dataset.data || [], fields, this.getExportBaseUrl(dataset));
+            return {...dataset, data, fields};
+          });
+          return {
+            rows: datasets[0] ? datasets[0].data : [],
+            fields: datasets[0] ? datasets[0].fields : (results.fields || []),
+            datasets
+          };
+        }
+        const fields = results.fields || [];
+        const rows = this.cleanRowsForExport(results.data || [], fields, this.getExportBaseUrl());
+        return {rows, fields, datasets: null};
+      }
+
+      openExportPreview() {
+        const payload = this.buildExportPayload();
+        if (!payload) return;
+        const allRows = payload.datasets ? payload.datasets.flatMap(d => d.data || []) : payload.rows;
+        const originalRows = this.state.results.datasets
+          ? this.state.results.datasets.reduce((sum, d) => sum + ((d.data || []).length), 0)
+          : ((this.state.results.data || []).length);
+        this.setState({exportPreviewModal: {...payload, originalRows, finalRows: allRows.length}});
+      }
+
+      closeExportPreview() {
+        this.setState({exportPreviewModal: null});
+      }
+
+      async exportData(format) {
+        const payload = this.buildExportPayload();
+        if (!payload) return;
+        
+        try {
+          const response = await fetch(`/api/export/${format}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+          });
+          
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const isMultiCsv = payload.datasets && payload.datasets.length && format === 'csv';
+            a.download = `basira_scrape_${Date.now()}.${isMultiCsv ? 'zip' : (format === 'xlsx' ? 'xlsx' : format)}`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+          } else {
+            this.showToast(this.isAR ? 'فشل التصدير. حاول مرة أخرى.' : 'Export failed. Please try again.', 'error');
+          }
+        } catch (e) {
+          this.showToast(this.isAR ? 'فشل التصدير. تحقق من الاتصال.' : 'Export failed. Please check your connection.', 'error');
+        }
+      }
+      
+
+      async sendToBasira() {
+        const {results} = this.state;
+        if (!results) return;
+        const rows = results.datasets
+          ? results.datasets.flatMap(d => d.data || [])
+          : (results.data || []);
+        if (!rows.length) {
+          this.showToast(this.isAR ? 'لم يتم استخراج أي بيانات.' : 'No data was extracted.', 'warning');
+          return;
+        }
+
+        const cols = [...new Set(rows.flatMap(row => Object.keys(row || {})))];
+        const csvLines = [cols.join(',')];
+        rows.forEach(row => {
+          csvLines.push(cols.map(c => {
+            const v = String(row[c] ?? '').replace(/"/g, '""');
+            return (v.includes(',') || v.includes('"') || v.indexOf('\n') >= 0) ? '"' + v + '"' : v;
+          }).join(','));
+        });
+        const csv = '\ufeff' + csvLines.join('\r\n');
+
+        this._showBridgeOverlay(this.isAR ? 'Bridge يُرسل البيانات إلى المعالجة المسبقة…' : 'Bridge sending data to Preprocessor…');
+        try {
+          const form = new FormData();
+          form.append('file', new Blob([csv], {type:'text/csv;charset=utf-8'}), 'basira_scrape.csv');
+          this._updateBridgeOverlay(this.isAR ? 'جاري رفع البيانات…' : 'Uploading data…', 30);
+          const res = await fetch(BASIRA_CONFIG.PREPROCESSOR_URL, {method:'POST', body:form});
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          this._updateBridgeOverlay(this.isAR ? 'تمت المعالجة — جاري الانتقال…' : 'Processed — navigating…', 90);
+          try {
+            sessionStorage.setItem('basira_preprocess_result', JSON.stringify(data));
+            sessionStorage.setItem('basira_data_source', 'web_scraping');
+          } catch(e) {}
+          if (BASIRA_CONFIG.POST_TO_PARENT) {
+            try { window.opener?.postMessage({source:'basira-scraper',type:'scrape-complete',data}, '*'); } catch(e){}
+            try { window.parent?.postMessage({source:'basira-scraper',type:'scrape-complete',data}, '*'); } catch(e){}
+          }
+          this._updateBridgeOverlay(this.isAR ? 'اكتمل النقل ✓' : 'Transfer complete ✓', 100);
+          setTimeout(() => { window.location.href = 'http://127.0.0.1:5050'; }, 700);
+        } catch(e) {
+          this._hideBridgeOverlay();
+          this.showToast(this.isAR ? 'فشل الإرسال. تحقق من الاتصال وأعد المحاولة.' : 'Send failed. Please check your connection and try again.', 'error');
+        }
+      }
+
+
+      // ── Bridge transition overlay helpers ──────────────────────────────
+      _showBridgeOverlay(statusText) {
+        let ov = document.getElementById('bs-bridge-overlay');
+        if (!ov) {
+          ov = document.createElement('div');
+          ov.id = 'bs-bridge-overlay';
+          ov.style.cssText = 'position:fixed;inset:0;background:rgba(8,14,26,.92);backdrop-filter:blur(12px);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;';
+          ov.innerHTML = `
+            <div style="text-align:center;">
+              <div id="bs-bridge-label" style="font-size:.68rem;font-weight:800;letter-spacing:2.5px;color:#38bdf8;text-transform:uppercase;margin-bottom:8px;">BRIDGE</div>
+              <div id="bs-bridge-status" style="font-size:1rem;font-weight:700;color:#f1f5f9;max-width:340px;line-height:1.6;">${statusText}</div>
+              <div style="font-size:.78rem;color:#64748b;margin-top:6px;">${this.isAR ? 'لا حاجة لرفع الملف مجدداً' : 'No need to re-upload your file'}</div>
+            </div>
+            <div style="background:linear-gradient(145deg,#1e293b,#0f172a);border:1px solid rgba(56,189,248,.15);padding:20px;border-radius:16px;width:min(760px,90vw);">
+              <div id="bs-bridge-anim" style="width:100%;height:320px;background:#fff;border-radius:12px;overflow:hidden;position:relative;">
+                <div style="height:40px;background:#f8fafc;border-bottom:1px solid #e8edf5;display:flex;align-items:center;padding:0 14px;gap:6px;">
+                  <div style="width:11px;height:11px;border-radius:50%;background:#ff5f57;"></div>
+                  <div style="width:11px;height:11px;border-radius:50%;background:#febc2e;"></div>
+                  <div style="width:11px;height:11px;border-radius:50%;background:#28c840;"></div>
+                  <div style="flex:1;height:22px;background:#eef1f7;border-radius:6px;margin:0 14px;"></div>
+                </div>
+                <div id="bs-ba-content" style="position:absolute;top:40px;left:0;right:0;bottom:0;overflow:hidden;"></div>
+              </div>
+            </div>
+            <div style="width:300px;">
+              <div style="height:4px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;">
+                <div id="bs-bridge-bar" style="height:100%;width:8%;background:linear-gradient(90deg,#38bdf8,#6366f1);border-radius:99px;transition:width .4s ease;"></div>
+              </div>
+            </div>`;
+          document.body.appendChild(ov);
+          this._startBridgeAnim();
+        } else {
+          ov.style.display = 'flex';
+          document.getElementById('bs-bridge-status').textContent = statusText;
+        }
+        document.getElementById('bs-bridge-bar').style.width = '12%';
+      }
+
+      _updateBridgeOverlay(statusText, progress) {
+        const st = document.getElementById('bs-bridge-status');
+        const bar = document.getElementById('bs-bridge-bar');
+        if (st) st.textContent = statusText;
+        if (bar) bar.style.width = progress + '%';
+        if (progress >= 100) {
+          const lbl = document.getElementById('bs-bridge-label');
+          if (lbl) { lbl.textContent = this.isAR ? 'اكتمل' : 'DONE'; lbl.style.color = '#22c55e'; }
+        }
+      }
+
+      _hideBridgeOverlay() {
+        const ov = document.getElementById('bs-bridge-overlay');
+        if (ov) ov.style.display = 'none';
+        if (this._bridgeAnimLoop) { clearTimeout(this._bridgeAnimLoop); this._bridgeAnimLoop = null; }
+      }
+
+      _startBridgeAnim() {
+        const content = document.getElementById('bs-ba-content');
+        if (!content) return;
+
+        const ROWS = [
+          {n:'Record A',v:'$284K',g:'↑12%',s:'Active',sc:'#dcfce7',tc:'#15803d'},
+          {n:'Record B',v:'$196K',g:'↑8%', s:'Active',sc:'#dcfce7',tc:'#15803d'},
+          {n:'Record C',v:'$142K',g:'↓3%', s:'Review',sc:'#fef3c7',tc:'#b45309'},
+          {n:'Record D',v:'$118K',g:'↑19%',s:'Active',sc:'#dcfce7',tc:'#15803d'},
+          {n:'Record E',v:'$94K', g:'↑6%', s:'Trial', sc:'#dbeafe',tc:'#1d4ed8'},
+          {n:'Record F',v:'$76K', g:'↑4%', s:'Active',sc:'#dcfce7',tc:'#15803d'},
+        ];
+
+        const rowStyle = 'display:grid;grid-template-columns:1fr 90px 70px 80px;border-bottom:1px solid #f1f5f9;opacity:0;transform:translateX(-10px);transition:opacity .25s ease,transform .3s ease;';
+        const cellStyle = 'padding:8px 10px;font-size:11px;border-right:1px solid #f3f6fa;white-space:nowrap;overflow:hidden;';
+
+        const phases = [
+          // Phase 1: rows appear
+          () => {
+            content.innerHTML = `
+              <div style="display:grid;grid-template-columns:1fr 90px 70px 80px;background:#f1f5f9;border-bottom:1.5px solid #e2e8f0;">
+                <div style="${cellStyle}font-weight:700;font-size:10px;color:#94a3b8;text-transform:uppercase;">Name</div>
+                <div style="${cellStyle}font-weight:700;font-size:10px;color:#94a3b8;text-transform:uppercase;">Value</div>
+                <div style="${cellStyle}font-weight:700;font-size:10px;color:#94a3b8;text-transform:uppercase;">Growth</div>
+                <div style="${cellStyle}font-weight:700;font-size:10px;color:#94a3b8;text-transform:uppercase;">Status</div>
+              </div>
+              <div id="bs-anim-body"></div>`;
+            const body = document.getElementById('bs-anim-body');
+            ROWS.forEach((r, i) => {
+              const row = document.createElement('div');
+              row.style.cssText = rowStyle;
+              row.innerHTML = `
+                <div style="${cellStyle}font-weight:600;color:#1e293b;">${r.n}</div>
+                <div style="${cellStyle}color:#2563eb;font-weight:700;">${r.v}</div>
+                <div style="${cellStyle}color:${r.g.startsWith('↑') ? '#059669' : '#dc2626'};font-weight:600;">${r.g}</div>
+                <div style="${cellStyle}"><span style="padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;background:${r.sc};color:${r.tc};">${r.s}</span></div>`;
+              body.appendChild(row);
+              setTimeout(() => { row.style.opacity = '1'; row.style.transform = 'translateX(0)'; }, 80 + i * 100);
+            });
+            this._bridgeAnimLoop = setTimeout(phases[1], 2000);
+          },
+          // Phase 2: scan line + reorder
+          () => {
+            const scan = document.createElement('div');
+            scan.style.cssText = 'position:absolute;left:0;right:0;height:28px;background:linear-gradient(90deg,transparent,rgba(37,99,235,.12) 30%,rgba(37,99,235,.20) 50%,rgba(37,99,235,.12) 70%,transparent);top:40px;animation:bs-scan .85s ease-in-out forwards;pointer-events:none;';
+            content.appendChild(scan);
+            this._bridgeAnimLoop = setTimeout(phases[2], 1400);
+          },
+          // Phase 3: metrics cards
+          () => {
+            const metrics = [
+              {lbl:'Records',val:'6',color:'#2563eb'},
+              {lbl:'Avg Value',val:'$152K',color:'#059669'},
+              {lbl:'Growth',val:'↑8.1%',color:'#7c3aed'},
+              {lbl:'Active',val:'4 / 6',color:'#d97706'},
+            ];
+            content.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;height:100%;box-sizing:border-box;">${
+              metrics.map((m,i) => `
+                <div style="background:#fff;border:1px solid #e8edf5;border-radius:11px;padding:14px;opacity:0;transform:translateY(10px);transition:opacity .35s ease,transform .38s ease;" id="bs-mc-${i}">
+                  <div style="font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">${m.lbl}</div>
+                  <div style="font-size:22px;font-weight:800;color:${m.color};">${m.val}</div>
+                </div>`).join('')
+            }</div>`;
+            metrics.forEach((_, i) => {
+              setTimeout(() => {
+                const el = document.getElementById('bs-mc-' + i);
+                if (el) { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }
+              }, 80 + i * 90);
+            });
+            this._bridgeAnimLoop = setTimeout(phases[0], 2200);
+          }
+        ];
+
+        phases[0]();
+      }
+      // ───────────────────────────────────────────────────────────────────
+
+      showToast(msg, type) {
+        // type: 'success' | 'warning' | 'error' | 'info'
+        var el = document.getElementById('bs-toast');
+        if (!el) {
+          el = document.createElement('div');
+          el.id = 'bs-toast';
+          el.style.cssText = 'position:fixed;bottom:22px;right:22px;padding:11px 18px;border-radius:var(--r,12px);background:var(--surface,#fff);box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:.83rem;font-weight:700;z-index:9999;color:var(--text,#0f172a);max-width:340px;border-left:4px solid var(--accent,#0ea5e9);display:none;transition:opacity .2s;';
+          document.body.appendChild(el);
+        }
+        var colors = {success:'#22c55e', warning:'#f59e0b', error:'#ef4444', info:'#0ea5e9'};
+        el.style.borderLeftColor = colors[type] || colors.info;
+        el.textContent = msg;
+        el.style.display = 'block';
+        el.style.opacity = '1';
+        clearTimeout(el._t);
+        var dur = type === 'error' ? 5000 : 3000;
+        el._t = setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ el.style.display='none'; }, 200); }, dur);
+      }
+
+      postResultsToParent() {
+        if (!BASIRA_CONFIG.POST_TO_PARENT || !this.state.results) return;
+        try {
+          window.parent.postMessage({source: 'basira-scraper', type: 'scrape-complete', results: this.state.results}, '*');
+        } catch (e) {}
+      }
+
+      copyBookmarkletCode() {
+        // Raw JavaScript code (not URI encoded)
+        const code = `(function(){if(window.basiraSelector){window.basiraSelector.destroy();return;}var s=document.createElement('style');s.textContent='.basira-sel-active{outline:3px solid #38bdf8!important;cursor:pointer!important;}.basira-sel-panel{position:fixed;top:10px;right:10px;background:#111827;color:#f1f5f9;padding:20px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.35);z-index:999999;font-family:system-ui;max-width:320px;}.basira-sel-title{font-size:18px;font-weight:800;color:#38bdf8;margin-bottom:12px;}.basira-sel-info{font-size:13px;margin-bottom:8px;padding:8px;background:#1a2332;border-radius:6px;}.basira-sel-code{font-family:monospace;font-size:11px;word-break:break-all;color:#22c55e;}.basira-sel-btn{padding:8px 16px;background:#38bdf8;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:700;margin-top:8px;width:100%;}';document.head.appendChild(s);var panel=document.createElement('div');panel.className='basira-sel-panel';panel.innerHTML='<div class="basira-sel-title">Basira Selector</div><div style="font-size:12px;margin-bottom:12px;opacity:0.8;">Click: get selector. SHIFT+Click: add to list.</div><div id="basira-current" class="basira-sel-info"></div><div id="basira-list"></div><button class="basira-sel-btn" onclick="window.basiraSelector.copy()">Copy All</button><button class="basira-sel-btn" style="background:#ef4444;margin-top:6px;" onclick="window.basiraSelector.destroy()">Close</button>';document.body.appendChild(panel);var list=[];var getSelector=function(el){if(el.id)return'#'+el.id;if(el.className&&typeof el.className==='string'){var cls=el.className.trim().split(/\\s+/).filter(function(c){return c&&!c.startsWith('basira-sel');})[0];if(cls)return'.'+cls;}return el.tagName.toLowerCase();};var handler=function(e){if(e.target.closest('.basira-sel-panel'))return;e.preventDefault();e.stopPropagation();var sel=getSelector(e.target);document.getElementById('basira-current').innerHTML='<strong>Current:</strong><div class="basira-sel-code">'+sel+'</div>';if(e.shiftKey){list.push(sel);updateList();}var prev=document.querySelectorAll('.basira-sel-active');prev.forEach(function(el){el.classList.remove('basira-sel-active');});e.target.classList.add('basira-sel-active');};var updateList=function(){var html='<div style="margin-top:12px;"><strong>Selected ('+list.length+'):</strong></div>';list.forEach(function(sel,i){html+='<div class="basira-sel-info" style="margin-top:4px;"><div class="basira-sel-code">'+sel+'</div></div>';});document.getElementById('basira-list').innerHTML=html;};document.addEventListener('click',handler,true);document.addEventListener('mouseover',function(e){if(!e.target.closest('.basira-sel-panel')){e.target.classList.add('basira-sel-active');}},true);document.addEventListener('mouseout',function(e){if(!e.shiftKey){e.target.classList.remove('basira-sel-active');}},true);window.basiraSelector={destroy:function(){document.removeEventListener('click',handler,true);document.querySelectorAll('.basira-sel-active').forEach(function(el){el.classList.remove('basira-sel-active');});panel.remove();s.remove();delete window.basiraSelector;},copy:function(){var text='Container: '+list[0]+'\\nItem: '+list[1]+'\\n\\nFields:\\n'+list.slice(2).map(function(s,i){return'Field '+(i+1)+': '+s;}).join('\\n');navigator.clipboard.writeText(text).then(function(){alert('Copied to clipboard!');});}};})();`;
+        
+        navigator.clipboard.writeText(code).then(() => {
+          this.showToast(this.isAR ? 'تم النسخ! افتح console (F12) في الموقع المستهدف والصق الكود.' : 'Copied! Open console (F12) on the target site and paste the code.', 'success');
+        });
+      }
+      
+      openVisualMode() {
+        const url = (this.state.url || '').trim();
+        if (!url) {
+          this.showToast(this.isAR ? 'أدخل رابط الموقع أولاً.' : 'Enter the target URL first.', 'warning');
+          return;
+        }
+        const cleanedUrl = /^https?:\/\//i.test(url) ? url : 'https://' + url;
+        let proxyUrl = '/visual-proxy?url=' + encodeURIComponent(cleanedUrl);
+        if (this.state.proxyEnabled && this.state.proxyUrl) {
+          proxyUrl += '&proxy=' + encodeURIComponent(this.state.proxyUrl);
+        }
+        this.setState({visualUrl: proxyUrl, visualMode: true, visualPickerReady: false, url: cleanedUrl});
+        window.setTimeout(() => {
+          if (this.state.visualMode && this.state.visualUrl === proxyUrl) {
+            this.setState({visualPickerReady: true});
+          }
+        }, 1800);
+      }
+      
+      closeVisualMode() {
+        this.setState({visualMode: false, visualPickerReady: false});
+      }
+      
+      handleIframeSelector(selector, type) {
+        if (!selector) return;
+        if (type === 'container') {
+          this.setState({containerSelector: selector});
+        } else if (type === 'item') {
+          this.setState({itemSelector: selector});
+        } else if (type === 'field') {
+          this.addVisualFieldToForm(selector);
+        }
+      }
+
+      addVisualSelection(selection) {
+        const selector = (selection && selection.selector || '').trim();
+        if (!selector) return;
+        const text = (selection && selection.text || '').trim().slice(0, 120);
+        const tag = (selection && selection.tag || '').trim().toLowerCase();
+        const visualId = (selection && selection.visualId || '').trim();
+        const guessedType = tag === 'img' ? 'image' : tag === 'a' ? 'link' : 'text';
+        const guessedName = this.makeFieldName(text || tag || 'field');
+        const current = this.state.visualSelections || [];
+        const exists = current.some(item => (visualId && item.visualId === visualId) || (!visualId && item.selector === selector));
+        const next = exists ? current : [...current, {selector, text, tag, visualId, name: guessedName, type: guessedType}];
+        this.setState({visualSelections: next});
+        if (!exists) {
+          setTimeout(() => {
+            const side = document.getElementById('basira-visual-side');
+            if (side) side.scrollTo({top: side.scrollHeight, behavior: 'smooth'});
+          }, 30);
+        }
+      }
+
+      makeFieldName(value) {
+        const cleaned = String(value || 'field')
+          .replace(/[^a-zA-Z0-9\u0600-\u06FF]+/g, ' ')
+          .trim()
+          .split(/\s+/)
+          .slice(0, 3)
+          .join('_');
+        return cleaned || 'field';
+      }
+
+      updateVisualSelection(index, key, value) {
+        const visualSelections = this.state.visualSelections || [];
+        if (!visualSelections[index]) return;
+        visualSelections[index][key] = value;
+      }
+
+      removeVisualSelection(index) {
+        const visualSelections = (this.state.visualSelections || []).filter((_, i) => i !== index);
+        this.setState({visualSelections});
+      }
+
+      clearVisualSelections() {
+        this.setState({visualSelections: []});
+      }
+
+      addVisualFieldToForm(selector) {
+        const fields = [...this.state.fields];
+        const lastIndex = fields.length - 1;
+        if (fields[lastIndex] && !fields[lastIndex].selector && !fields[lastIndex].name) {
+          fields[lastIndex] = {name: 'field_' + fields.length, selector, type: 'text'};
+        } else {
+          fields.push({name: 'field_' + (fields.length + 1), selector, type: 'text'});
+        }
+        this.setState({fields});
+      }
+
+      applyVisualSelectionsToFields() {
+        const selected = this.state.visualSelections || [];
+        if (!selected.length) {
+          this.showToast(this.isAR ? 'اختر حقلاً واحداً على الأقل باستخدام Shift+Click.' : 'Select at least one field using Shift+Click.', 'warning');
+          return;
+        }
+        const newFields = selected.map((item, index) => ({
+          name: item.name || ('field_' + (index + 1)),
+          selector: item.selector,
+          type: item.type || 'text'
+        }));
+        this.setState({fields: newFields, activeTab: 'scrape', visualMode: false});
+      }
+
+      getFilteredRows() {
+        const {results, search, sortCol, sortDir} = this.state;
+        if (!results) return [];
+        
+        const activeDataset = results.datasets ? results.datasets[this.state.selectedDatasetIndex || 0] : null;
+        let rows = activeDataset ? activeDataset.data : results.data;
+        
+        // Filter by search
+        if (search) {
+          rows = rows.filter(row =>
+            Object.values(row).some(val =>
+              String(val).toLowerCase().includes(search.toLowerCase())
+            )
+          );
+        }
+        
+        // Sort
+        if (sortCol) {
+          rows = [...rows].sort((a, b) => {
+            const aVal = a[sortCol] || '';
+            const bVal = b[sortCol] || '';
+            const cmp = String(aVal).localeCompare(String(bVal));
+            return sortDir === 'asc' ? cmp : -cmp;
+          });
+        }
+        
+        return rows;
+      }
+      
+      renderNav() {
+        const t = this.t;
+        if (BASIRA_CONFIG.EMBED_MODE || this.state.visualMode) return '';
+        return `
+          <nav class="bs-nav">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <a href="${BASIRA_CONFIG.HOME_URL}" style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:var(--r);border:1.5px solid var(--border);background:var(--surface-2);color:var(--text-dim);font-size:.82rem;font-weight:700;text-decoration:none;transition:var(--tr);" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='';this.style.color=''">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11.5L12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-5h5v5"/></svg>
+                Home
+              </a>
+              <span class="bs-brand">${t.brand}</span>
+              <span style="font-size:.75rem;color:var(--text-muted);font-weight:600;">Web Scraper</span>
+            </div>
+          </nav>
+          <!-- Breadcrumb — consistent with preprocessor -->
+          <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 5%;display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--text-dim);">
+            <a href="${BASIRA_CONFIG.HOME_URL}" style="color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:5px;">Home</a>
+            <span style="color:var(--border-2);">/</span>
+            <span style="color:var(--text);font-weight:700;">Web Scraper</span>
+          </div>
+        `;
+      }
+      
+      renderHome() {
+        const t = this.t;
+        const {activeTab, visualMode} = this.state;
+        const isVisualFull = activeTab === 'scrape' && visualMode;
+        
+        return `
+          ${this.renderNav()}
+          <main class="bs-page" style="${isVisualFull ? 'padding:0;gap:0;min-height:100vh;' : ''}">
+            ${isVisualFull ? '' : `<div class="bs-hero">
+              <div class="bs-kicker">Web scraping workspace</div>
+              <h1 style="font-size:2rem;font-weight:900;margin-bottom:8px;letter-spacing:-.04em;">${t.brand}</h1>
+              
+            </div>`}
+            ${this.renderErrorNotice()}
+            
+            <div class="bs-grid-2 ${isVisualFull ? 'bs-grid-visual' : ''}">
+            <div class="bs-panel ${isVisualFull ? 'bs-panel-visual' : ''}">
+              <div class="bs-tabs">
+                <button class="bs-tab ${activeTab === 'scrape' ? 'active' : ''}" onclick="app.setState({activeTab:'scrape'})">${t.tabs.scrape}</button>
+                <button class="bs-tab ${activeTab === 'links' ? 'active' : ''}" onclick="app.setState({activeTab:'links'})">${t.tabs.links}</button>
+                <button class="bs-tab ${activeTab === 'test' ? 'active' : ''}" onclick="app.setState({activeTab:'test'})">${t.tabs.test}</button>
+                <button class="bs-tab ${activeTab === 'analyze' ? 'active' : ''}" onclick="app.setState({activeTab:'analyze'})">${t.tabs.analyze}</button>
+                <button class="bs-tab ${activeTab === 'visual' ? 'active' : ''}" onclick="app.setState({activeTab:'visual'})">${t.tabs.visual}</button>
+              </div>
+              
+              ${activeTab === 'scrape' ? this.renderScrapeTab() : ''}
+              ${activeTab === 'links' ? this.renderLinksTab() : ''}
+              ${activeTab === 'test' ? this.renderTestTab() : ''}
+              ${activeTab === 'analyze' ? this.renderAnalyzeTab() : ''}
+              ${activeTab === 'visual' ? this.renderVisualTab() : ''}
+            </div>
+            </div>
+          </main>
+        `;
+      }
+      
+      renderErrorNotice() {
+        const err = this.state.lastError;
+        if (!err) return '';
+        return `
+          <div class="bs-danger-note">
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:start;">
+              <div>
+                <div style="font-weight:900;margin-bottom:4px;">${err.title}</div>
+                <div>${err.message}</div>
+                ${err.details ? `<div style="margin-top:7px;color:var(--text-dim);">${err.details}</div>` : ''}
+              </div>
+              <button class="bs-btn bs-btn-ghost" style="padding:6px 10px;" onclick="app.clearError()">Close</button>
+            </div>
+          </div>
+        `;
+      }
+
+      renderScrapeTab() {
+        const t = this.t;
+        const {url, multiMode, multiUrls, containerSelector, itemSelector, fields, maxRows, scrollEnabled, maxPages, paginationSelector, visualMode, autoDetecting, autoDetectNote, detectedSummary, proxyEnabled, proxyUrl, jobHistory} = this.state;
+        const hasDetected = itemSelector || (fields || []).some(f => f.selector);
+        const detectedFields = (fields || []).filter(f => f.name || f.selector);
+        const displaySummary = detectedSummary || (hasDetected ? {
+          group: (detectedFields.some(f => String(f.name || '').toLowerCase() === 'price') ? 'Products' : 'Repeated items'),
+          itemSelector: itemSelector || 'Auto',
+          itemSelectorLabel: itemSelector || 'Auto',
+          itemCount: 0,
+          fields: detectedFields.map(f => f.name || f.selector || 'Field').filter(Boolean)
+        } : null);
+        const step = hasDetected ? 2 : (url || multiMode ? 1 : 1);
+        
+        if (visualMode) {
+          return this.renderVisualSelector();
+        }
+        
+        return `
+          <div class="bs-workflow-card">
+            <div class="bs-workflow-head">
+              <div>
+                <div class="bs-workflow-title">Basira Web Scraper</div>
+                
+              </div>
+              <div class="bs-stepper" aria-label="Scraping workflow steps">
+                <div class="bs-step-pill active"><span class="bs-step-num">1</span> Website</div>
+                <div class="bs-step-pill ${hasDetected ? 'active' : ''}"><span class="bs-step-num">2</span> Detect</div>
+                <div class="bs-step-pill"><span class="bs-step-num">3</span> Preview</div>
+                <div class="bs-step-pill"><span class="bs-step-num">4</span> Export</div>
+              </div>
+            </div>
+
+            <div class="bs-workflow-body">
+              <section class="bs-clean-card">
+                <div class="bs-clean-title">1. Website</div>
+                
+                <div class="bs-url-row" style="margin-top:14px;">
+                  <input id="main-url" name="main-url" type="text" class="bs-input" placeholder="${t.urlPlaceholder}" value="${url}" oninput="app.setStateDraft('url', event.target.value)">
+                  <button type="button" class="bs-btn bs-btn-primary" onclick="app.autoDetectScrapeConfig()" ${autoDetecting ? 'disabled' : ''} style="white-space:nowrap;">
+                    ${autoDetecting ? 'Detecting...' : 'Analyze Website'}
+                  </button>
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.openVisualMode()" style="white-space:nowrap;">Visual Select</button>
+                </div>
+                ${autoDetecting ? `<div class="bs-detect-success">Analyzing page and detecting repeated cards...</div>` : ''}
+              </section>
+
+              <section class="bs-detected-card">
+                <div>
+                  <div class="bs-clean-title">2. Detected data</div>
+                  <div class="bs-clean-desc">${hasDetected ? 'Basira found a repeated group and fields. Preview before the full run.' : 'No detected fields yet. Click Analyze Website or use Visual Select.'}</div>
+                  ${displaySummary ? `
+                    <div class="bs-detect-panel">
+                      <div class="bs-detect-main">
+                        <div class="bs-detect-label">Detected: ${this.escapeHtml(displaySummary.group)}</div>
+                        <div class="bs-detect-sub">Item selector: <code>${this.escapeHtml(displaySummary.itemSelectorLabel || displaySummary.itemSelector)}</code></div>
+                        <div class="bs-detect-sub">${displaySummary.itemCount ? `${displaySummary.itemCount} items found` : 'Preview to count matching items'}</div>
+                      </div>
+                      <div class="bs-detect-fields">
+                        ${(displaySummary.fields || []).map(name => `<span class="bs-chip">${this.escapeHtml(name)}</span>`).join('')}
+                      </div>
+                    </div>
+                  ` : `
+                    <div class="bs-detected-meta">
+                      <span class="bs-chip">Item: ${this.escapeHtml(itemSelector || 'Auto')}</span>
+                      ${(detectedFields.length ? detectedFields : [{name:'Title'},{name:'Price'},{name:'Image'},{name:'Link'}]).slice(0,6).map(f => `<span class="bs-chip">${this.escapeHtml(f.name || f.selector || 'Field')}</span>`).join('')}
+                    </div>
+                  `}
+                </div>
+                <div class="bs-action-row" style="justify-content:flex-end;">
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.openColumnEditor('main')" ${multiMode ? 'disabled' : ''}>Edit Columns</button>
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.previewScrape()" ${multiMode ? 'disabled' : ''}>Preview</button>
+                  <button type="button" class="bs-btn bs-btn-primary" onclick="app.startScrape(false)">${multiMode ? 'Start Multi-site' : 'Start Scraping'}</button>
+                </div>
+              </section>
+
+              <section class="bs-clean-card">
+                <div class="bs-clean-title">3. Limits</div>
+                
+                <div class="bs-advanced-grid" style="margin-top:14px;">
+                  <div>
+                    <label class="bs-section-title" for="quick-max-rows">Max Rows</label>
+                    <input id="quick-max-rows" name="quick-max-rows" type="number" class="bs-input" value="${maxRows}" min="1" max="50000" oninput="app.setStateDraft('maxRows', parseInt(event.target.value)||100)">
+                    
+                  </div>
+                  <div>
+                    <label class="bs-section-title" for="quick-max-pages">Max Pages</label>
+                    <input id="quick-max-pages" name="quick-max-pages" type="number" class="bs-input" value="${maxPages}" min="1" max="200" oninput="app.setStateDraft('maxPages', parseInt(event.target.value)||1)">
+                    
+                  </div>
+                  ${this.renderPaginationSelectorControl()}
+                </div>
+              </section>
+
+              <details class="bs-advanced-box">
+                <summary>
+                  <span>Settings</span>
+                </summary>
+                <div class="bs-advanced-body">
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);gap:12px;">
+                    <div>
+                      <div style="font-weight:850;font-size:.88rem;">Multiple Websites</div>
+                    </div>
+                    <button type="button" class="bs-toggle" style="background:${multiMode ? 'var(--accent)' : 'var(--border-2)'}" onclick="app.setState({multiMode:!app.state.multiMode})">
+                      <div class="bs-toggle-thumb" style="left:${multiMode ? '21px' : '3px'}"></div>
+                    </button>
+                  </div>
+
+                  <div style="display:${multiMode ? 'block' : 'none'};">
+                    ${this.renderWebsiteCards()}
+                    <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                      <input id="url-file" name="url-file" class="bs-file-input" type="file" accept=".txt,.csv" onchange="app.importUrlsFile(this)">
+                    </div>
+                  </div>
+
+                  <div class="bs-advanced-grid">
+                    <div>
+                      <label class="bs-section-title" for="container-selector">${t.containerSelector}</label>
+                      <input id="container-selector" name="container-selector" type="text" class="bs-input" placeholder=".container, #main" value="${containerSelector}" oninput="app.setStateDraft('containerSelector', event.target.value)">
+                    </div>
+                    <div>
+                      <label class="bs-section-title" for="item-selector">${t.itemSelector}</label>
+                      <input id="item-selector" name="item-selector" type="text" class="bs-input" placeholder="Auto, .product-card" value="${itemSelector}" oninput="app.setStateDraft('itemSelector', event.target.value)">
+                    </div>
+                    <div>
+                      <label class="bs-section-title" for="max-rows">${t.maxRows}</label>
+                      <input id="max-rows" name="max-rows" type="number" class="bs-input" value="${maxRows}" min="1" oninput="app.setStateDraft('maxRows', parseInt(event.target.value)||100)">
+                    </div>
+                    <div>
+                      <label class="bs-section-title" for="max-pages">${t.maxPages}</label>
+                      <input id="max-pages" name="max-pages" type="number" class="bs-input" value="${maxPages}" min="1" oninput="app.setStateDraft('maxPages', parseInt(event.target.value)||1)">
+                    </div>
+                    <div style="grid-column:1/-1;">
+                      <label class="bs-section-title" for="pagination-selector">${t.paginationSelector}</label>
+                      <input id="pagination-selector" name="pagination-selector" type="text" class="bs-input" placeholder='Auto, a[rel="next"], .next a' value="${paginationSelector}" oninput="app.setStateDraft('paginationSelector', event.target.value)">
+                    </div>
+                  </div>
+
+                  <div style="padding:12px;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                      <div>
+                        <div style="font-weight:850;font-size:.88rem;">Proxy</div>
+                        <div class="bs-mini-note">Optional HTTP, HTTPS, or SOCKS proxy.</div>
+                      </div>
+                      <button type="button" class="bs-toggle" style="background:${proxyEnabled ? 'var(--accent)' : 'var(--border-2)'}" onclick="app.setState({proxyEnabled:!app.state.proxyEnabled})">
+                        <div class="bs-toggle-thumb" style="left:${proxyEnabled ? '21px' : '3px'}"></div>
+                      </button>
+                    </div>
+                    ${proxyEnabled ? `
+                      <div style="margin-top:10px;">
+                        <label class="bs-section-title" for="proxy-url">Proxy URL</label>
+                        <input id="proxy-url" name="proxy-url" type="text" class="bs-input bs-input-sm" placeholder="http://user:pass@host:port" value="${proxyUrl}" oninput="app.setStateDraft('proxyUrl', event.target.value)">
+                      </div>
+                    ` : ''}
+                  </div>
+
+                  <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                      <label class="bs-section-title" style="margin:0;">Fields</label>
+                      <button type="button" class="bs-btn bs-btn-ghost" onclick="app.addField()" style="padding:6px 12px;font-size:.8rem;">${t.addField}</button>
+                    </div>
+                    <div class="bs-field-builder">
+                      ${fields.map((field, i) => `
+                        <div class="bs-field-row">
+                          <input id="field-name-${i}" name="field-name-${i}" type="text" class="bs-input bs-input-sm" placeholder="${t.fieldName}" value="${field.name}" oninput="app.updateFieldDraft(${i},'name',event.target.value)">
+                          <input id="field-selector-${i}" name="field-selector-${i}" type="text" class="bs-input bs-input-sm" placeholder="${t.fieldSelector}" value="${field.selector}" oninput="app.updateFieldDraft(${i},'selector',event.target.value)">
+                          <select id="field-type-${i}" name="field-type-${i}" class="bs-input bs-input-sm" onchange="app.updateField(${i},'type',event.target.value)">
+                            <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                            <option value="link" ${field.type === 'link' ? 'selected' : ''}>Link</option>
+                            <option value="image" ${field.type === 'image' ? 'selected' : ''}>Image</option>
+                            <option value="price" ${field.type === 'price' ? 'selected' : ''}>Price</option>
+                          </select>
+                          ${fields.length > 1 ? `<button type="button" class="bs-field-remove" onclick="app.removeField(${i})">×</button>` : ''}
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <div class="bs-primary-footer">
+              <div class="bs-action-row">
+                <button type="button" class="bs-btn bs-btn-ghost" onclick="app.openColumnEditor('main')" ${multiMode ? 'disabled' : ''}>Edit Columns</button>
+                <button type="button" class="bs-btn bs-btn-ghost" onclick="app.previewScrape()" ${multiMode ? 'disabled' : ''}>Preview as Popup</button>
+                <button type="button" class="bs-btn bs-btn-primary" onclick="app.startScrape(false)">Start Scraping</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      renderVisualSelector() {
+        const t = this.t;
+        const {visualUrl, containerSelector, itemSelector, fields, visualSelections, visualPickerReady} = this.state;
+        const selected = visualSelections || [];
+        const fieldCount = selected.length;
+
+        return `
+          <div class="bs-visual-shell">
+            <div class="bs-visual-topbar">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                <button type="button" class="bs-btn bs-btn-ghost" onclick="app.closeVisualMode()" style="padding:7px 12px;">Back</button>
+                <div style="font-weight:900;color:var(--accent);white-space:nowrap;">Visual Selector</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span id="basira-visual-field-count" style="font-size:.72rem;color:var(--text-dim);font-family:var(--mono);">Fields: ${fieldCount}</span>
+                <button type="button" class="bs-btn bs-btn-ghost" onclick="app.closeVisualMode()" style="padding:8px 14px;">${t.closeVisual}</button>
+              </div>
+            </div>
+
+            <div class="bs-visual-main">
+              <div class="bs-visual-framebox">
+                ${!visualPickerReady ? `
+                  <div id="visual-wait-overlay" style="position:absolute;inset:0;z-index:20;background:rgba(15,23,42,.78);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;color:white;text-align:center;pointer-events:auto;">
+                    <div style="max-width:420px;background:rgba(17,24,39,.94);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:22px;box-shadow:0 12px 40px rgba(0,0,0,.35);">
+                      <div style="font-size:1rem;font-weight:900;margin-bottom:8px;">Preparing visual selector</div>
+                      <div style="font-size:.86rem;line-height:1.7;color:#cbd5e1;">Please wait until selection is active. Clicks are disabled for a moment so the page does not open links by mistake.</div>
+                      <div style="margin-top:14px;font-size:.78rem;font-weight:800;color:#38bdf8;">Selection will start automatically</div>
+                    </div>
+                  </div>
+                ` : ''}
+                <iframe
+                  id="basira-visual-frame"
+                  title="Basira visual preview"
+                  src="${visualUrl}"
+                  style="width:100%;height:100%;border:none;background:white;display:block;"
+                  onload="app.injectVisualScript()"
+                  onerror="app.handleIframeError()">
+                </iframe>
+
+                <div id="iframe-error" style="display:none;position:absolute;inset:0;background:var(--surface);align-items:center;justify-content:center;padding:40px;">
+                  <div style="text-align:center;max-width:400px;">
+                    <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px;color:var(--danger);">${t.corsWarning}</div>
+                    <button class="bs-btn bs-btn-primary" onclick="app.closeVisualMode()" style="margin-top:16px;">
+                      ${t.closeVisual}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bs-visual-side" id="basira-visual-side">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;">
+                  <div style="font-weight:800;color:var(--text);font-size:.9rem;">Fields</div>
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.clearVisualSelections()" style="padding:6px 9px;font-size:.72rem;">Clear</button>
+                </div>
+
+                ${selected.length ? selected.map((item, index) => `
+                  <div style="padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+                      <div style="font-family:var(--mono);font-size:.68rem;color:var(--accent);word-break:break-all;line-height:1.5;">${item.selector}</div>
+                      <button type="button" class="bs-field-remove" onclick="app.removeVisualSelection(${index})">×</button>
+                    </div>
+                    ${item.text ? `<div style="font-size:.7rem;color:var(--text-dim);line-height:1.5;">${String(item.text).replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+                    <div style="display:grid;grid-template-columns:1fr 110px;gap:8px;">
+                      <label style="display:none;" for="visual-field-name-${index}">Field name</label><input id="visual-field-name-${index}" name="visual-field-name-${index}" class="bs-input bs-input-sm" value="${item.name || ''}" placeholder="Field name" oninput="app.updateVisualSelection(${index}, 'name', event.target.value)">
+                      <label style="display:none;" for="visual-field-type-${index}">Field type</label><select id="visual-field-type-${index}" name="visual-field-type-${index}" class="bs-input bs-input-sm" onchange="app.updateVisualSelection(${index}, 'type', event.target.value)">
+                        <option value="text" ${item.type === 'text' ? 'selected' : ''}>text</option>
+                        <option value="link" ${item.type === 'link' ? 'selected' : ''}>link</option>
+                        <option value="image" ${item.type === 'image' ? 'selected' : ''}>image</option>
+                        <option value="price" ${item.type === 'price' ? 'selected' : ''}>price</option>
+                      </select>
+                    </div>
+                  </div>
+                `).join('') : `
+                  <div style="padding:14px;background:var(--surface);border:1px dashed var(--border-2);border-radius:12px;color:var(--text-dim);font-size:.78rem;line-height:1.5;">
+                    No fields selected. Click an element in the page.
+                  </div>
+                `}
+
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                  <button type="button" class="bs-btn bs-btn-primary bs-btn-full" onclick="app.applyVisualSelectionsToFields()">Apply selected fields</button>
+                  <button type="button" class="bs-btn bs-btn-ghost bs-btn-full" onclick="app.closeVisualMode()">Back</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      injectVisualScript() {
+        try {
+          const iframe = document.getElementById('basira-visual-frame');
+          if (!iframe || !iframe.contentWindow) return;
+
+          const iframeDoc = iframe.contentWindow.document;
+          if (iframeDoc.getElementById('basira-visual-style')) return;
+
+          const style = iframeDoc.createElement('style');
+          style.id = 'basira-visual-style';
+          style.textContent = `
+            html, body { overflow: auto !important; scroll-behavior: smooth; }
+            .basira-visual-hover { outline: 2px dashed #38bdf8 !important; cursor: crosshair !important; }
+            .basira-visual-selected { outline: 3px solid #22c55e !important; }
+            .basira-visual-field { outline: 3px solid #f59e0b !important; }
+            .basira-visual-toolbar {
+              position: fixed; top: 8px; right: 8px; z-index: 2147483647;
+              background: rgba(17,24,39,.94); color: #f1f5f9; padding: 8px; border-radius: 10px;
+              box-shadow: 0 4px 16px rgba(0,0,0,.28); font-family: system-ui;
+              width: 158px; border: 1px solid rgba(56,189,248,.28);
+            }
+            .basira-visual-btn {
+              padding: 6px 7px; background: #38bdf8; color: white; border: none;
+              border-radius: 7px; cursor: pointer; font-weight: 700; margin: 2px;
+              font-size: 10px;
+            }
+            .basira-visual-btn.secondary { background: #1f2937; border: 1px solid #475569; }
+            .basira-visual-btn.success { background: #22c55e; }
+            .basira-visual-code { margin-top: 6px; padding: 7px; background: #1a2332; border-radius: 6px; font-size: 10px; font-family: monospace; color: #22c55e; word-break: break-all; line-height: 1.35; max-height:52px; overflow:auto; }
+            .basira-visual-help { display:none; }
+          `;
+          iframeDoc.head.appendChild(style);
+
+          const toolbar = iframeDoc.createElement('div');
+          toolbar.className = 'basira-visual-toolbar';
+          toolbar.innerHTML = `
+            <div style="font-size:11px;font-weight:800;color:#38bdf8;margin-bottom:4px;">Selector</div>
+            <div style="display:flex;flex-wrap:wrap;margin-bottom:4px;">
+              <button type="button" class="basira-visual-btn success" id="basira-collect-toggle">Collect ON</button>
+              <button type="button" class="basira-visual-btn secondary" id="basira-set-container">Container</button>
+              <button type="button" class="basira-visual-btn secondary" id="basira-set-item">Item</button>
+              <button type="button" class="basira-visual-btn success" id="basira-add-field">Add</button>
+            </div>
+            <div id="current-selector" class="basira-visual-code">No element selected</div>
+            <div id="current-sample" style="display:none;"></div>
+          `;
+          iframeDoc.body.appendChild(toolbar);
+
+          let currentElement = null;
+          let currentSelector = null;
+          let collectMode = true;
+          let visualCounter = 0;
+
+          const ensureVisualId = (el) => {
+            if (!el) return '';
+            let id = el.getAttribute('data-basira-visual-id');
+            if (!id) {
+              visualCounter += 1;
+              id = 'bv-' + Date.now().toString(36) + '-' + visualCounter;
+              el.setAttribute('data-basira-visual-id', id);
+            }
+            return id;
+          };
+
+          const notifyParent = (message) => {
+            const payload = Object.assign({source: 'basira-visual'}, message || {});
+            try {
+              if (window.parent && typeof window.parent.basiraVisualBridge === 'function') {
+                window.parent.basiraVisualBridge(payload);
+                return;
+              }
+            } catch (e) {}
+            try {
+              window.parent.postMessage(payload, '*');
+            } catch (e) {}
+          };
+
+          const isVisualReady = () => {
+            try { return !!(window.parent && window.parent.app && window.parent.app.state && window.parent.app.state.visualPickerReady); }
+            catch (e) { return false; }
+          };
+
+          const showWaitMessage = () => {
+            const codeBox = iframeDoc.getElementById('current-selector');
+            if (codeBox) codeBox.textContent = 'Please wait. Selection is not active yet.';
+          };
+
+          const cssEscape = (value) => {
+            if (iframe.contentWindow.CSS && iframe.contentWindow.CSS.escape) return iframe.contentWindow.CSS.escape(value);
+            return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+          };
+
+          const getSelector = (el) => {
+            if (!el || !el.tagName) return '';
+            if (el.closest('.basira-visual-toolbar')) return '';
+            const tag = el.tagName.toLowerCase();
+            if (el.id) return '#' + cssEscape(el.id);
+
+            const preferredAttrs = ['data-testid', 'data-test', 'data-qa', 'itemprop', 'name'];
+            for (const attr of preferredAttrs) {
+              const val = el.getAttribute(attr);
+              if (val && val.length < 60) {
+                const selector = `${tag}[${attr}="${String(val).replace(/"/g, '\\"')}"]`;
+                try {
+                  if (iframeDoc.querySelectorAll(selector).length > 0) return selector;
+                } catch (e) {}
+              }
+            }
+
+            const classes = Array.from(el.classList || [])
+              .filter(c => c && !c.startsWith('basira-visual') && !c.startsWith('basira-sel'))
+              .slice(0, 3);
+            if (classes.length) {
+              const classSelector = '.' + classes.map(cssEscape).join('.');
+              try {
+                if (iframeDoc.querySelectorAll(classSelector).length >= 1) return classSelector;
+              } catch (e) {}
+              return tag + classSelector;
+            }
+
+            const parent = el.parentElement;
+            if (!parent || parent === iframeDoc.body || parent === iframeDoc.documentElement) return tag;
+            const siblings = Array.from(parent.children).filter(child => child.tagName === el.tagName);
+            if (siblings.length > 1) return tag + ':nth-of-type(' + (siblings.indexOf(el) + 1) + ')';
+            return tag;
+          };
+
+          const getSelectionPayload = () => {
+            if (!currentElement || !currentSelector) return null;
+            const tag = currentElement.tagName ? currentElement.tagName.toLowerCase() : '';
+            let text = '';
+            if (tag === 'img') {
+              text = currentElement.getAttribute('alt') || currentElement.getAttribute('src') || '';
+            } else {
+              text = currentElement.innerText || currentElement.textContent || '';
+            }
+            return {selector: currentSelector, text: text.trim().replace(/\s+/g, ' '), tag, visualId: ensureVisualId(currentElement)};
+          };
+
+          const setCurrent = (el) => {
+            if (!el || el.closest('.basira-visual-toolbar')) return;
+            if (currentElement) currentElement.classList.remove('basira-visual-selected');
+            currentElement = el;
+            currentSelector = getSelector(el);
+            currentElement.classList.add('basira-visual-selected');
+            const codeBox = iframeDoc.getElementById('current-selector');
+            const sampleBox = iframeDoc.getElementById('current-sample');
+            codeBox.textContent = currentSelector || 'No selector';
+            const payload = getSelectionPayload();
+            sampleBox.textContent = payload && payload.text ? payload.text.slice(0, 150) : '';
+          };
+
+          iframeDoc.addEventListener('mouseover', (e) => {
+            if (!isVisualReady()) return;
+            if (e.target.closest('.basira-visual-toolbar')) return;
+            e.target.classList.add('basira-visual-hover');
+          }, true);
+
+          iframeDoc.addEventListener('mouseout', (e) => {
+            if (e.target && e.target.classList) e.target.classList.remove('basira-visual-hover');
+          }, true);
+
+          iframeDoc.addEventListener('click', (e) => {
+            if (e.target.closest('.basira-visual-toolbar')) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (!isVisualReady()) {
+              showWaitMessage();
+              return;
+            }
+            setCurrent(e.target);
+            if (e.shiftKey || collectMode) {
+              e.target.classList.add('basira-visual-field');
+              const payload = getSelectionPayload();
+              if (payload) notifyParent({action: 'add-field', payload});
+            }
+          }, true);
+
+          iframeDoc.getElementById('basira-collect-toggle').addEventListener('click', () => {
+            collectMode = !collectMode;
+            const btn = iframeDoc.getElementById('basira-collect-toggle');
+            btn.textContent = 'Collect ' + (collectMode ? 'ON' : 'OFF');
+            btn.style.background = collectMode ? '#22c55e' : '#1f2937';
+          });
+          iframeDoc.getElementById('basira-set-container').addEventListener('click', () => {
+            if (currentSelector) notifyParent({action: 'set-container', selector: currentSelector});
+          });
+          iframeDoc.getElementById('basira-set-item').addEventListener('click', () => {
+            if (currentSelector) notifyParent({action: 'set-item', selector: currentSelector});
+          });
+          iframeDoc.getElementById('basira-add-field').addEventListener('click', () => {
+            const payload = getSelectionPayload();
+            if (payload) {
+              if (currentElement) currentElement.classList.add('basira-visual-field');
+              notifyParent({action: 'add-field', payload});
+            }
+          });
+
+        } catch (error) {
+          this.handleIframeError();
+        }
+      }
+
+      handleIframeError() {
+        document.getElementById('iframe-error').style.display = 'flex';
+        document.getElementById('basira-visual-frame').style.display = 'none';
+      }
+      
+      renderLinksTab() {
+        const t = this.t;
+        const {urls, filterType, removeDuplicates, maxLinks} = this.state;
+        
+        return `
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <label class="bs-section-title">${t.url}</label>
+              <textarea class="bs-input" rows="6" placeholder="${t.urlsPlaceholder}" 
+                oninput="app.setState({urls:event.target.value})">${urls}</textarea>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label class="bs-section-title">${t.filterType}</label>
+                <select class="bs-input" onchange="app.setState({filterType:event.target.value})">
+                  <option value="all" ${filterType === 'all' ? 'selected' : ''}>${t.allLinks}</option>
+                  <option value="internal" ${filterType === 'internal' ? 'selected' : ''}>${t.internal}</option>
+                  <option value="external" ${filterType === 'external' ? 'selected' : ''}>${t.external}</option>
+                  <option value="same_domain" ${filterType === 'same_domain' ? 'selected' : ''}>${t.sameDomain}</option>
+                </select>
+              </div>
+              <div>
+                <label class="bs-section-title">${t.maxLinks}</label>
+                <input type="number" class="bs-input" value="${maxLinks}" min="1" 
+                  oninput="app.setState({maxLinks:parseInt(event.target.value)||1000})">
+              </div>
+            </div>
+            
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface-2);border-radius:var(--r);border:1px solid var(--border);">
+              <div style="font-weight:700;font-size:.86rem;">${t.removeDuplicates}</div>
+              <button class="bs-toggle" style="background:${removeDuplicates ? 'var(--accent)' : 'var(--border-2)'}" 
+                onclick="app.setState({removeDuplicates:!app.state.removeDuplicates})">
+                <div class="bs-toggle-thumb" style="left:${removeDuplicates ? '21px' : '3px'}"></div>
+              </button>
+            </div>
+            
+            <button class="bs-btn bs-btn-primary bs-btn-full" onclick="app.startLinkScrape()">
+              ${t.startLinkScrape}
+            </button>
+          </div>
+        `;
+      }
+      
+      renderTestTab() {
+        const t = this.t;
+        const {testUrl, testSelector, testResults} = this.state;
+        
+        return `
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <label class="bs-section-title">${t.url}</label>
+              <input type="text" class="bs-input" placeholder="${t.urlPlaceholder}" 
+                value="${testUrl}" oninput="app.setState({testUrl:event.target.value})">
+            </div>
+            
+            <div>
+              <label class="bs-section-title">${t.selectorToTest}</label>
+              <input type="text" class="bs-input" placeholder=".item, #product, h2.title" 
+                value="${testSelector}" oninput="app.setState({testSelector:event.target.value})">
+            </div>
+            
+            <button class="bs-btn bs-btn-primary bs-btn-full" onclick="app.testSelector()">
+              ${t.testButton}
+            </button>
+            
+            ${testResults ? `
+              <div class="bs-card" style="background:var(--surface-2);padding:16px;">
+                <div style="font-weight:800;color:var(--success);margin-bottom:12px;">
+                  ${testResults.count} ${t.elementsFound}
+                </div>
+                ${testResults.samples.length > 0 ? `
+                  <div>
+                    <div class="bs-section-title">${t.samples}</div>
+                    ${testResults.samples.map(s => `
+                      <div style="padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:.75rem;margin-bottom:6px;">
+                        ${s}
+                      </div>
+                    `).join('')}
+                  </div>
+                ` : `<div style="color:var(--text-muted);">${t.noResults}</div>`}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+      
+      renderAnalyzeTab() {
+        const t = this.t;
+        const {analyzeUrl, analyzeResults} = this.state;
+        
+        return `
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+              <label class="bs-section-title">${t.url}</label>
+              <input type="text" class="bs-input" placeholder="${t.urlPlaceholder}" 
+                value="${analyzeUrl}" oninput="app.setState({analyzeUrl:event.target.value})">
+            </div>
+            
+            <button class="bs-btn bs-btn-primary bs-btn-full" onclick="app.analyzePage()">
+              ${t.analyzeButton}
+            </button>
+            
+            ${analyzeResults ? `
+              <div>
+                <div class="bs-section-title">${t.containerSuggestions}</div>
+                <div class="bs-suggestions">
+                  ${analyzeResults.containerSuggestions.map(s => `
+                    <div class="bs-suggestion-card" onclick="app.setState({containerSelector:'${s.selector}',activeTab:'scrape'})">
+                      <div class="bs-suggestion-selector">${s.selector}</div>
+                      <div class="bs-suggestion-sample">${s.sample}</div>
+                      <div class="bs-suggestion-count">${s.count} ${t.elementsFound}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              
+              <div>
+                <div class="bs-section-title">${t.itemSuggestions}</div>
+                <div class="bs-suggestions">
+                  ${analyzeResults.itemSuggestions.map(s => `
+                    <div class="bs-suggestion-card" onclick="app.setState({itemSelector:'${s.selector}',activeTab:'scrape'})">
+                      <div class="bs-suggestion-selector">${s.selector}</div>
+                      <div class="bs-suggestion-sample">${s.sample}</div>
+                      <div class="bs-suggestion-count">${s.count} ${t.elementsFound}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+      
+      renderVisualTab() {
+        const t = this.t;
+        
+        // Bookmarklet code - properly encoded
+        const bookmarkletCode = `javascript:(function()%7Bif(window.basiraSelector)%7Bwindow.basiraSelector.destroy()%3Breturn%3B%7Dvar%20s%3Ddocument.createElement('style')%3Bs.textContent%3D'.basira-sel-active%7Boutline%3A3px%20solid%20%2338bdf8!important%3Bcursor%3Apointer!important%3B%7D.basira-sel-panel%7Bposition%3Afixed%3Btop%3A10px%3Bright%3A10px%3Bbackground%3A%23111827%3Bcolor%3A%23f1f5f9%3Bpadding%3A20px%3Bborder-radius%3A12px%3Bbox-shadow%3A0%204px%2020px%20rgba(0%2C0%2C0%2C.35)%3Bz-index%3A999999%3Bfont-family%3Asystem-ui%3Bmax-width%3A320px%3B%7D.basira-sel-title%7Bfont-size%3A18px%3Bfont-weight%3A800%3Bcolor%3A%2338bdf8%3Bmargin-bottom%3A12px%3B%7D.basira-sel-info%7Bfont-size%3A13px%3Bmargin-bottom%3A8px%3Bpadding%3A8px%3Bbackground%3A%231a2332%3Bborder-radius%3A6px%3B%7D.basira-sel-code%7Bfont-family%3Amonospace%3Bfont-size%3A11px%3Bword-break%3Abreak-all%3Bcolor%3A%2322c55e%3B%7D.basira-sel-btn%7Bpadding%3A8px%2016px%3Bbackground%3A%2338bdf8%3Bcolor%3Awhite%3Bborder%3Anone%3Bborder-radius%3A6px%3Bcursor%3Apointer%3Bfont-weight%3A700%3Bmargin-top%3A8px%3Bwidth%3A100%25%3B%7D'%3Bdocument.head.appendChild(s)%3Bvar%20panel%3Ddocument.createElement('div')%3Bpanel.className%3D'basira-sel-panel'%3Bpanel.innerHTML%3D'%3Cdiv%20class%3D%22basira-sel-title%22%3EBasira%20Selector%3C%2Fdiv%3E%3Cdiv%20style%3D%22font-size%3A12px%3Bmargin-bottom%3A12px%3Bopacity%3A0.8%3B%22%3EClick%3A%20get%20selector.%20SHIFT%2BClick%3A%20add%20to%20list.%3C%2Fdiv%3E%3Cdiv%20id%3D%22basira-current%22%20class%3D%22basira-sel-info%22%3E%3C%2Fdiv%3E%3Cdiv%20id%3D%22basira-list%22%3E%3C%2Fdiv%3E%3Cbutton%20class%3D%22basira-sel-btn%22%20onclick%3D%22window.basiraSelector.copy()%22%3ECopy%20All%3C%2Fbutton%3E%3Cbutton%20class%3D%22basira-sel-btn%22%20style%3D%22background%3A%23ef4444%3Bmargin-top%3A6px%3B%22%20onclick%3D%22window.basiraSelector.destroy()%22%3EClose%3C%2Fbutton%3E'%3Bdocument.body.appendChild(panel)%3Bvar%20list%3D%5B%5D%3Bvar%20getSelector%3Dfunction(el)%7Bif(el.id)return'%23'%2Bel.id%3Bif(el.className%26%26typeof%20el.className%3D%3D%3D'string')%7Bvar%20cls%3Del.className.trim().split(%2F%5Cs%2B%2F).filter(function(c)%7Breturn%20c%26%26!c.startsWith('basira-sel')%3B%7D)%5B0%5D%3Bif(cls)return'.'%2Bcls%3B%7Dreturn%20el.tagName.toLowerCase()%3B%7D%3Bvar%20handler%3Dfunction(e)%7Bif(e.target.closest('.basira-sel-panel'))return%3Be.preventDefault()%3Be.stopPropagation()%3Bvar%20sel%3DgetSelector(e.target)%3Bdocument.getElementById('basira-current').innerHTML%3D'%3Cstrong%3ECurrent%3A%3C%2Fstrong%3E%3Cdiv%20class%3D%22basira-sel-code%22%3E'%2Bsel%2B'%3C%2Fdiv%3E'%3Bif(e.shiftKey)%7Blist.push(sel)%3BupdateList()%3B%7Dvar%20prev%3Ddocument.querySelectorAll('.basira-sel-active')%3Bprev.forEach(function(el)%7Bel.classList.remove('basira-sel-active')%3B%7D)%3Be.target.classList.add('basira-sel-active')%3B%7D%3Bvar%20updateList%3Dfunction()%7Bvar%20html%3D'%3Cdiv%20style%3D%22margin-top%3A12px%3B%22%3E%3Cstrong%3ESelected%20('%2Blist.length%2B')%3A%3C%2Fstrong%3E%3C%2Fdiv%3E'%3Blist.forEach(function(sel%2Ci)%7Bhtml%2B%3D'%3Cdiv%20class%3D%22basira-sel-info%22%20style%3D%22margin-top%3A4px%3B%22%3E%3Cdiv%20class%3D%22basira-sel-code%22%3E'%2Bsel%2B'%3C%2Fdiv%3E%3C%2Fdiv%3E'%3B%7D)%3Bdocument.getElementById('basira-list').innerHTML%3Dhtml%3B%7D%3Bdocument.addEventListener('click'%2Chandler%2Ctrue)%3Bdocument.addEventListener('mouseover'%2Cfunction(e)%7Bif(!e.target.closest('.basira-sel-panel'))%7Be.target.classList.add('basira-sel-active')%3B%7D%7D%2Ctrue)%3Bdocument.addEventListener('mouseout'%2Cfunction(e)%7Bif(!e.shiftKey)%7Be.target.classList.remove('basira-sel-active')%3B%7D%7D%2Ctrue)%3Bwindow.basiraSelector%3D%7Bdestroy%3Afunction()%7Bdocument.removeEventListener('click'%2Chandler%2Ctrue)%3Bdocument.querySelectorAll('.basira-sel-active').forEach(function(el)%7Bel.classList.remove('basira-sel-active')%3B%7D)%3Bpanel.remove()%3Bs.remove()%3Bdelete%20window.basiraSelector%3B%7D%2Ccopy%3Afunction()%7Bvar%20text%3D'Container%3A%20'%2Blist%5B0%5D%2B'%5CnItem%3A%20'%2Blist%5B1%5D%2B'%5Cn%5CnFields%3A%5Cn'%2Blist.slice(2).map(function(s%2Ci)%7Breturn'Field%20'%2B(i%2B1)%2B'%3A%20'%2Bs%3B%7D).join('%5Cn')%3Bnavigator.clipboard.writeText(text).then(function()%7Balert('Copied%20to%20clipboard!')%3B%7D)%3B%7D%7D%3B%7D)()%3B`;
+        
+        return `
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="background:var(--surface-2);padding:20px;border-radius:var(--r-lg);border:1px solid var(--border);">
+              <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:8px;">${t.visualHelper}</h3>
+              <p style="color:var(--text-dim);font-size:.85rem;margin-bottom:16px;">${t.visualDesc}</p>
+              
+              <div style="text-align:center;padding:20px;background:var(--surface);border-radius:var(--r);border:2px dashed var(--border);">
+                <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:12px;">${t.dragBookmarklet}</div>
+                <a href="${bookmarkletCode}" 
+                   onclick="alert('${this.isAR ? 'اسحب هذا الزر إلى شريط الإشارات' : 'Drag this button to your bookmarks bar'}');return false;"
+                   class="bs-btn bs-btn-primary" 
+                   style="text-decoration:none;font-size:.95rem;padding:14px 28px;">
+                  📍 ${t.bookmarkletBtn}
+                </a>
+                
+                <div style="margin:20px 0;color:var(--text-dim);font-size:.75rem;">OR / أو</div>
+                
+                <button class="bs-btn bs-btn-ghost" onclick="app.copyBookmarkletCode()" 
+                  style="font-size:.85rem;padding:10px 20px;">
+                  📋 Copy Code to Clipboard
+                </button>
+                <div style="font-size:.72rem;color:var(--text-dim);margin-top:8px;">
+                  Then paste in browser console (F12) on any page
+                </div>
+              </div>
+            </div>
+            
+            <div class="bs-card" style="background:var(--surface-2);">
+              <h4 style="font-weight:800;margin-bottom:12px;">${t.howToUse}</h4>
+              
+              <div style="margin-bottom:16px;padding:12px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);border-radius:8px;">
+                <div style="font-size:.85rem;font-weight:700;color:var(--accent);margin-bottom:4px;">Method 1: Bookmarklet (Recommended)</div>
+                <div style="font-size:.75rem;color:var(--text-dim);">Drag button once, use forever</div>
+              </div>
+              
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+                  <div style="font-size:.85rem;">${t.step1}</div>
+                </div>
+                <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+                  <div style="font-size:.85rem;">${t.step2}</div>
+                </div>
+                <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+                  <div style="font-size:.85rem;">${t.step3}</div>
+                </div>
+              </div>
+              
+              <div style="margin:16px 0;padding:12px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:8px;">
+                <div style="font-size:.85rem;font-weight:700;color:var(--success);margin-bottom:4px;">Method 2: Console (Easier)</div>
+                <div style="font-size:.75rem;color:var(--text-dim);">Copy code, paste in console each time</div>
+              </div>
+              
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+                  <div style="font-size:.85rem;">1. Click "Copy Code to Clipboard" button above</div>
+                </div>
+                <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+                  <div style="font-size:.85rem;">2. Visit target website</div>
+                </div>
+                <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+                  <div style="font-size:.85rem;">3. Press F12 to open Console</div>
+                </div>
+                <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+                  <div style="font-size:.85rem;">4. Paste code and press Enter</div>
+                </div>
+              </div>
+              
+              <div style="margin-top:16px;padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+                <div style="font-size:.85rem;">${t.step4}</div>
+              </div>
+              <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);margin-top:6px;">
+                <div style="font-size:.85rem;">${t.step5}</div>
+              </div>
+              <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);margin-top:6px;">
+                <div style="font-size:.85rem;">${t.step6}</div>
+              </div>
+              
+              <div style="margin-top:16px;padding:12px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.2);border-radius:8px;">
+                <div style="font-size:.8rem;color:var(--accent);">${t.visualNote}</div>
+              </div>
+            </div>
+            
+            <div class="bs-card" style="background:var(--surface-2);">
+              <h4 style="font-weight:800;margin-bottom:12px;">Example Workflow</h4>
+              <div style="font-size:.82rem;color:var(--text-dim);line-height:1.8;">
+                <p style="margin-bottom:10px;">1. Visit a product listing page (e.g., e-commerce site)</p>
+                <p style="margin-bottom:10px;">2. Click the bookmarklet</p>
+                <p style="margin-bottom:10px;">3. Click on the first product container</p>
+                <p style="margin-bottom:10px;">4. SHIFT+Click on the product title</p>
+                <p style="margin-bottom:10px;">5. SHIFT+Click on the price</p>
+                <p style="margin-bottom:10px;">6. SHIFT+Click on the image</p>
+                <p style="margin-bottom:10px;">7. Click "Copy All"</p>
+                <p>8. Paste in Structured Data tab</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      renderLoading() {
+        const t = this.t;
+        return `
+          ${this.renderNav()}
+          <div class="bs-loading-box">
+            <div class="bs-loading-inner">
+              <div class="bs-spinner"></div>
+              <div class="bs-loading-title">${t.extracting}</div>
+              <div class="bs-loading-sub">${t.loading}...</div>
+            </div>
+          </div>
+        `;
+      }
+      
+      renderResults() {
+        const t = this.t;
+        const {results, search} = this.state;
+        const rows = this.getFilteredRows();
+        const activeDataset = results.datasets ? results.datasets[this.state.selectedDatasetIndex || 0] : null;
+        const viewData = activeDataset ? activeDataset.data : results.data;
+        const viewFields = activeDataset ? activeDataset.fields : results.fields;
+        const isPreview = !!results.isPreview;
+        
+        const totalCells = viewData.length * viewFields.length;
+        const filledCells = viewData.reduce((sum, row) => 
+          sum + Object.values(row).filter(v => v !== '' && v !== null).length, 0
+        );
+        const fillRate = totalCells > 0 ? Math.round((filledCells / totalCells) * 100) : 0;
+        
+        return `
+          ${this.renderNav()}
+          <div class="bs-results-layout">
+            <aside class="bs-sidebar">
+              <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:14px;text-align:center;">
+                <div style="font-size:22px;margin-bottom:4px;"></div>
+                <div style="font-size:.72rem;font-weight:800;color:var(--success);letter-spacing:.5px;">${t.complete}</div>
+              </div>
+              
+              ${results.datasets ? `
+                <div>
+                  <div class="bs-section-title">Websites</div>
+                  <select class="bs-input bs-input-sm" onchange="app.setState({selectedDatasetIndex:parseInt(event.target.value)||0, search:''})">
+                    ${results.datasets.map((d, i) => `<option value="${i}" ${i === (app.state.selectedDatasetIndex || 0) ? 'selected' : ''}>${d.name} (${d.data.length})</option>`).join('')}
+                  </select>
+                  ${results.errors && results.errors.length ? `<div style="margin-top:8px;font-size:.72rem;color:var(--warning);line-height:1.5;">Failed sites: ${results.errors.length}</div>` : ''}
+                </div>
+              ` : ''}
+
+              <div>
+                <div class="bs-section-title">${t.summary}</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div class="bs-stat-row">
+                    <span class="bs-stat-label">${t.rows}</span>
+                    <span class="bs-stat-value" style="color:var(--accent);">${viewData.length}</span>
+                  </div>
+                  <div class="bs-stat-row">
+                    <span class="bs-stat-label">${t.columns}</span>
+                    <span class="bs-stat-value" style="color:var(--purple);">${viewFields.length}</span>
+                  </div>
+                  <div class="bs-stat-row">
+                    <span class="bs-stat-label">${t.totalCells}</span>
+                    <span class="bs-stat-value" style="color:var(--success);">${totalCells}</span>
+                  </div>
+                  <div class="bs-stat-row">
+                    <span class="bs-stat-label">${t.fillRate}</span>
+                    <span class="bs-stat-value" style="color:${fillRate >= 80 ? 'var(--success)' : 'var(--warning)'};">${fillRate}%</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="margin-top:auto;">
+                ${isPreview ? `<div style="font-size:.78rem;color:var(--warning);font-weight:800;margin-bottom:10px;line-height:1.5;">Preview mode shows only the first 5 rows. Return and start scraping for full export.</div>` : ''}
+                <div class="bs-section-title">${t.export}</div>
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                  <button class="bs-btn bs-btn-full" onclick="app.sendToBasira()"
+                    style="background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(14,165,233,.3);margin-bottom:4px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    ${this.isAR ? 'إرسال للمعالجة ←' : 'Send to Preprocessor →'}
+                  </button>
+                  ${this.renderExportCleanOptions()}
+                  <button class="bs-btn bs-btn-primary bs-btn-full" onclick="app.openExportPreview()">Export Preview</button>
+                  ${this.renderExportFormatControls()}
+                  <button class="bs-btn bs-btn-ghost bs-btn-full" onclick="app.setState({currentView:'home'})">${t.back}</button>
+                </div>
+              </div>
+            </aside>
+            
+            <main class="bs-results-main">
+              <div class="bs-search-row">
+                <input class="bs-input bs-input-sm" type="text" placeholder="${t.search}..." 
+                  value="${search}" oninput="app.setState({search:event.target.value})" 
+                  style="flex:1;">
+                <span class="bs-count-badge">${rows.length} / ${viewData.length}</span>
+              </div>
+              
+              <div class="bs-table-wrap">
+                <table class="bs-table">
+                  <thead>
+                    <tr>
+                      <th style="width:40px;">#</th>
+                      ${viewFields.map(f => `
+                        <th onclick="app.setState({sortCol:'${f.name}',sortDir:app.state.sortCol==='${f.name}'&&app.state.sortDir==='asc'?'desc':'asc'})">
+                          ${f.name}
+                        </th>
+                      `).join('')}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rows.length > 0 ? rows.map((row, i) => `
+                      <tr>
+                        <td style="color:var(--text-muted);font-family:var(--mono);font-size:.72rem;">${i + 1}</td>
+                        ${viewFields.map(f => {
+                          const val = row[f.name] || '';
+                          if (f.type === 'link') {
+                            return `<td><a href="${val}" target="_blank" style="color:var(--accent);text-decoration:none;word-break:break-all;">${val}</a></td>`;
+                          } else if (f.type === 'image') {
+                            return `<td>${val ? `<img src="${val}" style="max-width:100px;max-height:60px;border-radius:4px;">` : ''}</td>`;
+                          } else {
+                            return `<td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${val}</td>`;
+                          }
+                        }).join('')}
+                      </tr>
+                    `).join('') : `
+                      <tr><td colspan="${viewFields.length + 1}" class="bs-empty">${t.noResults}</td></tr>
+                    `}
+                  </tbody>
+                </table>
+              </div>
+            </main>
+          </div>
+        `;
+      }
+      
+      escapeHtml(value) {
+        return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      getPaginationPresetOptions() {
+        return [
+          {value: '', label: 'Auto detect'},
+          {value: 'a[rel="next"]', label: 'rel next link'},
+          {value: 'link[rel="next"]', label: 'header next link'},
+          {value: '.next a', label: '.next a'},
+          {value: 'li.next a', label: 'li.next a'},
+          {value: '.pagination .next a', label: '.pagination .next a'},
+          {value: '.pagination a.next', label: '.pagination a.next'},
+          {value: 'a.next', label: 'a.next'},
+          {value: 'a[aria-label*="Next" i]', label: 'aria-label contains Next'},
+          {value: 'a[title*="Next" i]', label: 'title contains Next'},
+          {value: '__custom__', label: 'Custom selector'}
+        ];
+      }
+
+      getPaginationPresetValue() {
+        const current = String(this.state.paginationSelector || '').trim();
+        const presetValues = this.getPaginationPresetOptions().filter(x => x.value !== '__custom__').map(x => x.value);
+        if (!current) return '';
+        return presetValues.includes(current) ? current : '__custom__';
+      }
+
+      handlePaginationPreset(value) {
+        if (value === '__custom__') {
+          this.setState({paginationSelector: this.state.paginationSelector || ''});
+          return;
+        }
+        this.setState({paginationSelector: value});
+      }
+
+      renderPaginationSelectorControl() {
+        const preset = this.getPaginationPresetValue();
+        const isCustom = preset === '__custom__';
+        const options = this.getPaginationPresetOptions().map(opt => `
+          <option value="${this.escapeHtml(opt.value)}" ${preset === opt.value ? 'selected' : ''}>${this.escapeHtml(opt.label)}</option>
+        `).join('');
+        return `
+          <div style="grid-column:1/-1;">
+            <label class="bs-section-title" for="quick-pagination-preset">Next Page</label>
+            <select id="quick-pagination-preset" name="quick-pagination-preset" class="bs-input" onchange="app.handlePaginationPreset(event.target.value)">
+              ${options}
+            </select>
+            ${isCustom ? `
+              <div style="margin-top:10px;">
+                <label class="bs-section-title" for="quick-pagination-selector">Custom Next Selector</label>
+                <input id="quick-pagination-selector" name="quick-pagination-selector" type="text" class="bs-input" placeholder="Example: .pager-next a" value="${this.escapeHtml(this.state.paginationSelector || '')}" oninput="app.setStateDraft('paginationSelector', event.target.value)">
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+
+      renderExportFormatControls() {
+        const isAR = this.isAR;
+        const hasResults = this.state.results && (
+          (this.state.results.data && this.state.results.data.length > 0) ||
+          (this.state.results.datasets && this.state.results.datasets.length > 0)
+        );
+        if (!hasResults) return '';
+        return `
+          <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="bs-btn bs-btn-primary" onclick="app.exportData('csv')" style="flex:1;min-width:90px;">
+                ${isAR ? 'تصدير CSV' : 'Export CSV'}
+              </button>
+              <button class="bs-btn" onclick="app.exportData('xlsx')" style="flex:1;min-width:90px;background:var(--surface-2,#f8fafc);color:var(--text);border:1.5px solid var(--border);border-radius:var(--r,12px);font-weight:700;cursor:pointer;">
+                ${isAR ? 'تصدير Excel' : 'Export Excel'}
+              </button>
+            </div>
+            <button onclick="app.sendToPreprocess()" style="width:100%;padding:10px 16px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border:none;border-radius:var(--r,12px);font-weight:700;font-size:.84rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+              ${isAR ? '⟶ إرسال إلى المعالجة المسبقة' : '⟶ Send to Preprocess'}
+            </button>
+          </div>
+        `;
+      }
+
+      async sendToPreprocess() {
+        const results = this.state.results;
+        if (!results) {
+          this.showToast(this.isAR ? 'لا توجد بيانات للإرسال.' : 'No data to send.', 'error');
+          return;
+        }
+        let fields, rows;
+        if (results.datasets && results.datasets.length > 0) {
+          fields = results.datasets[0].fields || [];
+          rows = results.datasets.flatMap(d => d.data || []);
+        } else {
+          fields = results.fields || [];
+          rows = results.data || [];
+        }
+        if (!rows.length) {
+          this.showToast(this.isAR ? 'لا توجد بيانات للإرسال.' : 'No data to send.', 'error');
+          return;
+        }
+        const headers = fields.map(f => f.name);
+        const csvLines = [headers.join(',')];
+        rows.forEach(row => {
+          csvLines.push(headers.map(h => {
+            const v = String(row[h] ?? '').replace(/"/g, '""');
+            return (v.includes(',') || v.includes('"') || v.indexOf('\n') >= 0) ? '"' + v + '"' : v;
+          }).join(','));
+        });
+        const csv = '\ufeff' + csvLines.join('\r\n');
+
+        this._showBridgeOverlay(this.isAR ? 'Bridge يُرسل البيانات إلى المعالجة المسبقة…' : 'Bridge sending data to Preprocessor…');
+        try {
+          const form = new FormData();
+          form.append('file', new Blob([csv], {type:'text/csv;charset=utf-8'}), 'basira_scrape.csv');
+          this._updateBridgeOverlay(this.isAR ? 'جاري رفع البيانات…' : 'Uploading data…', 35);
+          const res = await fetch('http://127.0.0.1:5050/upload-process', {method:'POST', body:form});
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          this._updateBridgeOverlay(this.isAR ? 'تمت المعالجة — جاري الانتقال…' : 'Processed — navigating…', 90);
+          try {
+            sessionStorage.setItem('basira_preprocess_result', JSON.stringify(data));
+            sessionStorage.setItem('basira_data_source', 'web_scraping');
+          } catch(e) {}
+          this._updateBridgeOverlay(this.isAR ? 'اكتمل النقل ✓' : 'Transfer complete ✓', 100);
+          setTimeout(() => { window.location.href = 'http://127.0.0.1:5050'; }, 700);
+        } catch(e) {
+          this._hideBridgeOverlay();
+          this.showToast(this.isAR ? 'فشل الإرسال. تأكد أن التطبيق يعمل وأعد المحاولة.' : 'Send failed. Make sure the app is running and try again.', 'error');
+        }
+      }
+
+      renderExportCleanOptions() {
+        const opts = this.state.exportCleanOptions || {};
+        const item = (key, label) => `
+          <label style="display:flex;align-items:center;gap:8px;font-size:.74rem;color:var(--text-dim);line-height:1.35;cursor:pointer;">
+            <input type="checkbox" ${opts[key] ? 'checked' : ''} onchange="app.toggleExportCleanOption('${key}')" style="accent-color:var(--accent);">
+            <span>${label}</span>
+          </label>
+        `;
+        return `
+          <div style="border:1px solid var(--border);background:var(--surface-2);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:7px;">
+            <div style="font-size:.72rem;font-weight:900;color:var(--text);margin-bottom:2px;">Before export</div>
+            ${item('trimSpaces', 'Trim spaces')}
+            ${item('removeDuplicates', 'Remove duplicates')}
+            ${item('removeEmptyRows', 'Remove empty rows')}
+            ${item('normalizePrices', 'Normalize prices')}
+            ${item('absoluteLinks', 'Convert relative links to absolute')}
+          </div>
+        `;
+      }
+
+      renderExportPreviewModal() {
+        const modal = this.state.exportPreviewModal;
+        if (!modal) return '';
+        const rows = modal.datasets ? modal.datasets.flatMap(d => d.data || []) : (modal.rows || []);
+        const fields = modal.fields || (modal.datasets && modal.datasets[0] ? modal.datasets[0].fields : []) || [];
+        const sampleRows = rows.slice(0, 20);
+        return `
+          <div class="bs-modal-backdrop">
+            <div class="bs-modal">
+              <div class="bs-modal-head">
+                <div>
+                  <div class="bs-modal-title">Export Preview</div>
+                  <div style="font-size:.78rem;color:var(--text-dim);margin-top:3px;">Rows after cleaning: ${modal.finalRows} of ${modal.originalRows}. Showing first ${sampleRows.length} rows.</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                  <select class="bs-input bs-input-sm" style="width:130px;" onchange="app.setState({exportFormat:event.target.value})">
+                    <option value="csv" ${(this.state.exportFormat || 'csv') === 'csv' ? 'selected' : ''}>CSV</option>
+                    <option value="xlsx" ${(this.state.exportFormat || 'csv') === 'xlsx' ? 'selected' : ''}>Excel</option>
+                    <option value="html" ${(this.state.exportFormat || 'csv') === 'html' ? 'selected' : ''}>HTML</option>
+                  </select>
+                  <button class="bs-btn bs-btn-primary" onclick="app.exportData(app.state.exportFormat || 'csv')" style="padding:8px 14px;">Download</button>
+                  <button class="bs-btn bs-btn-ghost" onclick="app.closeExportPreview()" style="padding:8px 14px;">Back</button>
+                </div>
+              </div>
+              <div class="bs-modal-body">
+                ${modal.datasets ? `<div class="bs-inline-note" style="margin-bottom:12px;">Multi-site export: CSV downloads as ZIP, XLSX downloads with one sheet per website.</div>` : ''}
+                <div class="bs-table-wrap">
+                  <table class="bs-table">
+                    <thead><tr><th style="width:46px;">#</th>${fields.map(f => `<th>${this.escapeHtml(f.name)}</th>`).join('')}</tr></thead>
+                    <tbody>
+                      ${sampleRows.length ? sampleRows.map((row, i) => `<tr><td>${i + 1}</td>${fields.map(f => `<td>${this.escapeHtml(row[f.name] ?? '')}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${fields.length + 1}" class="bs-empty">No rows after cleaning</td></tr>`}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      renderColumnEditorModal() {
+        const modal = this.state.columnEditorModal;
+        if (!modal) return '';
+        const fields = this.getColumnEditorFields();
+        const title = modal.mode === 'website'
+          ? ((this.ensureWebsites()[modal.siteIndex] && this.ensureWebsites()[modal.siteIndex].name) || ('Website ' + (modal.siteIndex + 1)))
+          : 'Current Website';
+        return `
+          <div class="bs-modal-backdrop">
+            <div class="bs-modal">
+              <div class="bs-modal-head">
+                <div>
+                  <div class="bs-modal-title">Edit Columns</div>
+                  <div style="font-size:.78rem;color:var(--text-dim);margin-top:3px;">${this.escapeHtml(title)}. Rename columns, review selectors, change type, or remove fields you do not need.</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.addColumnEditorField()" style="padding:8px 14px;">Add Column</button>
+                  <button type="button" class="bs-btn bs-btn-primary" onclick="app.previewFromColumnEditor()" style="padding:8px 14px;">Preview</button>
+                  <button type="button" class="bs-btn bs-btn-ghost" onclick="app.closeColumnEditor()" style="padding:8px 14px;">Back</button>
+                </div>
+              </div>
+              <div class="bs-modal-body">
+                <div class="bs-inline-note" style="margin-bottom:12px;">Columns with empty name or empty selector will not be used in scraping. Arabic column names and Arabic extracted text are supported.</div>
+                <div class="bs-table-wrap">
+                  <table class="bs-table">
+                    <thead>
+                      <tr>
+                        <th style="width:46px;">#</th>
+                        <th>Column Name</th>
+                        <th>CSS Selector</th>
+                        <th style="width:140px;">Type</th>
+                        <th style="width:80px;">Remove</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${(fields && fields.length ? fields : [{name:'', selector:'', type:'text'}]).map((field, i) => `
+                        <tr>
+                          <td>${i + 1}</td>
+                          <td><input class="bs-input bs-input-sm" value="${this.escapeHtml(field.name || '')}" placeholder="Column name" oninput="app.updateColumnEditorField(${i}, 'name', event.target.value)"></td>
+                          <td><input class="bs-input bs-input-sm" value="${this.escapeHtml(field.selector || '')}" placeholder="CSS selector" oninput="app.updateColumnEditorField(${i}, 'selector', event.target.value)"></td>
+                          <td>
+                            <select class="bs-input bs-input-sm" onchange="app.updateColumnEditorField(${i}, 'type', event.target.value, true)">
+                              <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                              <option value="link" ${field.type === 'link' ? 'selected' : ''}>Link</option>
+                              <option value="image" ${field.type === 'image' ? 'selected' : ''}>Image</option>
+                              <option value="price" ${field.type === 'price' ? 'selected' : ''}>Price</option>
+                            </select>
+                          </td>
+                          <td><button type="button" class="bs-field-remove" onclick="app.removeColumnEditorField(${i})">×</button></td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      renderPreviewModal() {
+        const modal = this.state.previewModal;
+        const loading = this.state.previewModalLoading;
+        if (!modal && !loading) return '';
+        if (loading) {
+          return `
+            <div class="bs-modal-backdrop">
+              <div class="bs-modal" style="max-width:520px;">
+                <div class="bs-modal-head">
+                  <div class="bs-modal-title">Preview</div>
+                  <button class="bs-btn bs-btn-ghost" onclick="app.closePreviewModal()" style="padding:7px 12px;">Back</button>
+                </div>
+                <div class="bs-modal-body" style="text-align:center;padding:42px 20px;">
+                  <div class="bs-spinner"></div>
+                  <div style="font-weight:900;margin-top:16px;">Loading preview...</div>
+                  <div style="color:var(--text-dim);font-size:.86rem;margin-top:6px;">Basira is reading the fields you selected.</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        const rows = modal.data || [];
+        const fields = modal.fields || [];
+        return `
+          <div class="bs-modal-backdrop">
+            <div class="bs-modal">
+              <div class="bs-modal-head">
+                <div>
+                  <div class="bs-modal-title">Preview</div>
+                  <div style="font-size:.78rem;color:var(--text-dim);margin-top:3px;">First ${rows.length} rows from the selected fields.</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button class="bs-btn bs-btn-primary" onclick="app.closePreviewModal(); app.startScrape(false);" style="padding:8px 14px;">Start Scraping</button>
+                  <button class="bs-btn bs-btn-ghost" onclick="app.closePreviewModal()" style="padding:8px 14px;">Back</button>
+                </div>
+              </div>
+              <div class="bs-modal-body">
+                <div class="bs-table-wrap">
+                  <table class="bs-table">
+                    <thead><tr><th style="width:46px;">#</th>${fields.map(f => `<th>${this.escapeHtml(f.name)}</th>`).join('')}</tr></thead>
+                    <tbody>
+                      ${rows.map((row, i) => `<tr><td>${i + 1}</td>${fields.map(f => `<td>${this.escapeHtml(row[f.name] ?? '')}</td>`).join('')}</tr>`).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      render() {
+        const {currentView} = this.state;
+        let html = '';
+        
+        if (currentView === 'home') html = this.renderHome();
+        else if (currentView === 'loading') html = this.renderLoading();
+        else if (currentView === 'results') html = this.renderResults();
+        
+        document.getElementById('app').innerHTML = html + this.renderColumnEditorModal() + this.renderPreviewModal() + this.renderExportPreviewModal();
+        this.fixFormAccessibility();
+      }
+
+      fixFormAccessibility() {
+        document.querySelectorAll('input, select, textarea').forEach((el, index) => {
+          if (!el.id) el.id = 'basira-field-' + index;
+          if (!el.name) el.name = el.id;
+          if (!el.getAttribute('aria-label')) {
+            const label = el.closest('div')?.querySelector('label')?.textContent?.trim();
+            el.setAttribute('aria-label', label || el.placeholder || el.name || 'form field');
+          }
+        });
+      }
+    }
+    
+    // Initialize app
+    let app;
+    document.addEventListener('DOMContentLoaded', () => {
+      app = new BasiraApp();
+      window.app = app;
+      // Sync lang/theme from Basira settings server
+      fetch('http://127.0.0.1:5001/api/settings', {cache: 'no-store'})
+        .then(r => r.json())
+        .then(d => {
+          if (d.status === 'ok' && app) {
+            const lang  = d.language || app.state.lang;
+            const theme = d.theme    || app.state.theme;
+            app.setState({lang, theme});
+            document.documentElement.setAttribute('lang', lang);
+            document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+            document.documentElement.setAttribute('data-theme', theme);
+            try { localStorage.setItem('basira_lang', lang); } catch(e) {}
+            try { localStorage.setItem('basira_theme', theme); } catch(e) {}
+          }
+        }).catch(() => {});
+      // Re-sync on tab focus
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState !== 'visible' || !app) return;
+        fetch('http://127.0.0.1:5001/api/settings', {cache: 'no-store'})
+          .then(r => r.json())
+          .then(d => {
+            if (d.status === 'ok') {
+              const lang  = d.language || app.state.lang;
+              const theme = d.theme    || app.state.theme;
+              app.setState({lang, theme});
+              document.documentElement.setAttribute('lang', lang);
+              document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+              document.documentElement.setAttribute('data-theme', theme);
+              try { localStorage.setItem('basira_lang', lang); } catch(e) {}
+              try { localStorage.setItem('basira_theme', theme); } catch(e) {}
+            }
+          }).catch(() => {});
+      });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<script>
+// Basira storage key migration: canonical chart-config key.
+(function(){try{if(!localStorage.getItem('basira_chart_configs')&&localStorage.getItem('basiraChartConfigs')){localStorage.setItem('basira_chart_configs',localStorage.getItem('basiraChartConfigs'));}localStorage.removeItem('basiraChartConfigs');}catch(e){}})();
+/* Basira Settings — reads from URL params first, then API fallback */
+(function(){
+  function _applyTheme(v){
+    if(!v) return;
+    document.documentElement.setAttribute("data-theme", v);
+    try{ localStorage.setItem("basira_theme", v); }catch(e){}
+  }
+  function _applyLang(lang){
+    if(!lang) return;
+    try{ localStorage.setItem("basira_lang", lang); }catch(e){}
+    document.documentElement.lang = lang;
+    document.documentElement.dir  = lang === "ar" ? "rtl" : "ltr";
+    if(typeof window._lang !== "undefined") window._lang = lang;
+    if(typeof applyPreprocessorI18n === "function") applyPreprocessorI18n();
+    if(typeof applyI18n === "function") applyI18n();
+  }
+
+  // 1. Read URL params immediately (synchronous — works on page open)
+  var params = new URLSearchParams(window.location.search);
+  var urlTheme = params.get("bs_theme");
+  var urlLang  = params.get("bs_lang");
+  if(urlTheme) _applyTheme(urlTheme);
+  if(urlLang)  _applyLang(urlLang);
+
+  // 2. On DOM ready — also call page i18n and fetch from API as sync check
+  document.addEventListener("DOMContentLoaded", function(){
+    // Apply again after DOM ready so i18n functions are available
+    var theme = urlTheme || localStorage.getItem("basira_theme") || "light";
+    var lang  = urlLang  || localStorage.getItem("basira_lang")  || "ar";
+    _applyTheme(theme);
+    _applyLang(lang);
+    if(typeof applyPreprocessorI18n === "function") applyPreprocessorI18n();
+    if(typeof applyI18n === "function") applyI18n();
+
+    // 3. Also fetch from bootstrap API as authoritative source
+    fetch("http://127.0.0.1:5001/api/settings", {cache:"no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.status === "ok"){
+          _applyTheme(d.theme);
+          _applyLang(d.language);
+          if(typeof applyPreprocessorI18n === "function") applyPreprocessorI18n();
+          if(typeof applyI18n === "function") applyI18n();
+        }
+      }).catch(function(){});
+  });
+
+  // 4. Re-check when user switches back to this tab
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState !== "visible") return;
+    fetch("http://127.0.0.1:5001/api/settings", {cache:"no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.status === "ok"){
+          _applyTheme(d.theme);
+          _applyLang(d.language);
+          if(typeof applyPreprocessorI18n === "function") applyPreprocessorI18n();
+          if(typeof applyI18n === "function") applyI18n();
+        }
+      }).catch(function(){});
+  });
+})();
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Basira — Chart Studio</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface-2:#f8fafc;
+  --surface-glass:rgba(255,255,255,.93);
+  --accent:#0ea5e9;--accent-2:#6366f1;
+  --accent-dim:rgba(14,165,233,.10);--accent-glow:rgba(14,165,233,.22);
+  --success:#22c55e;--warning:#f59e0b;--danger:#ef4444;--purple:#8b5cf6;
+  --text:#0f172a;--text-2:#334155;--text-dim:#64748b;--text-muted:#94a3b8;
+  --border:#e2e8f0;--border-2:#cbd5e1;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Plus Jakarta Sans',system-ui,sans-serif;
+  --nav-h:60px;
+  --r:12px;--r-lg:18px;--r-xl:24px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
+  --sh-md:0 4px 16px rgba(0,0,0,.09);
+  --sh-lg:0 12px 40px rgba(0,0,0,.12);
+  --tr:.18s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"] {
+  --bg:#080e1a;--surface:#111827;--surface-2:#1a2332;
+  --accent:#38bdf8;--accent-dim:rgba(56,189,248,0.10);
+  --text:#f1f5f9;--text-2:#e2e8f0;--text-dim:#94a3b8;--text-muted:#64748b;
+  --border:rgba(255,255,255,0.07);--border-2:rgba(255,255,255,0.13);
+  --shadow:0 1px 3px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.2);
+  --shadow-md:0 4px 20px rgba(0,0,0,.35);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;-webkit-font-smoothing:antialiased;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── Header ── */
+.hdr{
+  height:var(--nav-h);background:var(--surface-glass);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;box-shadow:var(--sh);gap:16px;
+}
+.brand{font-weight:800;color:var(--accent);font-size:1.2rem;font-family:var(--mono);}
+.brand-sub{font-weight:400;font-size:.78rem;color:var(--text-dim);margin-left:6px;}
+.hdr-actions{display:flex;align-items:center;gap:8px;}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:var(--r);font-family:var(--sans);font-weight:700;font-size:.82rem;cursor:pointer;border:1.5px solid transparent;transition:var(--tr);white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-success{background:var(--success);color:#fff;border-color:var(--success);}
+.btn-success:hover{filter:brightness(1.08);}
+.btn-ghost{background:var(--surface-2);border-color:var(--border-2);color:var(--text-dim);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.btn-danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:var(--danger);}
+.btn-danger:hover{background:var(--danger);color:#fff;border-color:var(--danger);}
+.btn-sm{padding:6px 12px;font-size:.75rem;}
+
+/* ── Main ── */
+.main{max-width:1400px;margin:0 auto;padding:24px 24px 56px;}
+
+/* ── Demo banner ── */
+.demo-banner{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:var(--r-lg);padding:14px 20px;margin-bottom:20px;display:none;}
+.demo-banner.active{display:flex;align-items:center;gap:12px;}
+.demo-banner-icon{font-size:1.3rem;flex-shrink:0;}
+.demo-banner-text{font-size:.84rem;color:var(--text-2);line-height:1.5;}
+.demo-banner-text strong{color:var(--warning);}
+
+/* ── PDF modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;animation:fadeIn .18s ease;}
+.modal-overlay.hidden{display:none;}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:32px 28px 24px;max-width:440px;width:100%;box-shadow:var(--sh-lg);}
+.modal-title{font-size:1rem;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.modal-field{margin-bottom:14px;}
+.modal-label{font-size:.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block;}
+.modal-input,.modal-select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-family:var(--sans);font-size:.86rem;color:var(--text);background:var(--surface);transition:var(--tr);}
+.modal-input:focus,.modal-select:focus{outline:none;border-color:var(--accent);}
+.modal-row{display:flex;gap:10px;margin-bottom:14px;}
+.modal-row .modal-field{flex:1;margin-bottom:0;}
+.wm-preview{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:18px;text-align:center;margin-bottom:14px;font-size:.82rem;color:var(--text-dim);min-height:60px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.wm-preview-text{position:absolute;font-size:1.4rem;font-weight:800;opacity:.18;transform:rotate(-25deg);color:var(--text);letter-spacing:1px;white-space:nowrap;}
+.modal-actions{display:flex;gap:10px;margin-top:20px;}
+.modal-check{display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--text-2);cursor:pointer;}
+.modal-check input{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);}
+
+/* ── Charts grid ── */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:20px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;box-shadow:var(--sh);transition:var(--tr);}
+.chart-card:hover{border-color:var(--border-2);box-shadow:var(--sh-md);}
+
+.chart-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;}
+.chart-title-input{
+  font-size:.95rem;font-weight:700;color:var(--text);background:transparent;
+  border:none;border-bottom:2px solid transparent;padding:4px 0;flex:1;
+  font-family:var(--sans);transition:var(--tr);
+}
+.chart-title-input:focus{outline:none;border-bottom-color:var(--accent);}
+.chart-actions{display:flex;gap:6px;flex-shrink:0;}
+
+.chart-canvas-wrap{height:300px;margin:14px 0;position:relative;}
+.chart-canvas-wrap canvas{width:100%!important;height:100%!important;}
+
+/* ── Control panel ── */
+.ctrl-panel{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.ctrl-row{display:flex;align-items:center;gap:12px;margin-bottom:11px;}
+.ctrl-row:last-child{margin-bottom:0;}
+.ctrl-lbl{font-size:.72rem;font-weight:800;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;min-width:120px;}
+.ctrl-select{flex:1;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);font-family:var(--sans);font-size:.82rem;color:var(--text);transition:var(--tr);}
+.ctrl-select:focus{outline:none;border-color:var(--accent);}
+
+/* toggle */
+.toggle-track{position:relative;width:42px;height:22px;background:var(--border-2);border-radius:11px;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle-track.on{background:var(--accent);}
+.toggle-knob{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle-track.on .toggle-knob{transform:translateX(20px);}
+
+/* color dots preview */
+.scheme-dots{display:flex;gap:4px;align-items:center;}
+.scheme-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(0,0,0,.08);}
+
+/* ── Fallback ── */
+.fallback-msg{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-dim);font-size:.84rem;padding:20px;text-align:center;}
+
+/* ── Empty state ── */
+.empty-state{text-align:center;padding:72px 20px;color:var(--text-dim);}
+.empty-state-icon{font-size:3rem;margin-bottom:14px;opacity:.4;}
+.empty-state-title{font-size:1.1rem;font-weight:700;margin-bottom:8px;color:var(--text-2);}
+.empty-state-text{font-size:.86rem;line-height:1.65;}
+
+/* ── Slab header ── */
+.slbl{font-size:.67rem;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── Toast ── */
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:11px 20px;border-radius:var(--r);background:var(--surface);border-left:4px solid var(--accent);box-shadow:var(--sh-lg);display:none;z-index:9999;font-size:.84rem;font-weight:600;max-width:360px;width:max-content;color:var(--text);}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── Deleted card state — stays visible, greyed out ── */
+.chart-card.deleted {
+  opacity:.45;
+  filter:grayscale(.75);
+  border:2px dashed rgba(239,68,68,.5)!important;
+  background:rgba(239,68,68,.02);
+}
+.chart-card.deleted .ctrl-panel,
+.chart-card.deleted .chart-canvas-wrap,
+.chart-card.deleted .chart-actions { pointer-events:none; }
+.deleted-ribbon {
+  display:none;
+  background:rgba(239,68,68,.07);
+  border:1px solid rgba(239,68,68,.25);
+  border-radius:8px;
+  padding:9px 14px;
+  margin-bottom:10px;
+  align-items:center;
+  gap:10px;
+  font-size:.78rem;
+  color:#b91c1c;
+  font-weight:700;
+  pointer-events:all !important;
+}
+.chart-card.deleted .deleted-ribbon { display:flex; }
+.restore-btn {
+  margin-left:auto;
+  padding:5px 14px;
+  border-radius:7px;
+  border:1.5px solid var(--success);
+  background:rgba(34,197,94,.1);
+  color:var(--success);
+  font-size:.75rem;
+  font-weight:800;
+  cursor:pointer;
+  font-family:var(--sans);
+  transition:background .15s,color .15s;
+  white-space:nowrap;
+}
+.restore-btn:hover { background:var(--success); color:#fff; }
+
+/* ── Confirm popup modal ── */
+.confirm-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(4px);display:flex;align-items:center;
+  justify-content:center;z-index:9999;padding:20px;
+  animation:fadeIn .15s ease;
+}
+.confirm-overlay.hidden{display:none;}
+.confirm-box {
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);padding:32px 28px 24px;
+  max-width:380px;width:100%;box-shadow:var(--sh-lg);text-align:center;
+}
+.confirm-icon { font-size:2rem; margin-bottom:12px; }
+.confirm-title { font-size:1rem; font-weight:800; margin-bottom:7px; color:var(--text); }
+.confirm-desc  { font-size:.84rem; color:var(--text-dim); line-height:1.6; margin-bottom:20px; }
+.confirm-actions { display:flex; gap:10px; }
+.confirm-btn { flex:1; padding:10px 16px; border-radius:var(--r); font-weight:700; font-size:.86rem; cursor:pointer; font-family:var(--sans); transition:var(--tr); border:1.5px solid; }
+.confirm-cancel  { background:var(--surface-2); border-color:var(--border); color:var(--text-dim); }
+.confirm-cancel:hover  { border-color:var(--border-2); color:var(--text); }
+.confirm-ok     { background:var(--danger); color:#fff; border-color:var(--danger); }
+.confirm-ok:hover { filter:brightness(1.08); }
+.confirm-ok.safe { background:var(--accent); border-color:var(--accent); }
+.confirm-ok.safe:hover { filter:brightness(1.08); }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- PDF Modal -->
+<div class="modal-overlay hidden" id="pdf-modal">
+  <div class="modal-box">
+    <div class="modal-title">📄 Export as PDF</div>
+
+    <div class="modal-field">
+      <label class="modal-label">Report Title</label>
+      <input class="modal-input" id="pdf-title" value="Basira Analysis Report" placeholder="Report title"/>
+    </div>
+
+    <div class="modal-row">
+      <div class="modal-field">
+        <label class="modal-label">Page Size</label>
+        <select class="modal-select" id="pdf-size">
+          <option value="a4">A4</option>
+          <option value="letter">Letter</option>
+          <option value="a3">A3</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Orientation</label>
+        <select class="modal-select" id="pdf-orient">
+          <option value="landscape">Landscape</option>
+          <option value="portrait">Portrait</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label">Watermark</label>
+      <div class="wm-preview" id="wm-preview">
+        <span class="wm-preview-text" id="wm-preview-text">Basira</span>
+        <span style="position:relative;z-index:1;font-size:.78rem;">Watermark preview</span>
+      </div>
+      <label class="modal-check" style="margin-bottom:8px;">
+        <input type="checkbox" id="wm-enable" checked onchange="toggleWatermark()"/>
+        Enable watermark
+      </label>
+      <input class="modal-input" id="wm-text" value="Basira" placeholder="Watermark text" oninput="updateWmPreview()" style="margin-bottom:6px;"/>
+      <select class="modal-select" id="wm-pos" onchange="updateWmPreview()">
+        <option value="center">Center</option>
+        <option value="diagonal">Diagonal (repeated)</option>
+        <option value="corner">Bottom-right corner</option>
+      </select>
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-check">
+        <input type="checkbox" id="pdf-include-meta" checked/>
+        Include analysis metadata header
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1;" onclick="closePdfModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="generatePDF()">⬇️ Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Popup -->
+<div class="confirm-overlay hidden" id="confirm-modal">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-desc"  id="confirm-desc">This action cannot be undone.</div>
+    <div class="confirm-actions">
+      <button class="confirm-btn confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-btn confirm-ok" id="confirm-ok-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="hdr">
+  <div>
+    <span class="brand">Basira</span>
+    <span class="brand-sub">Chart Studio</span>
+  </div>
+  <div class="hdr-actions">
+    <button class="btn btn-ghost btn-sm" onclick="resetChanges()">↺ Reset</button>
+    <button class="btn btn-ghost btn-sm" onclick="openPdfModal()">📄 Export PDF</button>
+    <button class="btn btn-success btn-sm" onclick="saveAndSync()">✓ Save &amp; Sync</button>
+    <button class="btn btn-ghost btn-sm" onclick="window.close()">✕ Close</button>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Demo banner -->
+  <div class="demo-banner" id="demo-banner">
+    <div class="demo-banner-icon">⚠️</div>
+    <div class="demo-banner-text"><strong>Demo Mode —</strong> No analysis data found. Run an analysis in the main app first to edit real charts.</div>
+  </div>
+
+  <div class="slbl" id="charts-label">Charts</div>
+  <div id="charts-grid" class="charts-grid"></div>
+  <div id="empty-state" class="empty-state" style="display:none;">
+    <div class="empty-state-icon">📊</div>
+    <div class="empty-state-title">No Charts Available</div>
+    <div class="empty-state-text">Run an analysis in the main app, then return here to customize your charts.</div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────
+let charts        = {};
+let chartConfigs  = {};
+let analysisData  = null;
+let isDemoMode    = false;
+let hasUnsaved    = false;
+
+// ── Color schemes (rich, multi-color) ─────────────────────────
+const COLOR_SCHEMES = {
+  'Basira Blue': {
+    bg: ['rgba(14,165,233,.80)','rgba(14,165,233,.65)','rgba(14,165,233,.50)','rgba(14,165,233,.40)','rgba(14,165,233,.32)','rgba(14,165,233,.25)'],
+    border:'#0ea5e9', dots:['#0ea5e9','#38bdf8','#7dd3fc','#bae6fd','#e0f2fe','#f0f9ff'],
+  },
+  'Indigo Purple': {
+    bg: ['rgba(99,102,241,.82)','rgba(139,92,246,.75)','rgba(167,139,250,.65)','rgba(196,181,253,.55)','rgba(221,214,254,.45)','rgba(237,233,254,.35)'],
+    border:'#6366f1', dots:['#6366f1','#8b5cf6','#a78bfa','#c4b5fd','#ddd6fe','#ede9fe'],
+  },
+  'Emerald Green': {
+    bg: ['rgba(16,185,129,.80)','rgba(34,197,94,.70)','rgba(74,222,128,.60)','rgba(134,239,172,.50)','rgba(187,247,208,.40)','rgba(220,252,231,.30)'],
+    border:'#10b981', dots:['#10b981','#22c55e','#4ade80','#86efac','#bbf7d0','#dcfce7'],
+  },
+  'Amber Orange': {
+    bg: ['rgba(245,158,11,.82)','rgba(251,191,36,.72)','rgba(252,211,77,.62)','rgba(253,230,138,.52)','rgba(254,243,199,.42)','rgba(255,251,235,.32)'],
+    border:'#f59e0b', dots:['#f59e0b','#fbbf24','#fcd34d','#fde68a','#fef3c7','#fffbeb'],
+  },
+  'Rose Pink': {
+    bg: ['rgba(244,63,94,.80)','rgba(251,113,133,.70)','rgba(253,164,175,.60)','rgba(254,205,211,.50)','rgba(255,228,230,.40)','rgba(255,241,242,.30)'],
+    border:'#f43f5e', dots:['#f43f5e','#fb7185','#fda4af','#fecdd3','#ffe4e6','#fff1f2'],
+  },
+  'Multi Vivid': {
+    bg: ['rgba(14,165,233,.82)','rgba(139,92,246,.82)','rgba(16,185,129,.82)','rgba(245,158,11,.82)','rgba(244,63,94,.82)','rgba(99,102,241,.82)','rgba(20,184,166,.82)','rgba(234,179,8,.82)'],
+    border:'#0ea5e9', dots:['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#f43f5e','#6366f1','#14b8a6','#eab308'],
+  },
+  'Teal Cyan': {
+    bg: ['rgba(20,184,166,.80)','rgba(6,182,212,.72)','rgba(34,211,238,.62)','rgba(103,232,249,.52)','rgba(165,243,252,.42)','rgba(207,250,254,.32)'],
+    border:'#14b8a6', dots:['#14b8a6','#06b6d4','#22d3ee','#67e8f9','#a5f3fc','#cffafe'],
+  },
+  'Sunset Warm': {
+    bg: ['rgba(239,68,68,.80)','rgba(249,115,22,.75)','rgba(245,158,11,.70)','rgba(234,179,8,.65)','rgba(163,230,53,.55)','rgba(34,197,94,.45)'],
+    border:'#ef4444', dots:['#ef4444','#f97316','#f59e0b','#eab308','#a3e635','#22c55e'],
+  },
+};
+
+const CHART_TYPES = ['bar','horizontalBar','line','radar','doughnut','polarArea','pie','scatter'];
+
+const DEMO_DATA = {
+  xai_report:[
+    {feature:'Unit_Cost',impact:35.2},{feature:'Sales_Amount',impact:28.5},
+    {feature:'Quantity',impact:18.3},{feature:'Discount_Rate',impact:12.1},{feature:'Segment',impact:5.9},
+  ],
+  target_column:'Profit',
+};
+
+// ── Normalizers ───────────────────────────────────────────────
+function normFI(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(f => {
+    if (!f||typeof f!=='object') return null;
+    const val=parseFloat(f.impact_pct??f.impact??f.importance??0)||0;
+    return {feature:String(f.feature||f.name||'?'),impact:val,impact_pct:val,importance:val};
+  }).filter(Boolean);
+}
+
+function extractFI(data) {
+  if (!data) return [];
+  if (data.dashboard_payload&&Array.isArray(data.dashboard_payload.feature_importance)) return normFI(data.dashboard_payload.feature_importance);
+  if (Array.isArray(data.feature_importance)) return normFI(data.feature_importance);
+  if (Array.isArray(data.xai_report)) return normFI(data.xai_report);
+  return [];
+}
+
+function extractRecs(data) {
+  if (!data) return [];
+  if (data.dashboard_payload&&Array.isArray(data.dashboard_payload.chart_recommendations)) return data.dashboard_payload.chart_recommendations;
+  if (Array.isArray(data.chart_recommendations)) return data.chart_recommendations;
+  return [];
+}
+
+// ── Init ──────────────────────────────────────────────────────
+function init() {
+  const keys = ['basiraCurrentData','basira_analysis_result'];
+  let loaded = false;
+  for (const key of keys) {
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed&&typeof parsed==='object') { analysisData=parsed; isDemoMode=false; loaded=true; break; }
+    } catch(e) {}
+  }
+  if (!loaded) { isDemoMode=true; analysisData=DEMO_DATA; document.getElementById('demo-banner').classList.add('active'); }
+
+  const recs = extractRecs(analysisData);
+  if (recs.length>0) createCards(recs, analysisData);
+  else {
+    const fi = extractFI(analysisData);
+    if (fi.length>0) createCards(buildSyntheticRecs(fi), analysisData);
+    else if (isDemoMode) createCards(buildSyntheticRecs(extractFI(DEMO_DATA)), DEMO_DATA);
+    else showEmpty();
+  }
+  const count = Object.keys(chartConfigs).length;
+  document.getElementById('charts-label').childNodes[0].textContent = `Charts (${count})`;
+
+  // restore deleted state from localStorage (always, even demo mode)
+  {
+    _getDeletedIds().forEach(id => {
+      const card = document.getElementById(`card-${id}`);
+      if (!card || card.classList.contains('deleted')) return;
+      if (!card.querySelector('.deleted-ribbon')) {
+        const ribbon = document.createElement('div');
+        ribbon.className = 'deleted-ribbon';
+        ribbon.innerHTML = `<span>🗑️ Marked for deletion</span><button class="restore-btn" onclick="restoreChart('${id}')">↺ Restore</button>`;
+        card.insertBefore(ribbon, card.firstChild);
+      }
+      card.classList.add('deleted');
+    });
+  }
+}
+
+function showEmpty() { document.getElementById('empty-state').style.display='block'; }
+
+function buildSyntheticRecs(fi) {
+  const feats=fi.map(f=>f.feature), vals=fi.map(f=>f.impact);
+  const baseColors = COLOR_SCHEMES['Multi Vivid'].bg;
+  return [
+    { id:'impact_bar', type:'horizontalBar', title:'Feature Impact Ranking', reason:'Sorted by predictive importance',
+      labels:feats, datasets:[{label:'Impact %',data:vals,backgroundColor:feats.map((_,i)=>baseColors[i%baseColors.length]),borderColor:COLOR_SCHEMES['Multi Vivid'].border,borderWidth:1,borderRadius:4}] },
+    { id:'weight_donut', type:'doughnut', title:'Decision Weight Allocation', reason:'Signal distribution across features',
+      labels:feats.slice(0,6), datasets:[{label:'Weight',data:vals.slice(0,6),backgroundColor:COLOR_SCHEMES['Multi Vivid'].bg.slice(0,6),borderColor:'#fff',borderWidth:2}] },
+    { id:'impact_line', type:'line', title:'Impact Decay Curve', reason:'How importance drops across ranked features',
+      labels:feats, datasets:[{label:'Impact %',data:vals,backgroundColor:'rgba(14,165,233,.12)',borderColor:'#0ea5e9',borderWidth:2.5,fill:true,tension:.4,pointBackgroundColor:'#0ea5e9',pointRadius:5}] },
+  ];
+}
+
+// ── Card creation ─────────────────────────────────────────────
+function createCards(recs, data) {
+  const grid = document.getElementById('charts-grid'); grid.innerHTML='';
+  // track original ids for deleted detection
+  window._originalChartIds = {};
+  recs.forEach((rec,idx) => {
+    const id = `chart-${idx}`;
+    window._originalChartIds[id] = true;
+    const card = document.createElement('div'); card.className='chart-card'; card.id=`card-${id}`;
+    const scheme = Object.keys(COLOR_SCHEMES)[idx % Object.keys(COLOR_SCHEMES).length];
+    card.innerHTML = `
+      <div class="chart-card-header">
+        <input class="chart-title-input" id="title-${id}" value="${esc(rec.title||'Chart')}" onchange="markChanged();updateChart('${id}')"/>
+        <div class="chart-actions">
+          <button class="btn btn-ghost btn-sm" onclick="downloadChartPng('${id}')">⬇ PNG</button>
+          <button class="btn btn-danger btn-sm" onclick="removeChart('${id}')">✕</button>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="${id}"></canvas></div>
+      <div class="ctrl-panel">
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Chart Type</span>
+          <select class="ctrl-select" id="type-${id}" onchange="markChanged();updateChart('${id}')">
+            ${CHART_TYPES.map(t=>`<option value="${t}"${t===(rec.type||'bar')?' selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Color Scheme</span>
+          <select class="ctrl-select" id="color-${id}" onchange="markChanged();updateChart('${id}')">
+            ${Object.keys(COLOR_SCHEMES).map((s,i)=>`<option value="${s}"${s===scheme?' selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Legend</span>
+          <div class="toggle-track" id="legend-${id}" onclick="tog('legend-${id}');markChanged();updateChart('${id}')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Animation</span>
+          <div class="toggle-track on" id="anim-${id}" onclick="tog('anim-${id}');markChanged();updateChart('${id}')"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-lbl">Border Radius</span>
+          <select class="ctrl-select" id="radius-${id}" onchange="markChanged();updateChart('${id}')">
+            <option value="0">None</option><option value="4" selected>Small</option><option value="8">Medium</option><option value="16">Large</option>
+          </select>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+    chartConfigs[id] = { recommendation:rec, data };
+    setTimeout(()=>updateChart(id), 80+idx*60);
+  });
+}
+
+// ── Update chart ──────────────────────────────────────────────
+function updateChart(id) {
+  const get = s => document.getElementById(`${s}-${id}`);
+  const typeEl=get('type'), colorEl=get('color'), legendEl=get('legend'), animEl=get('anim'), radiusEl=get('radius');
+  if (!typeEl||!colorEl||!legendEl||!animEl) return;
+
+  const type   = typeEl.value;
+  const scheme = colorEl.value;
+  const legend = legendEl.classList.contains('on');
+  const anim   = animEl.classList.contains('on');
+  const radius = parseInt(radiusEl?.value||4);
+  const cfg    = chartConfigs[id]; if (!cfg) return;
+  const rec    = cfg.recommendation, data=cfg.data;
+  const colors = COLOR_SCHEMES[scheme]||COLOR_SCHEMES['Multi Vivid'];
+  const dsrc   = rec.chartData||rec.data_source||'impact';
+
+  let chartData = null;
+
+  if (rec.labels&&rec.datasets) {
+    // Recolour embedded datasets
+    chartData = { labels:rec.labels, datasets: rec.datasets.map((ds,i) => {
+      const n=(ds.data||[]).length;
+      const bg = n>1 ? Array.from({length:n},(_,j)=>colors.bg[j%colors.bg.length]) : colors.bg[0];
+      return {...ds, backgroundColor:bg, borderColor:colors.border, borderRadius:radius};
+    })};
+  } else {
+    const fi = extractFI(data);
+    if (fi.length>0) {
+      const feats=fi.map(f=>f.feature), vals=fi.map(f=>f.impact);
+      const bg = feats.map((_,i)=>colors.bg[i%colors.bg.length]);
+      if (dsrc==='cumulative') {
+        let s=0; const cum=vals.map(v=>{s+=v;return parseFloat(s.toFixed(2));});
+        chartData={labels:feats,datasets:[{label:'Cumulative %',data:cum,backgroundColor:colors.bg[0],borderColor:colors.border,borderWidth:2,fill:type==='line',tension:.4,borderRadius:radius}]};
+      } else {
+        chartData={labels:feats,datasets:[{label:'Impact %',data:vals,backgroundColor:bg,borderColor:colors.border,borderWidth:1.5,borderRadius:radius}]};
+      }
+    }
+  }
+
+  if (!chartData||!chartData.datasets||chartData.datasets.length===0) { renderFallback(id); return; }
+  if (charts[id]) { try{charts[id].destroy();}catch(e){} }
+  const canvas = document.getElementById(id); if (!canvas) return;
+  const chartType = type==='horizontalBar'?'bar':type;
+  const isHoriz   = type==='horizontalBar';
+  const noScales  = ['pie','doughnut','radar','polarArea'].includes(chartType);
+
+  try {
+    charts[id] = new Chart(canvas, {
+      type: chartType,
+      data: chartData,
+      options: {
+        indexAxis: isHoriz?'y':'x',
+        responsive:true, maintainAspectRatio:false,
+        animation:{duration:anim?700:0},
+        plugins:{
+          legend:{display:legend,labels:{color:'#334155',font:{family:'Plus Jakarta Sans',size:12}}},
+          tooltip:{backgroundColor:'rgba(255,255,255,.97)',titleColor:'#0f172a',bodyColor:'#334155',borderColor:'#e2e8f0',borderWidth:1,padding:10,titleFont:{weight:'700'},cornerRadius:8},
+        },
+        scales: noScales?{}:{
+          x:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'rgba(226,232,240,.6)'}},
+          y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'rgba(226,232,240,.6)'}},
+        },
+      }
+    });
+  } catch(e) { renderFallback(id); }
+}
+
+function renderFallback(id) {
+  if(charts[id]){try{charts[id].destroy();delete charts[id];}catch(e){}}
+  const canvas=document.getElementById(id); if(!canvas||!canvas.parentElement) return;
+  canvas.style.display='none';
+  if(!canvas.parentElement.querySelector('.fallback-msg')) {
+    const m=document.createElement('div'); m.className='fallback-msg';
+    m.textContent='⚠️ Chart data not available for this type.';
+    canvas.parentElement.appendChild(m);
+  }
+}
+
+// ── Controls ──────────────────────────────────────────────────
+function tog(id) { document.getElementById(id).classList.toggle('on'); }
+
+// ── Deleted state persistence ────────────────────────────────
+function _saveDeletedState(id, isDeleted) {
+  try {
+    const list = JSON.parse(localStorage.getItem('basiraDeletedCharts')||'[]');
+    const updated = isDeleted ? [...new Set([...list, id])] : list.filter(x=>x!==id);
+    localStorage.setItem('basiraDeletedCharts', JSON.stringify(updated));
+    } catch(e) { }
+}
+
+function _getDeletedIds() {
+  try { return JSON.parse(localStorage.getItem('basiraDeletedCharts')||'[]'); } catch(e) { return []; }
+}
+
+// ── Confirm popup helpers ────────────────────────────────────
+let _confirmCb = null;
+function showConfirm(icon, title, desc, okLabel, okClass, cb) {
+  document.getElementById('confirm-icon').textContent  = icon;
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-desc').textContent  = desc;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.textContent = okLabel;
+  btn.className   = 'confirm-btn confirm-ok ' + (okClass||'');
+  _confirmCb = cb;
+  document.getElementById('confirm-modal').classList.remove('hidden');
+}
+function closeConfirm() { document.getElementById('confirm-modal').classList.add('hidden'); _confirmCb=null; }
+function doConfirm()    { const fn=_confirmCb; closeConfirm(); if(fn) fn(); }
+// wire ok button
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('confirm-ok-btn').addEventListener('click', doConfirm);
+  const savedTheme = localStorage.getItem('basira_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const savedLang = localStorage.getItem('basira_lang') || 'ar';
+  document.documentElement.lang = savedLang;
+  document.documentElement.dir  = savedLang === 'ar' ? 'rtl' : 'ltr';
+});
+
+
+// ── Remove = mark as deleted (greyed, stays visible, restorable) ──
+function removeChart(id) {
+  const card = document.getElementById(`card-${id}`);
+  if (!card || card.classList.contains('deleted')) return;
+
+  // add deleted ribbon first (before greying, so it's clickable)
+  if (!card.querySelector('.deleted-ribbon')) {
+    const ribbon = document.createElement('div');
+    ribbon.className = 'deleted-ribbon';
+    ribbon.innerHTML = `<span>🗑️ Marked for deletion</span><button class="restore-btn" onclick="restoreChart('${id}')">↺ Restore</button>`;
+    card.insertBefore(ribbon, card.firstChild);
+  }
+  // grey out
+  card.classList.add('deleted');
+
+  markChanged();
+  // persist so it survives re-open
+  _saveDeletedState(id, true);
+  toast('Chart marked for deletion — restore or save to apply');
+}
+
+function restoreChart(id) {
+  const card = document.getElementById(`card-${id}`);
+  if (!card) return;
+  card.classList.remove('deleted');
+  const ribbon = card.querySelector('.deleted-ribbon');
+  if (ribbon) ribbon.remove();
+  _saveDeletedState(id, false);
+
+  // tell analysis engine to restore this chart immediately
+  if (window.opener && !window.opener.closed) {
+    try {
+      if (typeof window.opener.restoreChartFromStudio === 'function') {
+        window.opener.restoreChartFromStudio(id);
+      } else {
+        window.opener.postMessage({ type:'basira_chart_restore', id }, '*');
+      }
+    } catch(e) {
+      try { window.opener.postMessage({ type:'basira_chart_restore', id }, '*'); } catch(e2){}
+    }
+  }
+
+  markChanged();
+  toast('Chart restored');
+}
+
+function downloadChartPng(id) {
+  const canvas=document.getElementById(id); if(!canvas) return;
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png'); a.download=`chart_${id}.png`; a.click();
+  toast('PNG downloaded');
+}
+
+function markChanged(){hasUnsaved=true;}
+
+function resetChanges() {
+  showConfirm('↺','Reset All Changes?','All edits and deletions will be discarded and charts will reload from the original analysis data.','Reset','safe',()=>{
+    hasUnsaved=false;
+    Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});
+    charts={}; chartConfigs={}; init(); toast('Reset complete');
+  });
+}
+
+// ── Save & Sync ───────────────────────────────────────────────
+function saveAndSync() {
+  if(isDemoMode){toast('Demo mode — run a real analysis first.');return;}
+  const updated={};
+  Object.keys(chartConfigs).forEach(id=>{
+    // skip deleted cards
+    const cardEl = document.getElementById(`card-${id}`);
+    if (cardEl && cardEl.classList.contains('deleted')) return;
+    const get=s=>document.getElementById(`${s}-${id}`);
+    const t=get('title'),ty=get('type'),c=get('color'),l=get('legend'),a=get('anim');
+    if(t&&ty&&c&&l&&a) {
+      updated[id]={
+        title:t.value, type:ty.value, colorScheme:c.value,
+        showLegend:l.classList.contains('on'),
+        animation:a.classList.contains('on'),
+        originalRecommendation:chartConfigs[id].recommendation,
+      };
+    }
+  });
+  try {
+    localStorage.setItem('basira_chart_configs',JSON.stringify(updated));
+    localStorage.setItem('basira_chart_configs',JSON.stringify(updated));
+  } catch(e){}
+
+  // collect deleted chart ids (cards with .deleted class)
+  const deletedIds = [];
+  document.querySelectorAll('.chart-card.deleted').forEach(card=>{
+    const id = card.id.replace('card-',''); // card id = card-chart-0 → chart-0... wait
+    // card id from createCards is `card-${id}` where id = `chart-${idx}`
+    // so card.id = `card-chart-0`, strip `card-` → `chart-0`
+    if(id) deletedIds.push(id);
+  });
+
+  // notify opener via postMessage (works even with cross-origin restrictions)
+  const msg = { type:'basira_chart_sync', updated, deletedIds };
+  if(window.opener&&!window.opener.closed) {
+    try {
+      // try direct call first (same origin)
+      if(typeof window.opener.updateChartsFromManagement==='function') {
+        window.opener.updateChartsFromManagement(updated, deletedIds);
+      } else {
+        window.opener.postMessage(msg, '*');
+      }
+    } catch(e) {
+      // fallback to postMessage
+      try { window.opener.postMessage(msg, '*'); } catch(e2){}
+    }
+  }
+  hasUnsaved=false;
+  // keep basiraDeletedCharts in localStorage so re-opening shows deleted state
+  // it only clears when a new analysis is run
+  showSyncSuccess();
+}
+
+function showSyncSuccess() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(255,255,255,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;gap:16px;animation:fadeIn .2s ease;font-family:var(--sans)';
+  overlay.innerHTML=`
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(34,197,94,.12);display:flex;align-items:center;justify-content:center;font-size:1.8rem;">✓</div>
+    <div style="font-size:1.1rem;font-weight:800;color:#0f172a;">Saved & Synced</div>
+    <div style="font-size:.85rem;color:#64748b;">Charts updated in main page</div>
+    <div style="font-size:.78rem;color:#94a3b8;">Closing in 1.5s…</div>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(()=>window.close(), 1500);
+}
+
+// ── PDF Export ────────────────────────────────────────────────
+function openPdfModal() { document.getElementById('pdf-modal').classList.remove('hidden'); updateWmPreview(); }
+function closePdfModal(){ document.getElementById('pdf-modal').classList.add('hidden'); }
+
+function toggleWatermark() {
+  const on=document.getElementById('wm-enable').checked;
+  document.getElementById('wm-text').disabled=!on;
+  document.getElementById('wm-pos').disabled=!on;
+  document.getElementById('wm-preview-text').style.opacity=on?'.18':'0';
+}
+
+function updateWmPreview() {
+  const txt=document.getElementById('wm-text').value||'Basira';
+  document.getElementById('wm-preview-text').textContent=txt;
+}
+
+function generatePDF() {
+  const title     = document.getElementById('pdf-title').value||'Basira Analysis Report';
+  const size      = document.getElementById('pdf-size').value;
+  const orient    = document.getElementById('pdf-orient').value;
+  const wmEnable  = document.getElementById('wm-enable').checked;
+  const wmText    = document.getElementById('wm-text').value||'Basira';
+  const wmPos     = document.getElementById('wm-pos').value;
+  const inclMeta  = document.getElementById('pdf-include-meta').checked;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:orient, unit:'mm', format:size });
+
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  let y = margin;
+
+  // ── Watermark function ──
+  function drawWatermark() {
+    if (!wmEnable||!wmText.trim()) return;
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({opacity:0.07}));
+    doc.setFont('helvetica','bold');
+    if (wmPos==='diagonal') {
+      doc.setFontSize(28);
+      const step=40;
+      for (let px=-20;px<W+40;px+=step+20) {
+        for (let py=0;py<H+40;py+=step) {
+          doc.text(wmText,px,py,{angle:25});
+        }
+      }
+    } else if (wmPos==='corner') {
+      doc.setFontSize(14);
+      doc.text(wmText, W-margin, H-10, {align:'right'});
+    } else {
+      // center
+      doc.setFontSize(40);
+      doc.text(wmText, W/2, H/2, {align:'center', angle:30});
+    }
+    doc.restoreGraphicsState();
+  }
+
+  // ── Page 1: title + meta ──
+  drawWatermark();
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(22);
+  doc.setTextColor(14,165,233);
+  doc.text('Basira', margin, y+8);
+  doc.setFontSize(14);
+  doc.setTextColor(51,65,85);
+  doc.text(title, margin+28, y+8);
+  y += 18;
+
+  if (inclMeta && analysisData && !isDemoMode) {
+    doc.setFontSize(9);
+    doc.setTextColor(100,116,139);
+    const meta = [
+      analysisData.strategy ? `Strategy: ${analysisData.strategy}` : null,
+      analysisData.task_type ? `Task: ${analysisData.task_type}` : null,
+      analysisData.target_column ? `Target: ${analysisData.target_column}` : null,
+      analysisData.n_rows ? `Rows: ${analysisData.n_rows}` : null,
+      `Exported: ${new Date().toLocaleString()}`,
+    ].filter(Boolean);
+    meta.forEach(m => { doc.text(m, margin, y); y+=5; });
+  } else {
+    doc.setFontSize(9); doc.setTextColor(100,116,139);
+    doc.text(`Exported: ${new Date().toLocaleString()}`, margin, y); y+=5;
+  }
+
+  // line
+  doc.setDrawColor(226,232,240); doc.setLineWidth(0.5);
+  doc.line(margin, y+2, W-margin, y+2); y+=10;
+
+  // ── Add each chart ──
+  const chartIds = Object.keys(chartConfigs);
+  const perRow   = orient==='landscape'?2:1;
+  const chartW   = orient==='landscape'?(W-margin*2-10)/2:(W-margin*2);
+  const chartH   = 70;
+
+  let col=0;
+  for (const id of chartIds) {
+    const canvas=document.getElementById(id); if(!canvas) continue;
+    // Check if we need a new page
+    if (y+chartH+14 > H-margin) {
+      doc.addPage(); drawWatermark(); y=margin;
+    }
+    const x = col===0 ? margin : margin+chartW+10;
+
+    // Chart title
+    const titleVal = (document.getElementById(`title-${id}`)?.value||id);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.setTextColor(15,23,42);
+    doc.text(titleVal, x, y); y+=5;
+
+    // Chart image
+    try {
+      const imgData = canvas.toDataURL('image/png',1.0);
+      doc.addImage(imgData,'PNG', x, y, chartW, chartH);
+    } catch(e) {
+      doc.setFontSize(8); doc.setTextColor(150);
+      doc.text('[Chart not available]', x+2, y+chartH/2);
+    }
+
+    if (perRow===2) {
+      if (col===0) { col=1; }
+      else { col=0; y+=chartH+12; }
+    } else {
+      y+=chartH+12;
+    }
+  }
+
+  doc.save(`basira_report_${new Date().toISOString().slice(0,10)}.pdf`);
+  closePdfModal();
+  toast('✅ PDF downloaded!');
+}
+
+// ── Utilities ─────────────────────────────────────────────────
+function esc(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function toast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.style.display='block';
+  setTimeout(()=>{el.style.display='none';},3500);
+}
+
+window.addEventListener('beforeunload',e=>{
+  if(hasUnsaved&&!isDemoMode){e.preventDefault();e.returnValue='';}
+});
+
+window.addEventListener('load',init);
+</script>
+
+<script>
+/* ── Basira Settings Sync ── */
+(function(){
+  const API = "http://127.0.0.1:5001/api/settings";
+
+  function applyTheme(v){
+    if(!v) return;
+    document.documentElement.setAttribute("data-theme", v);
+    try{ localStorage.setItem("basira_theme", v); }catch(e){}
+  }
+
+  function applyLang(lang){
+    if(!lang) return;
+    try{ localStorage.setItem("basira_lang", lang); }catch(e){}
+    document.documentElement.lang = lang;
+    document.documentElement.dir  = lang === "ar" ? "rtl" : "ltr";
+    // trigger page i18n if available
+    if(typeof applyPreprocessorI18n === "function") applyPreprocessorI18n();
+    if(typeof applyI18n === "function") applyI18n();
+  }
+
+  function loadSettings(){
+    fetch(API, {cache:"no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.status === "ok"){
+          applyTheme(d.theme);
+          applyLang(d.language);
+        }
+      })
+      .catch(function(){
+        // fallback to localStorage
+        applyTheme(localStorage.getItem("basira_theme") || "light");
+      });
+  }
+
+  // Load on page open
+  document.addEventListener("DOMContentLoaded", loadSettings);
+
+  // Re-apply when user returns to this tab
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "visible") loadSettings();
+  });
+  window.addEventListener("focus", loadSettings);
+})();
+
+</script>
+</body>
+</html>

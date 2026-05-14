@@ -1,0 +1,13 @@
+{
+  "source": "preprocessor",
+  "raw_dataset_path": "uploads\\223651_Basira_2026-05-13_test_students_data_cleaned.csv",
+  "last_step": "preprocessor",
+  "timestamp": "2026-05-13T22:36:52.451139",
+  "model_ready_dataset_path": "outputs\\Basira_2026-05-13_Basira_2026-05-13_test_students_data_cle_model_ready.csv",
+  "source_file": "20260513_222216_from_preprocessor.csv",
+  "target_column": "extracurricular_activities",
+  "cleaned_dataset_path": "outputs\\Basira_2026-05-13_Basira_2026-05-13_test_students_data_cle_cleaned.csv",
+  "audit_report_path": "outputs\\Basira_2026-05-13_Basira_2026-05-13_test_students_data_cle_audit.html",
+  "config_path": "outputs\\Basira_2026-05-13_Basira_2026-05-13_test_students_data_cle_config.json",
+  "task_type": "classification"
+}
